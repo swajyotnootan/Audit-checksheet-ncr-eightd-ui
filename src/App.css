@@ -1,0 +1,378 @@
+/* Calendar Styles - Add these to your App.css or main CSS file */
+
+/* React Big Calendar overrides */
+.rbc-calendar {
+  font-family: inherit;
+}
+
+.rbc-toolbar {
+  display: none !important; /* We're using our custom toolbar */
+}
+
+.rbc-month-view {
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.rbc-header {
+  background-color: #f9fafb;
+  border-bottom: 1px solid #e5e7eb;
+  padding: 8px 4px;
+  font-weight: 600;
+  font-size: 14px;
+  color: #374151;
+}
+
+.rbc-date-cell {
+  padding: 4px;
+}
+
+.rbc-date-cell.rbc-off-range {
+  color: #9ca3af;
+}
+
+.rbc-date-cell.rbc-today {
+  background-color: #dbeafe;
+}
+
+.rbc-event {
+  border-radius: 4px !important;
+  padding: 2px 4px !important;
+  font-size: 12px !important;
+  font-weight: 500 !important;
+}
+
+.rbc-event:hover {
+  opacity: 0.8;
+}
+
+.rbc-selected {
+  background-color: #3b82f6 !important;
+}
+
+.rbc-today {
+  background-color: #dbeafe;
+}
+
+.rbc-off-range-bg {
+  background-color: #f9fafb;
+}
+
+/* Custom scrollbar */
+.custom-scrollbar::-webkit-scrollbar {
+  width: 6px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 3px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: #c1c1c1;
+  border-radius: 3px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: #a8a8a8;
+}
+
+/* Modal styles */
+.modal-backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 16px;
+}
+
+.modal-content {
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+  max-width: 90vw;
+  max-height: 90vh;
+  overflow: hidden;
+  width: 100%;
+}
+
+/* Button styles */
+.btn-primary {
+  background-color: #3b82f6;
+  color: white;
+  padding: 8px 16px;
+  border-radius: 6px;
+  border: none;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.btn-primary:hover {
+  background-color: #2563eb;
+}
+
+.btn-primary:disabled {
+  background-color: #9ca3af;
+  cursor: not-allowed;
+}
+
+.btn-secondary {
+  background-color: #6b7280;
+  color: white;
+  padding: 8px 16px;
+  border-radius: 6px;
+  border: none;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.btn-secondary:hover {
+  background-color: #4b5563;
+}
+
+.btn-danger {
+  background-color: #ef4444;
+  color: white;
+  padding: 8px 16px;
+  border-radius: 6px;
+  border: none;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.btn-danger:hover {
+  background-color: #dc2626;
+}
+
+/* Input field styles */
+.input-field {
+  width: 100%;
+  padding: 8px 12px;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  font-size: 14px;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.input-field:focus {
+  outline: none;
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+/* Calendar grid improvements */
+.rbc-month-row {
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.rbc-month-row:last-child {
+  border-bottom: none;
+}
+
+.rbc-date-cell {
+  border-right: 1px solid #e5e7eb;
+}
+
+.rbc-date-cell:last-child {
+  border-right: none;
+}
+
+/* Week and day view improvements */
+.rbc-time-view {
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.rbc-time-header {
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.rbc-time-content {
+  border-top: none;
+}
+
+.rbc-timeslot-group {
+  border-bottom: 1px solid #f3f4f6;
+}
+
+.rbc-time-slot {
+  border-top: 1px solid #f9fafb;
+}
+
+.rbc-current-time-indicator {
+  background-color: #ef4444;
+  height: 2px;
+  z-index: 3;
+}
+
+/* Agenda view - FIXED */
+.rbc-agenda-view {
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  overflow: hidden;
+  background-color: white;
+}
+
+.rbc-agenda-view table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.rbc-agenda-view .rbc-header {
+  background-color: #f9fafb;
+  border-bottom: 1px solid #e5e7eb;
+  padding: 12px;
+  font-weight: 600;
+  font-size: 14px;
+  color: #1e293b; /* ← Dark text for headers */
+}
+
+.rbc-agenda-date-cell {
+  border-right: 1px solid #e5e7eb;
+  width: 120px;
+  padding: 12px;
+  font-weight: 500;
+  font-size: 14px;
+  color: #1e293b; /* ← Dark text for dates */
+  background-color: white;
+}
+
+.rbc-agenda-time-cell {
+  border-right: 1px solid #e5e7eb;
+  width: 100px;
+  padding: 12px;
+  font-size: 13px;
+  color: #374151; /* ← FIXED: Dark gray for time text */
+  font-weight: 500;
+  background-color: white;
+}
+
+.rbc-agenda-event-cell {
+  padding: 12px;
+  color: #1e293b; /* ← Dark text for event titles */
+  background-color: white;
+}
+
+.rbc-agenda-event-cell .rbc-event-label {
+  color: #374151;
+  font-weight: 500;
+}
+
+.rbc-agenda-event-cell .rbc-event-content {
+  color: #1e293b;
+  font-weight: 500;
+}
+
+/* Agenda view row hover */
+.rbc-agenda-view table.rbc-agenda-table tbody > tr:hover {
+  background-color: #f8fafc;
+}
+
+.rbc-agenda-view table.rbc-agenda-table tbody > tr > td {
+  border-bottom: 1px solid #f1f5f9;
+  vertical-align: middle;
+}
+
+/* Compact agenda view for smaller screens */
+@media (max-width: 768px) {
+  .rbc-agenda-date-cell {
+    width: 90px;
+    font-size: 12px;
+    padding: 8px;
+  }
+  
+  .rbc-agenda-time-cell {
+    width: 80px;
+    font-size: 11px;
+    padding: 8px;
+  }
+  
+  .rbc-agenda-event-cell {
+    padding: 8px;
+    font-size: 12px;
+  }
+}
+/* Responsive improvements */
+@media (max-width: 768px) {
+  .modal-content {
+    margin: 16px;
+    max-height: calc(100vh - 32px);
+  }
+  
+  .rbc-toolbar {
+    flex-direction: column;
+    gap: 8px;
+  }
+  
+  .rbc-btn-group {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+  }
+}
+
+
+/* --new one-- */
+/* Force dark text for all calendar content */
+.rbc-calendar * {
+  color: #1e293b; /* Default dark text for all calendar elements */
+}
+
+/* Override specific elements that need differentiation */
+.rbc-off-range {
+  color: #94a3b8 !important; /* Lighter but still visible for off-range dates */
+}
+
+.rbc-off-range-bg {
+  background-color: #f8fafc;
+}
+
+.rbc-today {
+  background-color: #eff6ff !important;
+}
+
+.rbc-today .rbc-date-cell {
+  color: #1d4ed8 !important;
+  font-weight: 600;
+}
+
+/* Event text colors - ensure visibility */
+.rbc-event {
+  color: #1e293b !important;
+}
+
+.rbc-event-label {
+  color: #1e293b !important;
+  font-weight: 600 !important;
+}
+
+.rbc-event-content {
+  color: #1e293b !important;
+}
+
+/* Time slot styling for week/day view */
+.rbc-time-slot {
+  color: #64748b;
+}
+
+.rbc-time-gutter .rbc-timeslot-group {
+  color: #475569;
+  font-size: 12px;
+}
+
+/* Current time indicator */
+.rbc-current-time-indicator {
+  background-color: #ef4444;
+  height: 2px;
+}

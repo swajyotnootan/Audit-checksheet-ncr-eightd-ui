@@ -1,0 +1,46 @@
+// vite.config.js
+import { defineConfig, loadEnv } from 'vite';
+import react from '@vitejs/plugin-react';
+import path from 'path';
+
+export default defineConfig(({ mode }) => {
+  const envDir = path.resolve(__dirname, 'env');
+  const env = loadEnv(mode, envDir, 'VITE_');
+
+  return {
+    plugins: [react()],
+    envDir,
+    
+    server: {
+      proxy: {
+        '/api': {
+          target: (env.VITE_API_BASE_URL || 'http://localhost:8080').trim(),
+          changeOrigin: true,
+          secure: false,
+        }
+      }
+    },
+    
+    // ✅ ADD THIS: Proxy for preview (production build testing)
+    preview: {
+      proxy: {
+        '/api': {
+          target: (env.VITE_API_BASE_URL || 'http://localhost:8080').trim(),
+          changeOrigin: true,
+          secure: false,
+        }
+      }
+    },
+    
+    build: {
+      rollupOptions: {
+        output: {
+          assetFileNames: 'assets/[name]-[hash][extname]',
+          chunkFileNames: 'assets/js/[name]-[hash].js',
+          entryFileNames: 'assets/js/[name]-[hash].js',
+        }
+      },
+      chunkSizeWarningLimit: 1000
+    }
+  };
+});

@@ -1,0 +1,11 @@
+﻿node_modules/
+dist/
+build/
+*.log
+*.zip
+*.mp4
+.env
+.DS_Store
+package-lock.json
+
+dist/
