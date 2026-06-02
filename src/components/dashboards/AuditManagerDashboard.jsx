@@ -20,7 +20,7 @@ import axios from 'axios';
 import YearFilter from '../../components/common/YearFilter';
 
 
-const API_BASE = 'http://localhost:8080/api';
+const API_BASE = 'https://qsutrarmsclm.hub.swajyot.co.in:8476/api';
 
 // ============================================================================
 // STAT CARD COMPONENT

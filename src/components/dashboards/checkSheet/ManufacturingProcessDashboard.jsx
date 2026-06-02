@@ -52,7 +52,7 @@ const loadData = async () => {
   setLoading(true);
   try {
     // Use getAllAuditResponses since it works
-    const response = await axios.get('http://localhost:8080/api/templates/responses/all', {
+    const response = await axios.get('https://qsutrarmsclm.hub.swajyot.co.in:8476/api/templates/responses/all', {
       withCredentials: true
     });
     

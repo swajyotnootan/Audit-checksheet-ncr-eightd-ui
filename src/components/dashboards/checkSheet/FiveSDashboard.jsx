@@ -49,7 +49,7 @@ export default function FiveSDashboard() {
   // Fetch all 5S check sheet IDs dynamically
   const fetchFiveSCheckSheetIds = async () => {
     try {
-      const response = await axios.get('http://localhost:8080/api/templates/type/FIVE_S', {
+      const response = await axios.get('https://qsutrarmsclm.hub.swajyot.co.in:8476/api/templates/type/FIVE_S', {
         withCredentials: true
       });
       
@@ -78,7 +78,7 @@ export default function FiveSDashboard() {
       }
       
       // Fetch all audit responses
-      const response = await axios.get('http://localhost:8080/api/templates/responses/all', {
+      const response = await axios.get('https://qsutrarmsclm.hub.swajyot.co.in:8476/api/templates/responses/all', {
         withCredentials: true
       });
       

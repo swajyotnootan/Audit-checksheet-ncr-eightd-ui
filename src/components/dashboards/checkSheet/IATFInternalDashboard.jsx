@@ -68,7 +68,7 @@ export default function IATFInternalDashboard() {
   // Fetch all IATF check sheet IDs first
   const fetchIATFCheckSheetIds = async () => {
     try {
-      const response = await axios.get('http://localhost:8080/api/templates/type/IATF_16949', {
+      const response = await axios.get('https://qsutrarmsclm.hub.swajyot.co.in:8476/api/templates/type/IATF_16949', {
         withCredentials: true
       });
       
@@ -97,7 +97,7 @@ export default function IATFInternalDashboard() {
       }
       
       // Fetch all audit responses
-      const response = await axios.get('http://localhost:8080/api/templates/responses/all', {
+      const response = await axios.get('https://qsutrarmsclm.hub.swajyot.co.in:8476/api/templates/responses/all', {
         withCredentials: true
       });
       

@@ -322,7 +322,7 @@ export default function Form9View() {
     setError(null);
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch('http://localhost:8080/api/ncr/all', {
+      const response = await fetch('https://qsutrarmsclm.hub.swajyot.co.in:8476/api/ncr/all', {
         headers: { 'Authorization': token ? `Bearer ${token}` : '', 'Content-Type': 'application/json' }
       });
       if (response.ok) {
@@ -417,7 +417,7 @@ export default function Form9View() {
     setError(null);
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch('http://localhost:8080/api/ncr/form9/pdf', {
+      const response = await fetch('https://qsutrarmsclm.hub.swajyot.co.in:8476/api/ncr/form9/pdf', {
         method: 'GET',
         headers: { 'Authorization': token ? `Bearer ${token}` : '' }
       });

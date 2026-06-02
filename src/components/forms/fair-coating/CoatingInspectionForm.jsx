@@ -605,7 +605,7 @@ const CoatingInspectionForm = ({ isNew }) => {
 
   // Helper to build signature URL
   const getSignatureUrl = (firstName, lastName) =>
-    `http://localhost:8080/api/users/signature?firstName=${encodeURIComponent(firstName || '')}&lastName=${encodeURIComponent(lastName || '')}`;
+    `https://qsutrarmsclm.hub.swajyot.co.in:8476/api/users/signature?firstName=${encodeURIComponent(firstName || '')}&lastName=${encodeURIComponent(lastName || '')}`;
 
   // Get appropriate role display for signatures
   const getSubmitterRoleDisplay = () => {

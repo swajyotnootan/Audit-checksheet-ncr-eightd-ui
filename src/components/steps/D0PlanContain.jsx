@@ -954,7 +954,7 @@ export default function D0PlanContain({ eventId = null, updateParent, initialIsN
     String(eventId || formData.eventNo || "").startsWith("8D-NCR-")
   );
 
-  const API_BASE_URL = "http://localhost:8080";
+  const API_BASE_URL = "https://qsutrarmsclm.hub.swajyot.co.in:8476";
   const API_URL_JSON = `${API_BASE_URL}/api/eightd/data`;
 
   // Prepare user options for dropdown - ENHANCED VERSION
@@ -1606,7 +1606,7 @@ if (allMembers.length > 0 && (user?.role === "MASTER" || user?.role === "ADMIN" 
     console.log('🎯 Creating/Verifying 8D forum group for event:', formData.eventNo);
     
     // ✅ Direct POST - backend handles creation OR update
-    const response = await fetch('http://localhost:8080/api/forum/8d/groups', {
+    const response = await fetch('https://qsutrarmsclm.hub.swajyot.co.in:8476/api/forum/8d/groups', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(eightDGroupData)

@@ -59,7 +59,7 @@ export default function D1FormTeam({ eventId, updateParent }) {
       setLoading(true);
       try {
         console.log("Fetching D1 data for eventId:", eventId);
-        const res = await axios.get(`http://localhost:8080/api/eightd/data/${eventId}`);
+        const res = await axios.get(`https://qsutrarmsclm.hub.swajyot.co.in:8476/api/eightd/data/${eventId}`);
         
         // Debug the response
         debugApiResponse(res);
@@ -303,12 +303,12 @@ export default function D1FormTeam({ eventId, updateParent }) {
       
       if (recordId) {
         const eventNo = rows[0].eventId || recordId;
-        await axios.put(`http://localhost:8080/api/eightd/data/${eventNo}`, formData, {
+        await axios.put(`https://qsutrarmsclm.hub.swajyot.co.in:8476/api/eightd/data/${eventNo}`, formData, {
           headers: { 'Content-Type': 'multipart/form-data' }
         });
         alert("D1 form updated successfully!");
       } else {
-        const res = await axios.post("http://localhost:8080/api/eightd/data", formData, {
+        const res = await axios.post("https://qsutrarmsclm.hub.swajyot.co.in:8476/api/eightd/data", formData, {
           headers: { 'Content-Type': 'multipart/form-data' }
         });
         if (res.data?.data?.id) {

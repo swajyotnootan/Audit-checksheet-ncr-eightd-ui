@@ -1,7 +1,7 @@
 // src/services/auditScheduleApi.js
 import axios from 'axios';
 
-const API_BASE = 'http://localhost:8080/api';
+const API_BASE = 'https://qsutrarmsclm.hub.swajyot.co.in:8476/api';
 
 export const auditScheduleApi = {
   // ========== USER MANAGEMENT - FIXED ==========

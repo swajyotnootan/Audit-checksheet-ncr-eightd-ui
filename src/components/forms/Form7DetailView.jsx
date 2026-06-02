@@ -218,7 +218,7 @@ export default function Form7DetailView() {
     try {
       const token = localStorage.getItem('token');
       const response = await fetch(
-        `http://localhost:8080/api/users/${userId}/signature`,
+        `https://qsutrarmsclm.hub.swajyot.co.in:8476/api/users/${userId}/signature`,
         { headers: { Authorization: token ? `Bearer ${token}` : '' } }
       );
       if (!response.ok) return null;
@@ -272,7 +272,7 @@ export default function Form7DetailView() {
     try {
       const token = localStorage.getItem('token');
       const response = await fetch(
-        `http://localhost:8080/api/ncr/${ncr.id}/form7-pdf`,
+        `https://qsutrarmsclm.hub.swajyot.co.in:8476/api/ncr/${ncr.id}/form7-pdf`,
         { headers: { Authorization: token ? `Bearer ${token}` : '' } }
       );
       if (response.ok) {
@@ -397,7 +397,7 @@ const handleReject = () => {
 
     for (const candidate of directCandidates) {
       try {
-        const response = await fetch(`http://localhost:8080/api/eightd/data/${encodeURIComponent(candidate)}`);
+        const response = await fetch(`https://qsutrarmsclm.hub.swajyot.co.in:8476/api/eightd/data/${encodeURIComponent(candidate)}`);
         const data = await response.json();
         if (response.ok && data?.success && data?.data) return candidate;
       } catch {
@@ -405,7 +405,7 @@ const handleReject = () => {
       }
     }
 
-    const response = await fetch(`http://localhost:8080/api/eightd/data?t=${Date.now()}`);
+    const response = await fetch(`https://qsutrarmsclm.hub.swajyot.co.in:8476/api/eightd/data?t=${Date.now()}`);
     const data = await response.json();
     const events = Array.isArray(data?.data) ? data.data : [];
     const matchedEvent = events.find((event) => {

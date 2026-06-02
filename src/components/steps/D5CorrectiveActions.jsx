@@ -16,7 +16,7 @@ import Drawer from "../Drawer";
 import FinalPreview from "./FinalPreview";
 
 export default function D5CorrectiveActions({ eventId = null, updateParent }) {
-  const API_URL = "http://localhost:8080/api/eightd/data";
+  const API_URL = "https://qsutrarmsclm.hub.swajyot.co.in:8476/api/eightd/data";
   const LOCAL_STORAGE_KEY = eventId ? `d5-event-${eventId}` : "d5-new-event";
   const predefinedActions = [
     "Hiring additional staff to reduce workload and improve safety and quality standards.",

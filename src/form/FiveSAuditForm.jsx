@@ -18,7 +18,7 @@ import {
   FileCheck
 } from 'lucide-react';
 
-const API_BASE = 'http://localhost:8080/api';
+const API_BASE = 'https://qsutrarmsclm.hub.swajyot.co.in:8476/api';
 
 // 5S Score options (0-4 scale)
 const SCORE_OPTIONS = [

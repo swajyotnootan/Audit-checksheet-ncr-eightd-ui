@@ -11,7 +11,7 @@ import {
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../ToastContext';  // ← Import your custom hook
 
-const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:8080/api';
+const API_BASE = import.meta.env.VITE_API_URL || 'https://qsutrarmsclm.hub.swajyot.co.in:8476/api';
 
 const QMSAdminDashboard = () => {
   const { user } = useAuth();

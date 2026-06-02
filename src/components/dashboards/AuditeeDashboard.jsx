@@ -21,7 +21,7 @@ import ForumThreadView from '../forum/ForumThreadView';
 import Drawer from '../Drawer';
 import { MessageCircle } from 'lucide-react';
 
-const API_BASE = 'http://localhost:8080/api';
+const API_BASE = 'https://qsutrarmsclm.hub.swajyot.co.in:8476/api';
 
 const getViewRoute = (audit) => {
   const auditType = (audit.auditType || '').toLowerCase().trim();
@@ -590,7 +590,7 @@ const AuditeeDashboard = () => {
     try {
       const eightDEventId = `8D-NCR-${ncr.ncrNumber}`;
       const response = await axios.get(
-        `http://localhost:8080/api/eightd/data/${eightDEventId}`
+        `https://qsutrarmsclm.hub.swajyot.co.in:8476/api/eightd/data/${eightDEventId}`
       );
       if (response.data?.success && response.data.data) {
         const d0Data = response.data.data.content?.d0?.[0] || {};

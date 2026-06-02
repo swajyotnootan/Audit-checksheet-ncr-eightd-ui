@@ -20,7 +20,7 @@ import { auditScheduleApi } from '../../services/auditScheduleApi';
 
 
 
-const API_BASE = 'http://localhost:8080/api';
+const API_BASE = 'https://qsutrarmsclm.hub.swajyot.co.in:8476/api';
 
 const TopManagementDashboard = () => {
   const { user } = useAuth();

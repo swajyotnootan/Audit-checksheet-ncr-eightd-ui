@@ -10,7 +10,7 @@ import AuditCheckSheetNCRForumModal from '../modals/AuditCheckSheetNCRForumModal
 import axios from 'axios';
 import { useAuth } from '../context/AuthContext';
 
-const API_BASE = 'http://localhost:8080/api';
+const API_BASE = 'https://qsutrarmsclm.hub.swajyot.co.in:8476/api';
 
 // ─────────────────────────────────────────────────────────────
 // Helper Functions

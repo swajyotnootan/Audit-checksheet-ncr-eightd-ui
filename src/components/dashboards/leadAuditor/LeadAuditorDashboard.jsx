@@ -15,7 +15,7 @@ import AuditsAndResponses from './AuditsAndResponses';
 import StakeholderManagement from './StakeholderManagement';
 import ResponseDetailModal from './ResponseDetailModal';
 import { useNavigate, useLocation } from 'react-router-dom';
-const API_BASE = 'http://localhost:8080/api';
+const API_BASE = 'https://qsutrarmsclm.hub.swajyot.co.in:8476/api';
 
 const PremiumCard = ({ children, className = "", gradient = false, hover = true }) => (
   <div className={`

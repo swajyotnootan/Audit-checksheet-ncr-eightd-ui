@@ -339,7 +339,7 @@ export default function Form8View() {
     setPdfDownloading(true);
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch(`http://localhost:8080/api/ncr/${ncrId}/form8-pdf`, {
+      const response = await fetch(`https://qsutrarmsclm.hub.swajyot.co.in:8476/api/ncr/${ncrId}/form8-pdf`, {
         headers: { Authorization: token ? `Bearer ${token}` : '' },
       });
       if (!response.ok) throw new Error('Failed to download Form 8 PDF');

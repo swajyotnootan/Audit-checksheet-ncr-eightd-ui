@@ -74,7 +74,7 @@ const EmailNotificationModal = ({
 
     const fetchUsers = async () => {
       try {
-        const res = await axios.get("http://localhost:8080/api/users/active");
+        const res = await axios.get("https://qsutrarmsclm.hub.swajyot.co.in:8476/api/users/active");
         const allUsers = res.data;
 
         const storedUser = localStorage.getItem("user");
@@ -208,7 +208,7 @@ ${name} (${role})
 
       try {
         setIsSending(true);
-        const response = await axios.post("http://localhost:8080/api/email/send", payload);
+        const response = await axios.post("https://qsutrarmsclm.hub.swajyot.co.in:8476/api/email/send", payload);
         if (response.data?.success === true) {
           alert("✅ Email sent successfully!");
         } else {

@@ -3,7 +3,7 @@ import axios from 'axios';
 
 // Axios instance configuration
 const api = axios.create({
-  baseURL: 'http://localhost:8080/api',
+  baseURL: 'https://qsutrarmsclm.hub.swajyot.co.in:8476/api',
   headers: {
     'Content-Type': 'application/json'
   }
@@ -127,9 +127,9 @@ export const userAPI = {
   deleteProfilePhoto: (userId) => api.delete(`/users/${userId}/profile-photo`),
   
   // Helper methods to get URLs for display
-  getSignatureUrl: (userId) => `http://localhost:8080/api/users/${userId}/signature`,
+  getSignatureUrl: (userId) => `https://qsutrarmsclm.hub.swajyot.co.in:8476/api/users/${userId}/signature`,
   
-  getProfilePhotoUrl: (userId) => `http://localhost:8080/api/users/${userId}/profile-photo`,
+  getProfilePhotoUrl: (userId) => `https://qsutrarmsclm.hub.swajyot.co.in:8476/api/users/${userId}/profile-photo`,
 
   // After the existing methods, add:
 

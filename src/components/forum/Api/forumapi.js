@@ -2,7 +2,7 @@
 import axios from "axios";
 
 const forumApi = axios.create({
-  baseURL: "http://localhost:8080/api",
+  baseURL: "https://qsutrarmsclm.hub.swajyot.co.in:8476/api",
   headers: { "Content-Type": "application/json" },
 });
 
@@ -54,7 +54,7 @@ export const uploadForumAttachment = (groupId, file) => {
 
 // ===== EXISTING MAIN FORUM APIS (UNCHANGED) =====
 export const sendCallNotification = async (groupId, action, caller, callerName, targetUser = null) => {
-  const response = await fetch('http://localhost:8080/api/forum/call-notification', {
+  const response = await fetch('https://qsutrarmsclm.hub.swajyot.co.in:8476/api/forum/call-notification', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ groupId, action, caller, callerName, targetUser, timestamp: new Date().toISOString() }),
@@ -64,7 +64,7 @@ export const sendCallNotification = async (groupId, action, caller, callerName, 
 };
 
 export const checkActiveCalls = async (groupId) => {
-  const response = await fetch(`http://localhost:8080/api/forum/active-calls?groupId=${groupId}`);
+  const response = await fetch(`https://qsutrarmsclm.hub.swajyot.co.in:8476/api/forum/active-calls?groupId=${groupId}`);
   if (!response.ok) throw new Error('Failed to check active calls');
   return await response.json();
 };

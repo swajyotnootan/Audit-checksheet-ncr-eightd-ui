@@ -54,7 +54,7 @@ export const TopNavBar = ({ user, onLogout }) => {
     // Get profile photo URL
     const getProfilePhotoUrl = (user) => {
         if (user?.id && user.profilePhotoPath && !profilePhotoError) {
-            return `http://localhost:8080/api/users/${user.id}/profile-photo`;
+            return `https://qsutrarmsclm.hub.swajyot.co.in:8476/api/users/${user.id}/profile-photo`;
         }
         return null;
     };
@@ -88,7 +88,7 @@ export const TopNavBar = ({ user, onLogout }) => {
     };
 
     const userId = getUserId(user);
-    const profilePhotoUrl = userId ? `http://localhost:8080/api/users/${userId}/profile-photo` : null;
+    const profilePhotoUrl = userId ? `https://qsutrarmsclm.hub.swajyot.co.in:8476/api/users/${userId}/profile-photo` : null;
 
     const userDisplayName = getUserDisplayName(user);
     const userInitials = getInitials(user);

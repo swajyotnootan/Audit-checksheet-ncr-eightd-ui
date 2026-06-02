@@ -79,7 +79,7 @@ export default function SafetyAuditForm() {
   // Fetch all Safety check sheet IDs dynamically
   const fetchSafetyCheckSheetIds = async () => {
     try {
-      const response = await axios.get('http://localhost:8080/api/templates/type/DAILY_SAFETY', {
+      const response = await axios.get('https://qsutrarmsclm.hub.swajyot.co.in:8476/api/templates/type/DAILY_SAFETY', {
         withCredentials: true
       });
       
@@ -107,7 +107,7 @@ export default function SafetyAuditForm() {
       const checkSheetId = safetyIds[0];
       console.log('✅ Using Safety check sheet ID:', checkSheetId);
       
-      const response = await axios.get(`http://localhost:8080/api/templates/${checkSheetId}`, {
+      const response = await axios.get(`https://qsutrarmsclm.hub.swajyot.co.in:8476/api/templates/${checkSheetId}`, {
         withCredentials: true
       });
       const checkSheet = response.data;

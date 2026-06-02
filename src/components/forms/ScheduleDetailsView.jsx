@@ -11,7 +11,7 @@ import {
   FiChevronDown, FiChevronUp
 } from 'react-icons/fi';
 
-const API_BASE = 'http://localhost:8080/api';
+const API_BASE = 'https://qsutrarmsclm.hub.swajyot.co.in:8476/api';
 
 const ScheduleDetailsView = () => {
   const navigate = useNavigate();

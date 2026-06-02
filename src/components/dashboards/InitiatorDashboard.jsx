@@ -203,7 +203,7 @@ const InitiatorDashboard = ({ user, onLogout }) => {
     completed: 0
   });
 
-  const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8080';
+  const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://qsutrarmsclm.hub.swajyot.co.in:8476';
 
   useEffect(() => {
     fetchReports();
