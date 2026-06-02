@@ -30,7 +30,12 @@ function getFirstUnfilledStep(formData) {
 export default function EightDLanding() {
   const navigate = useNavigate();
   const location = useLocation();
-  const { eventId, step: startStep, isNcrBased, type } = location.state || {};
+  const queryParams = new URLSearchParams(location.search);
+  const stateData = location.state || {};
+  const eventId = stateData.eventId || queryParams.get("eventId");
+  const startStep = stateData.step || queryParams.get("step");
+  const isNcrBased = stateData.isNcrBased ?? queryParams.get("isNcrBased") === "true";
+  const type = stateData.type || queryParams.get("type");
   const startedFromNcrFlow = Boolean(
     isNcrBased ||
     type === "ncr" ||

@@ -731,7 +731,6 @@ const ThreadComposer = ({
               ? "bg-green-500 text-white"
               : "text-gray-400 cursor-not-allowed"
           }`}
-          onClick={() => onRetry && onRetry(thread)}
         >
           <Send size={18} />
         </button>

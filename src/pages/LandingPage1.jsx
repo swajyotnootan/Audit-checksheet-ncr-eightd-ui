@@ -329,7 +329,8 @@ export default function LandingPage1() {
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [eventToDelete, setEventToDelete] = useState(null);
   const [showDeleteSuccess, setShowDeleteSuccess] = useState(false);
-  const selectedEventId = location.state?.selectedEventId || null;
+  const queryParams = new URLSearchParams(location.search);
+  const selectedEventId = location.state?.selectedEventId || queryParams.get("eventId") || null;
 
     const [teamMembersMap, setTeamMembersMap] = useState({});
   const dashboardType = location.state?.type || "all";
