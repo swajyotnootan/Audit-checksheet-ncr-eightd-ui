@@ -1643,10 +1643,8 @@ const handleRequestExtension = async (scheduleId, newDate, newStartTime, newEndT
 }
 
 // ─────────────────────────────────────────────────────────────
-// Reschedule Modal
+// Reschedule Modal with Frontend Overlap Detection
 // ─────────────────────────────────────────────────────────────
-// Updated RescheduleRequestModal component
-// Complete updated RescheduleRequestModal component
 const RescheduleRequestModal = ({ audit, isOpen, onClose, onSubmit }) => {
   const [newDate, setNewDate] = useState('');
   const [newStartTime, setNewStartTime] = useState('');
@@ -1654,7 +1652,121 @@ const RescheduleRequestModal = ({ audit, isOpen, onClose, onSubmit }) => {
   const [reason, setReason] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [dateError, setDateError] = useState('');
+  const [timeConflictError, setTimeConflictError] = useState('');
+  const [conflictDetails, setConflictDetails] = useState([]);
+  const [checkingConflict, setCheckingConflict] = useState(false);
+  const [existingSchedules, setExistingSchedules] = useState([]);
   const { addToast } = useToast();
+
+  // Helper: Parse time string to minutes for comparison
+  const parseTimeToMinutes = (timeStr) => {
+    if (!timeStr) return 0;
+    const match = timeStr.match(/(\d+):(\d+)\s*(AM|PM)/i);
+    if (!match) return 0;
+    let hours = parseInt(match[1]);
+    const minutes = parseInt(match[2]);
+    const meridian = match[3].toUpperCase();
+    
+    if (meridian === 'PM' && hours !== 12) hours += 12;
+    if (meridian === 'AM' && hours === 12) hours = 0;
+    
+    return hours * 60 + minutes;
+  };
+
+  // Helper: Check if two time ranges overlap
+  const doTimeRangesOverlap = (start1, end1, start2, end2) => {
+    const start1Min = parseTimeToMinutes(start1);
+    const end1Min = parseTimeToMinutes(end1);
+    const start2Min = parseTimeToMinutes(start2);
+    const end2Min = parseTimeToMinutes(end2);
+    
+    // Overlap condition: start1 < end2 AND end1 > start2
+    return start1Min < end2Min && end1Min > start2Min;
+  };
+
+  // Fetch all existing schedules for the auditor
+  const fetchExistingSchedules = async () => {
+    try {
+      const auditorId = audit?.auditorId || audit?.leadAuditorId;
+      if (!auditorId) return [];
+      
+      const response = await axios.get(
+        `${API_BASE}/audit-schedule/auditor/${auditorId}/schedules-with-status`,
+        { withCredentials: true }
+      );
+      
+      return response.data || [];
+    } catch (error) {
+      console.error('Error fetching schedules:', error);
+      return [];
+    }
+  };
+
+  // Check for scheduling conflicts with overlap detection (frontend-only)
+  const checkSchedulingConflict = async (date, startTime, endTime) => {
+    if (!date || !startTime || !endTime || !audit?.id) return false;
+    
+    setCheckingConflict(true);
+    setTimeConflictError('');
+    setConflictDetails([]);
+    
+    try {
+      const formattedDate = new Date(date).toISOString().split('T')[0];
+      
+      // Fetch schedules if not already fetched
+      let schedules = existingSchedules;
+      if (schedules.length === 0) {
+        schedules = await fetchExistingSchedules();
+        setExistingSchedules(schedules);
+      }
+      
+      // Find conflicting schedules on the same date with overlapping times
+      const conflicts = schedules.filter(schedule => {
+        // Skip current audit
+        if (schedule.schedule?.id === audit.id) return false;
+        
+        // Check if same date
+        const scheduleDate = schedule.schedule?.scheduledDate;
+        if (scheduleDate !== formattedDate) return false;
+        
+        // Get schedule times
+        const scheduleStart = schedule.schedule?.startTime;
+        const scheduleEnd = schedule.schedule?.endTime;
+        
+        if (!scheduleStart || !scheduleEnd) return false;
+        
+        // Check for time overlap
+        return doTimeRangesOverlap(startTime, endTime, scheduleStart, scheduleEnd);
+      });
+      
+      if (conflicts.length > 0) {
+        setConflictDetails(conflicts);
+        
+        // Build user-friendly error message
+        const conflict = conflicts[0];
+        const conflictStart = conflict.schedule?.startTime;
+        const conflictEnd = conflict.schedule?.endTime;
+        const conflictDept = conflict.schedule?.department;
+        
+        const errorMsg = `Time conflict: You already have an audit scheduled on ${formattedDate} from ${conflictStart} - ${conflictEnd}. ` +
+                        `Your requested time (${startTime} - ${endTime}) overlaps with this audit.` +
+                        (conflictDept ? ` (Department: ${conflictDept})` : '');
+        
+        setTimeConflictError(errorMsg);
+        return true;
+      }
+      
+      setTimeConflictError('');
+      setConflictDetails([]);
+      return false;
+    } catch (error) {
+      console.error('Error checking schedule conflict:', error);
+      addToast('Unable to verify schedule availability. Please proceed with caution.', 'warning');
+      return false;
+    } finally {
+      setCheckingConflict(false);
+    }
+  };
 
   // Calculate date restrictions
   const getDateRestrictions = () => {
@@ -1662,10 +1774,7 @@ const RescheduleRequestModal = ({ audit, isOpen, onClose, onSubmit }) => {
     const tomorrow = new Date(today);
     tomorrow.setDate(today.getDate() + 1);
     
-    // Minimum date: tomorrow
     const minDate = tomorrow;
-    
-    // Maximum date: 3 weeks from now
     const maxDate = new Date(today);
     maxDate.setDate(today.getDate() + 21);
     
@@ -1684,13 +1793,11 @@ const RescheduleRequestModal = ({ audit, isOpen, onClose, onSubmit }) => {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
     
-    // Check if date is today or in the past
     if (selectedDate <= today) {
       setDateError('Reschedule date must be a future date (tomorrow or later)');
       return false;
     }
     
-    // Check if date is within allowed range
     const maxAllowed = new Date();
     maxAllowed.setDate(maxAllowed.getDate() + 21);
     
@@ -1711,61 +1818,81 @@ const RescheduleRequestModal = ({ audit, isOpen, onClose, onSubmit }) => {
     } else {
       setDateError('');
     }
+    setTimeConflictError('');
+    setConflictDetails([]);
   };
 
+  const handleStartTimeChange = (e) => {
+    setNewStartTime(e.target.value);
+    setTimeConflictError('');
+    setConflictDetails([]);
+  };
+
+  const handleEndTimeChange = (e) => {
+    setNewEndTime(e.target.value);
+    setTimeConflictError('');
+    setConflictDetails([]);
+  };
+
+  // Check for conflicts when time selection changes
   useEffect(() => {
-    if (audit && isOpen) { 
-      // Set default date to tomorrow
+    if (newDate && newStartTime && newEndTime && !dateError) {
+      const delayDebounce = setTimeout(() => {
+        checkSchedulingConflict(newDate, newStartTime, newEndTime);
+      }, 500);
+      
+      return () => clearTimeout(delayDebounce);
+    }
+  }, [newDate, newStartTime, newEndTime, dateError]);
+
+  // Refresh schedules when modal opens
+  useEffect(() => {
+    if (audit && isOpen) {
       const defaultDate = new Date();
       defaultDate.setDate(defaultDate.getDate() + 1);
-      setNewDate(defaultDate.toISOString().split('T')[0]); 
-      setNewStartTime(audit.startTime || '09:00 AM'); 
-      setNewEndTime(audit.endTime || '10:00 AM'); 
-      setReason(''); 
+      setNewDate(defaultDate.toISOString().split('T')[0]);
+      setNewStartTime(audit.startTime || '09:00 AM');
+      setNewEndTime(audit.endTime || '10:00 AM');
+      setReason('');
       setDateError('');
+      setTimeConflictError('');
+      setConflictDetails([]);
+      setExistingSchedules([]); // Clear cache to force fresh fetch
     }
   }, [audit, isOpen]);
 
   const handleSubmit = async () => {
-    if (!newDate) { 
-      addToast('Please select new date', 'error'); 
-      return; 
+    if (!newDate) {
+      addToast('Please select new date', 'error');
+      return;
     }
     
-    // Validate date before submission
     if (!validateDate(newDate)) {
       addToast(dateError, 'error');
       return;
     }
     
-    if (!reason.trim()) { 
-      addToast('Please provide a reason', 'error'); 
-      return; 
+    const hasConflict = await checkSchedulingConflict(newDate, newStartTime, newEndTime);
+    if (hasConflict) {
+      addToast(timeConflictError || 'Time slot conflicts with another audit schedule', 'error');
+      return;
+    }
+    
+    if (!reason.trim()) {
+      addToast('Please provide a reason', 'error');
+      return;
     }
     
     setSubmitting(true);
     try {
-      // Format the date properly for backend
       const formattedDate = new Date(newDate).toISOString().split('T')[0];
-      
-      console.log('Submitting reschedule:', {
-        scheduleId: audit.id,
-        newDate: formattedDate,
-        newStartTime,
-        newEndTime,
-        reason
-      });
       
       await onSubmit(audit.id, formattedDate, newStartTime, newEndTime, reason);
       addToast('Reschedule request submitted successfully!', 'success');
       onClose();
     } catch (error) {
       console.error('Reschedule error details:', error);
-      console.error('Response data:', error.response?.data);
-      console.error('Response status:', error.response?.status);
-      
-      // Show more detailed error message
-      const errorMessage = error.response?.data?.message || 
+      const errorMessage = error.response?.data?.message ||
                           error.response?.data?.error ||
                           'Failed to submit reschedule request';
       addToast(errorMessage, 'error');
@@ -1776,38 +1903,11 @@ const RescheduleRequestModal = ({ audit, isOpen, onClose, onSubmit }) => {
 
   if (!isOpen) return null;
   
-  // Get available dates with unique keys
-  const getAvailableDatesInfo = () => {
-    const today = new Date();
-    const weekdayOptions = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'];
-    const nextWeekDates = [];
-    
-    for (let i = 1; i <= 21; i++) {
-      const futureDate = new Date(today);
-      futureDate.setDate(today.getDate() + i);
-      const dayName = futureDate.toLocaleDateString('en-US', { weekday: 'long' });
-      if (weekdayOptions.includes(dayName)) {
-        nextWeekDates.push({
-          id: `date-${futureDate.getTime()}`, // Unique ID using timestamp
-          date: futureDate,
-          day: dayName,
-          dateStr: futureDate.toLocaleDateString('en-GB'),
-          isoDate: futureDate.toISOString().split('T')[0]
-        });
-        if (nextWeekDates.length >= 10) break;
-      }
-    }
-    
-    return nextWeekDates;
-  };
-  
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/30 backdrop-blur-sm">
-      <div className="w-full max-w-md p-5 border shadow-2xl backdrop-blur-xl bg-white/95 rounded-2xl border-white/30">
+      <div className="w-full max-w-md p-5 border shadow-2xl backdrop-blur-xl bg-white/95 rounded-2xl border-white/30 max-h-[90vh] overflow-y-auto">
         <h3 className="mb-3 text-lg font-semibold text-gray-800">Request Reschedule</h3>
         <p className="mb-2 text-sm text-gray-600">Reschedule <strong>{audit?.auditType}</strong> for <strong>{audit?.department}</strong></p>
-        
-        
         
         <div className="space-y-3">
           <div>
@@ -1827,29 +1927,72 @@ const RescheduleRequestModal = ({ audit, isOpen, onClose, onSubmit }) => {
             )}
           </div>
           
-          
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="block mb-1 text-sm font-medium text-gray-700">Start Time</label>
+              <label className="block mb-1 text-sm font-medium text-gray-700">Start Time *</label>
               <select 
                 value={newStartTime} 
-                onChange={e => setNewStartTime(e.target.value)} 
-                className="w-full p-2 text-sm border border-gray-200 rounded-xl"
+                onChange={handleStartTimeChange}
+                className={`w-full p-2 text-sm border rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
+                  timeConflictError && newStartTime && newEndTime ? 'border-red-500 bg-red-50' : 'border-gray-200'
+                }`}
               >
-                {TIME_OPTIONS.map((t, idx) => <option key={idx}>{t}</option>)}
+                {TIME_OPTIONS.map((t, idx) => (
+                  <option key={idx} value={t}>{t}</option>
+                ))}
               </select>
             </div>
             <div>
-              <label className="block mb-1 text-sm font-medium text-gray-700">End Time</label>
+              <label className="block mb-1 text-sm font-medium text-gray-700">End Time *</label>
               <select 
                 value={newEndTime} 
-                onChange={e => setNewEndTime(e.target.value)} 
-                className="w-full p-2 text-sm border border-gray-200 rounded-xl"
+                onChange={handleEndTimeChange}
+                className={`w-full p-2 text-sm border rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
+                  timeConflictError && newStartTime && newEndTime ? 'border-red-500 bg-red-50' : 'border-gray-200'
+                }`}
               >
-                {TIME_OPTIONS.map((t, idx) => <option key={idx}>{t}</option>)}
+                {TIME_OPTIONS.map((t, idx) => (
+                  <option key={idx} value={t}>{t}</option>
+                ))}
               </select>
             </div>
           </div>
+          
+          {/* Time Conflict Error Message */}
+          {timeConflictError && (
+            <div className="flex items-start gap-2 p-3 text-sm border backdrop-blur-sm bg-red-50/80 rounded-xl border-red-200/50">
+              <AlertCircle size={16} className="text-red-600 mt-0.5 flex-shrink-0" />
+              <div className="flex-1">
+                <span className="text-red-700">{timeConflictError}</span>
+                {conflictDetails.length > 0 && (
+                  <div className="mt-2 text-xs text-red-600">
+                    {conflictDetails.map((conflict, idx) => (
+                      <div key={idx} className="mt-1">
+                        🔴 Conflict: {conflict.schedule?.startTime} - {conflict.schedule?.endTime}
+                        {conflict.schedule?.department && ` (${conflict.schedule.department})`}
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+          
+          {/* Loading indicator for conflict check */}
+          {checkingConflict && newDate && newStartTime && newEndTime && !timeConflictError && (
+            <div className="flex items-center gap-2 p-2 text-xs text-blue-600">
+              <RefreshCw size={12} className="animate-spin" />
+              <span>Checking availability...</span>
+            </div>
+          )}
+          
+          {/* Success indicator for available slot */}
+          {!checkingConflict && newDate && newStartTime && newEndTime && !timeConflictError && !dateError && (
+            <div className="flex items-center gap-2 p-2 text-xs text-green-600">
+              <CheckCircle size={12} />
+              <span>Time slot available</span>
+            </div>
+          )}
           
           <div>
             <label className="block mb-1 text-sm font-medium text-gray-700">Reason for Reschedule *</label>
@@ -1857,7 +2000,7 @@ const RescheduleRequestModal = ({ audit, isOpen, onClose, onSubmit }) => {
               value={reason} 
               onChange={e => setReason(e.target.value)} 
               rows={2} 
-              className="w-full p-2 text-sm border border-gray-200 rounded-xl" 
+              className="w-full p-2 text-sm border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent" 
               placeholder="Please provide reason for rescheduling..." 
             />
           </div>
@@ -1877,9 +2020,9 @@ const RescheduleRequestModal = ({ audit, isOpen, onClose, onSubmit }) => {
           </button>
           <button 
             onClick={handleSubmit} 
-            disabled={submitting || !!dateError} 
+            disabled={submitting || !!dateError || !!timeConflictError || checkingConflict} 
             className={`px-4 py-1.5 text-sm font-medium text-white rounded-xl transition-all shadow-sm ${
-              submitting || dateError
+              submitting || dateError || timeConflictError || checkingConflict
                 ? 'bg-gray-400 cursor-not-allowed'
                 : 'bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700'
             }`}
