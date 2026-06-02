@@ -16,7 +16,7 @@ const setupPdfWorker = () => {
     pdfjs.GlobalWorkerOptions.workerSrc = new URL(
       'pdfjs-dist/build/pdf.worker.min.js',
       import.meta.url
-    ).toString();
+    ).toString();/* @vite-ignore */
   });
 };
 
