@@ -13,7 +13,12 @@ import {
   ExternalLink,
 } from "lucide-react";
 import { downloadForumAttachment } from "../../components/forum/Api/forumapi";
-
+ 
+// Base URL configuration
+const API_BASE_URL = process.env.NODE_ENV === 'development'
+  ? 'https://qsutrarmsclm.hub.swajyot.co.in:8467'
+  : 'https://qsutrarmsclm.hub.swajyot.co.in:8467';
+ 
 const formatTime = (dateString) => {
   let date;
   try {
@@ -27,7 +32,7 @@ const formatTime = (dateString) => {
   }
   return date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
 };
-
+ 
 const formatFileSize = (bytes) => {
   if (!bytes) return "0 B";
   const k = 1024;
@@ -35,7 +40,7 @@ const formatFileSize = (bytes) => {
   const i = Math.floor(Math.log(bytes) / Math.log(k));
   return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + " " + sizes[i];
 };
-
+ 
 const base64ToBlobUrl = (base64, mimeType) => {
   if (!base64) {
     console.warn("base64ToBlobUrl: No base64 data provided");
@@ -56,11 +61,11 @@ const base64ToBlobUrl = (base64, mimeType) => {
     return "";
   }
 };
-
+ 
 const DocumentPreview = ({ attachment, onDownload }) => {
   const [showPreview, setShowPreview] = useState(false);
   const isPreviewable = attachment.fileType?.startsWith('application/pdf') || false;
-  
+ 
   const getFileIcon = (fileName) => {
     const ext = fileName?.split('.').pop()?.toLowerCase();
     const fileIcons = {
@@ -75,7 +80,7 @@ const DocumentPreview = ({ attachment, onDownload }) => {
     };
     return fileIcons[ext] || '📎';
   };
-
+ 
   const handlePreview = () => {
     if (attachment.fileData) {
       const mimeType = attachment.fileType || "application/octet-stream";
@@ -84,10 +89,11 @@ const DocumentPreview = ({ attachment, onDownload }) => {
         window.open(blobUrl, '_blank');
       }
     } else if (attachment.id) {
-      window.open(`/api/forum/attachments/${attachment.id}`, '_blank');
+      // Use API_BASE_URL for attachment preview
+      window.open(`${API_BASE_URL}/api/forum/attachments/${attachment.id}`, '_blank');
     }
   };
-
+ 
   return (
     <div className="mt-2 p-3 bg-gray-50 rounded-lg border border-gray-200 hover:bg-gray-100 transition-colors">
       <div className="flex items-center justify-between">
@@ -104,7 +110,7 @@ const DocumentPreview = ({ attachment, onDownload }) => {
             </div>
           </div>
         </div>
-      
+     
         <div className="flex items-center gap-1">
           {isPreviewable && (
             <button
@@ -115,7 +121,7 @@ const DocumentPreview = ({ attachment, onDownload }) => {
               <Eye size={16} />
             </button>
           )}
-        
+       
           <button
             onClick={() => onDownload(attachment)}
             className="p-2 text-green-600 hover:bg-green-50 rounded-full transition-colors"
@@ -125,7 +131,7 @@ const DocumentPreview = ({ attachment, onDownload }) => {
           </button>
         </div>
       </div>
-    
+   
       <div className="text-xs text-gray-400 mt-2 flex items-center gap-1">
         <Calendar size={10} />
         Sent at {formatTime(new Date().toISOString())}
@@ -133,15 +139,15 @@ const DocumentPreview = ({ attachment, onDownload }) => {
     </div>
   );
 };
-
+ 
 export default function ThreadCard({ thread, currentUsername, currentUser, onRetry }) {
   const [imageModal, setImageModal] = useState({ open: false, url: "" });
   const [avatarError, setAvatarError] = useState(false);
-
+ 
   // ✅ ENHANCED DEBUG: Better message ownership detection
   const currentUserEmail = currentUser?.email || currentUsername;
   const isOwnMessage = thread.createdBy === currentUserEmail;
-  
+ 
   console.log('🔍 [ThreadCard] DEBUG:', {
     threadCreatedBy: thread.createdBy,
     currentUserEmail: currentUserEmail,
@@ -149,7 +155,7 @@ export default function ThreadCard({ thread, currentUsername, currentUser, onRet
     isOwnMessage: isOwnMessage,
     thread: thread
   });
-
+ 
   const processedAttachments = useMemo(() => {
     if (!thread.attachments?.length) return [];
     return thread.attachments.map((attachment) => {
@@ -162,12 +168,13 @@ export default function ThreadCard({ thread, currentUsername, currentUser, onRet
           srcUrl = base64ToBlobUrl(fileData, fileType || 'application/octet-stream');
         }
       } else if (id) {
-        srcUrl = `/api/forum/attachments/${id}`;
+        // Use API_BASE_URL for attachment URLs
+        srcUrl = `${API_BASE_URL}/api/forum/attachments/${id}`;
       }
       return { ...attachment, srcUrl };
     });
   }, [thread.attachments]);
-
+ 
   useEffect(() => {
     return () => {
       processedAttachments.forEach((att) => {
@@ -177,10 +184,10 @@ export default function ThreadCard({ thread, currentUsername, currentUser, onRet
       });
     };
   }, [processedAttachments]);
-
+ 
   const openImageModal = (url) => setImageModal({ open: true, url });
   const closeImageModal = () => setImageModal({ open: false, url: "" });
-
+ 
   const handleFileDownload = async (attachment) => {
     if (attachment.fileData) {
       const mimeType = attachment.fileType || "application/octet-stream";
@@ -195,6 +202,8 @@ export default function ThreadCard({ thread, currentUsername, currentUser, onRet
       URL.revokeObjectURL(blobUrl);
     } else if (attachment.id) {
       try {
+        // For download, we still use the API function which might already handle the base URL
+        // But if downloadForumAttachment uses relative URLs, we need to modify that function too
         const blob = await downloadForumAttachment(attachment.id, "blob");
         const url = window.URL.createObjectURL(blob);
         const link = document.createElement("a");
@@ -210,7 +219,7 @@ export default function ThreadCard({ thread, currentUsername, currentUser, onRet
       }
     }
   };
-
+ 
   const renderAttachment = (attachment, index) => {
     const { attachmentType, fileName, fileSize, fileData, fileType, id, srcUrl } = attachment;
     switch (attachmentType) {
@@ -225,7 +234,7 @@ export default function ThreadCard({ thread, currentUsername, currentUser, onRet
             />
           </div>
         );
-      
+     
       case "VIDEO":
         return (
           <div key={index} className="mt-2">
@@ -303,7 +312,7 @@ export default function ThreadCard({ thread, currentUsername, currentUser, onRet
         );
     }
   };
-
+ 
   const getMessageStatus = () => {
     if (thread.failed) {
       return {
@@ -324,11 +333,11 @@ export default function ThreadCard({ thread, currentUsername, currentUser, onRet
       text: "Sent",
     };
   };
-
+ 
   const status = getMessageStatus();
   const avatarSrc = isOwnMessage ? currentUser?.profileImage : thread.createdByProfileImage;
   const avatarAlt = isOwnMessage ? "You" : "Profile";
-
+ 
   return (
     <>
       {imageModal.open && (
@@ -354,7 +363,7 @@ export default function ThreadCard({ thread, currentUsername, currentUser, onRet
           </div>
         </div>
       )}
-      
+     
       {/* ✅ FIXED: WhatsApp-style message alignment */}
       <div className={`flex ${isOwnMessage ? "justify-end" : "justify-start"} mb-4 px-4`}>
         <div className={`max-w-[70%] flex ${isOwnMessage ? "flex-row-reverse" : "flex-row"} gap-2`}>
@@ -373,24 +382,24 @@ export default function ThreadCard({ thread, currentUsername, currentUser, onRet
               )}
             </div>
           </div>
-          
+         
           {/* Content */}
           <div className={`rounded-2xl px-4 py-2 ${
-            isOwnMessage 
-              ? "bg-green-100 border border-green-200" 
+            isOwnMessage
+              ? "bg-green-100 border border-green-200"
               : "bg-white border border-gray-200"
           } break-words shadow-sm`}>
-            
+           
             {/* Sender name - only for others' messages */}
             {!isOwnMessage && (
               <div className="text-xs text-gray-500 mb-1 font-medium">
                 {thread.createdByName || thread.createdBy}
               </div>
             )}
-            
+           
             {/* Attachments */}
             {processedAttachments.map(renderAttachment)}
-            
+           
             {/* Text content */}
             {thread.content &&
               !processedAttachments.length &&
@@ -407,7 +416,7 @@ export default function ThreadCard({ thread, currentUsername, currentUser, onRet
                   {thread.content}
                 </div>
               )}
-            
+           
             {/* Timestamp & Status */}
             <div className={`flex items-center mt-1 text-xs ${
               isOwnMessage ? "justify-end text-green-600" : "justify-start text-gray-400"
@@ -425,3 +434,4 @@ export default function ThreadCard({ thread, currentUsername, currentUser, onRet
     </>
   );
 }
+ 
