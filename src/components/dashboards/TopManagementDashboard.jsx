@@ -320,7 +320,8 @@ const [allUsersList, setAllUsersList] = useState([]);
 
 
   // Fetch ALL Detailed Schedules
- const fetchDetailedPlans = useCallback(async () => {
+// Fetch ALL Detailed Schedules
+const fetchDetailedPlans = useCallback(async () => {
   try {
     const currentYear = new Date().getFullYear();
     const years = [currentYear - 1, currentYear, currentYear + 1];
@@ -337,21 +338,17 @@ const [allUsersList, setAllUsersList] = useState([]);
             schedule.planYear = year;
             schedule.month = month;
             
-            // ✅ CRITICAL FIX: Normalize the field names
-            // Your API uses "preparedBy" not "preparedByName"
+            // Normalize the field names
             if (!schedule.preparedByName && schedule.preparedBy) {
               schedule.preparedByName = schedule.preparedBy;
             }
             
-            // Your API uses "approvedBy" not "approvedByName"  
             if (!schedule.approvedByName && schedule.approvedBy) {
               schedule.approvedByName = schedule.approvedBy;
             }
             
-            // Some schedules use "approvalStatus", others use "detailedApprovalStatus"
-            if (!schedule.detailedApprovalStatus && schedule.approvalStatus) {
-              schedule.detailedApprovalStatus = schedule.approvalStatus;
-            }
+            // ALWAYS map approvalStatus to detailedApprovalStatus
+            schedule.detailedApprovalStatus = schedule.approvalStatus || schedule.detailedApprovalStatus || 'DRAFT';
           });
           
           allDailySchedules.push(...schedules);
@@ -362,19 +359,6 @@ const [allUsersList, setAllUsersList] = useState([]);
     }
     
     console.log('✅ Total detailed schedules fetched:', allDailySchedules.length);
-    
-    // Log the FIRST schedule to see what data we have
-    if (allDailySchedules.length > 0) {
-      console.log('📋 FIRST SCHEDULE DATA:', {
-        id: allDailySchedules[0].id,
-        preparedBy: allDailySchedules[0].preparedBy,           // Should show "Audit Manager" or null
-        approvedBy: allDailySchedules[0].approvedBy,           // Should show "Top Management"
-        preparedByName: allDailySchedules[0].preparedByName,   // After normalization
-        approvedByName: allDailySchedules[0].approvedByName,   // After normalization
-        approvalStatus: allDailySchedules[0].approvalStatus,
-        detailedApprovalStatus: allDailySchedules[0].detailedApprovalStatus
-      });
-    }
     
     setAllDetailedSchedules(allDailySchedules);
     
@@ -390,8 +374,8 @@ const [allUsersList, setAllUsersList] = useState([]);
         monthMap.set(key, {
           year: year,
           month: month,
-          preparedBySet: new Set(),     // Use Set to collect ALL preparers
-          approvedBySet: new Set(),     // Use Set to collect ALL approvers
+          preparedBySet: new Set(),
+          approvedBySet: new Set(),
           approvedAt: null,
           leadAuditorName: schedule.leadAuditorName,
           schedules: []
@@ -400,23 +384,21 @@ const [allUsersList, setAllUsersList] = useState([]);
       
       const monthData = monthMap.get(key);
       
-      // ✅ FIX: Use the CORRECT field names from your API
-      // Your API uses "preparedBy" (not "preparedByName")
+      // Collect preparers
       if (schedule.preparedBy && schedule.preparedBy !== 'N/A' && schedule.preparedBy !== 'null') {
         monthData.preparedBySet.add(schedule.preparedBy);
       } else if (schedule.preparedByName && schedule.preparedByName !== 'N/A') {
         monthData.preparedBySet.add(schedule.preparedByName);
       }
       
-      // ✅ FIX: Use the CORRECT field names from your API
-      // Your API uses "approvedBy" (not "approvedByName")
+      // Collect approvers
       if (schedule.approvedBy && schedule.approvedBy !== 'N/A' && schedule.approvedBy !== 'null') {
         monthData.approvedBySet.add(schedule.approvedBy);
       } else if (schedule.approvedByName && schedule.approvedByName !== 'N/A') {
         monthData.approvedBySet.add(schedule.approvedByName);
       }
       
-      // Track latest approval date - your API uses "approvedAt"
+      // Track latest approval date
       const approvalDate = schedule.approvedAt || schedule.approvedDate;
       if (approvalDate && (!monthData.approvedAt || new Date(approvalDate) > new Date(monthData.approvedAt))) {
         monthData.approvedAt = approvalDate;
@@ -428,7 +410,6 @@ const [allUsersList, setAllUsersList] = useState([]);
     // Convert to display format
     const pendingMonths = [];
     const approvedMonths = [];
-    const rejectedMonths = [];
     
     for (const [key, monthData] of monthMap) {
       const schedules = monthData.schedules;
@@ -445,31 +426,34 @@ const [allUsersList, setAllUsersList] = useState([]);
         ? uniqueApprovedBy.join(', ') 
         : 'Not approved yet';
       
-      // Determine status using the CORRECT field
-      // Your API has either "detailedApprovalStatus" or "approvalStatus"
+      // Get status for each schedule
       const getStatus = (schedule) => {
         return schedule.detailedApprovalStatus || schedule.approvalStatus || 'DRAFT';
       };
       
-      const allApproved = schedules.length > 0 && schedules.every(s => getStatus(s) === 'APPROVED');
       const hasPending = schedules.some(s => getStatus(s) === 'PENDING_APPROVAL');
       const hasChangeRequested = schedules.some(s => getStatus(s) === 'CHANGE_REQUESTED');
       const hasRejected = schedules.some(s => getStatus(s) === 'REJECTED');
+      const hasApproved = schedules.some(s => getStatus(s) === 'APPROVED');
+      const hasDraft = schedules.some(s => getStatus(s) === 'DRAFT');
+      const allApproved = schedules.length > 0 && schedules.every(s => getStatus(s) === 'APPROVED');
       
-      // Debug log for each month
+      // Debug log
       console.log(`📊 Month ${monthData.month} ${monthData.year}:`, {
         preparedBy: monthData.displayPreparedBy,
         approvedBy: monthData.displayApprovedBy,
         totalSchedules: schedules.length,
-        statusSummary: { allApproved, hasPending, hasChangeRequested, hasRejected },
-        sampleStatus: schedules.slice(0, 2).map(s => ({
-          id: s.id,
-          detailedApprovalStatus: s.detailedApprovalStatus,
-          approvalStatus: s.approvalStatus,
-          finalStatus: getStatus(s)
-        }))
+        statusSummary: { 
+          hasPending, 
+          hasChangeRequested, 
+          hasRejected,
+          hasApproved,
+          hasDraft,
+          allApproved 
+        }
       });
       
+      // PENDING TAB: Months with PENDING_APPROVAL or CHANGE_REQUESTED
       if (hasPending || hasChangeRequested) {
         pendingMonths.push({
           ...monthData,
@@ -480,26 +464,22 @@ const [allUsersList, setAllUsersList] = useState([]);
           changeRequestedCount: schedules.filter(s => getStatus(s) === 'CHANGE_REQUESTED').length,
           isChangeRequested: hasChangeRequested,
           rejectedCount: schedules.filter(s => getStatus(s) === 'REJECTED').length,
+          approvedCount: schedules.filter(s => getStatus(s) === 'APPROVED').length,
           schedules: schedules
         });
-      } else if (allApproved && schedules.length > 0) {
+      } 
+      // HISTORY TAB: All other months (approved, rejected, mixed, draft, or any combination without pending)
+      else {
         approvedMonths.push({
           ...monthData,
           preparedBy: monthData.displayPreparedBy,
           approvedBy: monthData.displayApprovedBy,
           scheduleCount: schedules.length,
-          approvedCount: schedules.length,
-          approvedAt: monthData.approvedAt,
-          schedules: schedules
-        });
-      } else if (hasRejected) {
-        rejectedMonths.push({
-          ...monthData,
-          preparedBy: monthData.displayPreparedBy,
-          approvedBy: monthData.displayApprovedBy,
-          scheduleCount: schedules.length,
-          rejectedCount: schedules.filter(s => getStatus(s) === 'REJECTED').length,
           approvedCount: schedules.filter(s => getStatus(s) === 'APPROVED').length,
+          rejectedCount: schedules.filter(s => getStatus(s) === 'REJECTED').length,
+          draftCount: schedules.filter(s => getStatus(s) === 'DRAFT').length,
+          allApproved: allApproved,
+          approvedAt: monthData.approvedAt,
           schedules: schedules
         });
       }
@@ -508,7 +488,6 @@ const [allUsersList, setAllUsersList] = useState([]);
     console.log('✅ Final Results:', {
       pendingMonths: pendingMonths.length,
       approvedMonths: approvedMonths.length,
-      rejectedMonths: rejectedMonths.length,
       firstPendingMonth: pendingMonths[0] ? {
         month: pendingMonths[0].month,
         preparedBy: pendingMonths[0].preparedBy,
@@ -517,11 +496,11 @@ const [allUsersList, setAllUsersList] = useState([]);
     });
     
     setPendingDetailedPlans(pendingMonths);
-    setApprovedDetailedPlans([...approvedMonths, ...rejectedMonths]);
+    setApprovedDetailedPlans(approvedMonths);
     
     return { 
       pendingCount: pendingMonths.length, 
-      approvedCount: approvedMonths.length + rejectedMonths.length 
+      approvedCount: approvedMonths.length 
     };
   } catch (error) {
     console.error('Error fetching detailed plans:', error);
@@ -538,39 +517,20 @@ const refreshDetailedSchedulesData = useCallback(async () => {
     
     // If a modal is open, update its data too
     if (showDetailedDetails && selectedDetailedPlan) {
-      // Find the updated month data
-      const updatedPendingMonths = [...pendingDetailedPlans];
-      const updatedApprovedMonths = [...approvedDetailedPlans];
+      // Find the month in the UPDATED lists after refresh
+      let updatedMonthData = pendingDetailedPlans.find(p => 
+        p.month === selectedDetailedPlan.month && p.year === selectedDetailedPlan.year
+      );
       
-      // Try to find the updated month in pending
-      let found = false;
-      for (let i = 0; i < updatedPendingMonths.length; i++) {
-        if (updatedPendingMonths[i].month === selectedDetailedPlan.month && 
-            updatedPendingMonths[i].year === selectedDetailedPlan.year) {
-          // Update this month's data
-          updatedPendingMonths[i] = {
-            ...updatedPendingMonths[i],
-            schedules: updatedPendingMonths[i].schedules.map(s => {
-              // Check if this schedule was updated in allDetailedSchedules
-              const updated = allDetailedSchedules.find(a => a.id === s.id);
-              return updated || s;
-            })
-          };
-          setDetailedSchedulesList(updatedPendingMonths[i].schedules);
-          found = true;
-          break;
-        }
+      if (!updatedMonthData) {
+        updatedMonthData = approvedDetailedPlans.find(p => 
+          p.month === selectedDetailedPlan.month && p.year === selectedDetailedPlan.year
+        );
       }
       
-      if (!found) {
-        // Check in approved months
-        for (let i = 0; i < updatedApprovedMonths.length; i++) {
-          if (updatedApprovedMonths[i].month === selectedDetailedPlan.month && 
-              updatedApprovedMonths[i].year === selectedDetailedPlan.year) {
-            setDetailedSchedulesList(updatedApprovedMonths[i].schedules);
-            break;
-          }
-        }
+      if (updatedMonthData) {
+        setDetailedSchedulesList(updatedMonthData.schedules || []);
+        console.log('✅ Updated modal schedules with fresh data');
       }
     }
     
@@ -579,7 +539,7 @@ const refreshDetailedSchedulesData = useCallback(async () => {
     console.error('Error refreshing detailed plans:', error);
     return null;
   }
-}, [fetchDetailedPlans, showDetailedDetails, selectedDetailedPlan, pendingDetailedPlans, approvedDetailedPlans, allDetailedSchedules]);
+}, [fetchDetailedPlans, showDetailedDetails, selectedDetailedPlan, pendingDetailedPlans, approvedDetailedPlans]);
 
   const fetchDashboardData = async () => {
     try {
