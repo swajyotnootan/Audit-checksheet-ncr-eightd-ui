@@ -25,14 +25,16 @@ const API_BASE = 'https://qsutrarmsclm.hub.swajyot.co.in:8476/api';
 
 const getViewRoute = (audit) => {
   const auditType = (audit.auditType || '').toLowerCase().trim();
-  if (auditType.includes('5s') || auditType.includes('five_s')) return `/audit/5s-view`;
-  if (auditType.includes('process') || auditType.includes('manufacturing')) return `/audit/manufacturing-view`;
-  if (auditType.includes('iatf') || auditType.includes('system')) return `/audit/iatf-view`;
-  if (auditType.includes('product')) return `/audit/product-view`;
-  if (auditType.includes('iso')) return `/audit/iso-view`;
-  if (auditType.includes('safety') || auditType.includes('safe')) return `/audit/safety-view`;
-  if (auditType.includes('poka') || auditType.includes('yoke')) return `/audit/pokayoke-view`;
-  return `/audit/5s-view`;
+  
+  if (auditType.includes('5s') || auditType.includes('five_s')) return `/fives-view`;  // ← REMOVED '/audit/'
+  if (auditType.includes('process') || auditType.includes('manufacturing')) return `/manufacturing-view`;  // ← REMOVED '/audit/'
+  if (auditType.includes('iatf') || auditType.includes('system')) return `/iatf-view`;  // ← REMOVED '/audit/'
+  if (auditType.includes('product')) return `/product-view`;  // ← REMOVED '/audit/'
+  if (auditType.includes('iso')) return `/iso-view`;  // ← REMOVED '/audit/'
+  if (auditType.includes('safety') || auditType.includes('safe')) return `/safety-view`;  // ← REMOVED '/audit/'
+  if (auditType.includes('poka') || auditType.includes('yoke')) return `/pokayoke-view`;  // ← REMOVED '/audit/'
+  
+  return `/fives-view`;  // ← REMOVED '/audit/'
 };
 
 const parseResponseAnswers = (response) => {
