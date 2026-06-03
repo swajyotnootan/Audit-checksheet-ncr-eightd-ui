@@ -348,15 +348,17 @@ const [allUsersList, setAllUsersList] = useState([]);
               schedule.approvedByName = schedule.approvedBy;
             }
             
-            // ALWAYS map approvalStatus to detailedApprovalStatus
-schedule.detailedApprovalStatus = schedule.approvalStatus || schedule.detailedApprovalStatus || 'DRAFT';
+            // Some schedules use "approvalStatus", others use "detailedApprovalStatus"
+            if (!schedule.detailedApprovalStatus && schedule.approvalStatus) {
+              schedule.detailedApprovalStatus = schedule.approvalStatus;
+            }
           });
           
           allDailySchedules.push(...schedules);
         } catch (err) {
           console.log(`No schedules for ${month} ${year}`);
         }
-      } 
+      }
     }
     
     console.log('✅ Total detailed schedules fetched:', allDailySchedules.length);
@@ -914,41 +916,14 @@ const handleApproveSingleSchedule = async (schedule) => {
     
     addToast(`Schedule for ${schedule.scheduledDate} approved!`, 'success');
     
-    // ✅ IMMEDIATE LOCAL STATE UPDATE - Status changes instantly!
-    // Update the schedule in detailedSchedulesList
-    setDetailedSchedulesList(prevList => 
-      prevList.map(s => 
-        s.id === schedule.id 
-          ? { 
-              ...s, 
-              detailedApprovalStatus: 'APPROVED', 
-              approvedByName: user?.name || user?.username,
-              approvedBy: user?.name || user?.username,
-              approvedAt: new Date().toISOString(),
-              approvedDate: new Date().toISOString()
-            }
-          : s
-      )
-    );
+    // ✅ CRITICAL: Refresh the ENTIRE dashboard data, not just modal
+    await fetchDashboardData();  // This will refresh pendingDetailedPlans and approvedDetailedPlans
     
-    // ✅ Also update in allDetailedSchedules for consistency
-    setAllDetailedSchedules(prevList => 
-      prevList.map(s => 
-        s.id === schedule.id 
-          ? { 
-              ...s, 
-              detailedApprovalStatus: 'APPROVED', 
-              approvedByName: user?.name || user?.username,
-              approvedBy: user?.name || user?.username,
-              approvedAt: new Date().toISOString(),
-              approvedDate: new Date().toISOString()
-            }
-          : s
-      )
-    );
-    
-    // ✅ Refresh in background (don't block UI)
-    refreshDetailedSchedulesData();
+    // Also close any open modal if needed
+    if (showDetailedDetails) {
+      setShowDetailedDetails(false);
+      setSelectedDetailedPlan(null);
+    }
     
   } catch (error) {
     console.error('Error approving schedule:', error);
