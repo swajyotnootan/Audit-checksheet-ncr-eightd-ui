@@ -348,10 +348,8 @@ const [allUsersList, setAllUsersList] = useState([]);
               schedule.approvedByName = schedule.approvedBy;
             }
             
-            // Some schedules use "approvalStatus", others use "detailedApprovalStatus"
-            if (!schedule.detailedApprovalStatus && schedule.approvalStatus) {
-              schedule.detailedApprovalStatus = schedule.approvalStatus;
-            }
+            // ALWAYS map approvalStatus to detailedApprovalStatus
+schedule.detailedApprovalStatus = schedule.approvalStatus || schedule.detailedApprovalStatus || 'DRAFT';
           });
           
           allDailySchedules.push(...schedules);
