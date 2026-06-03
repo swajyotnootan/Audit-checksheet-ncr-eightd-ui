@@ -356,7 +356,7 @@ schedule.detailedApprovalStatus = schedule.approvalStatus || schedule.detailedAp
         } catch (err) {
           console.log(`No schedules for ${month} ${year}`);
         }
-      }
+      } 
     }
     
     console.log('✅ Total detailed schedules fetched:', allDailySchedules.length);
