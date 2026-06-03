@@ -29,7 +29,8 @@ const roles = [
   'AUDITEE',
   'HR_ADMIN',
   'QMS_ADMIN',
-  'TOP_MANAGEMENT'
+  'TOP_MANAGEMENT',
+  'INITIATOR'
 ];
 
 // Processes for competency
@@ -252,7 +253,8 @@ department: safeDefaultValues.department || '',
       'AUDITEE': 'Auditee',
       'HR_ADMIN': 'HR Admin',
       'QMS_ADMIN': 'QMS Admin',
-      'TOP_MANAGEMENT': 'Top Management'
+      'TOP_MANAGEMENT': 'Top Management',
+      'INITIATOR':'Initiator'
     };
     return roleMap[role] || role;
   };
