@@ -666,7 +666,7 @@ const [dateSchedules, setDateSchedules] = useState([]);
 // ==========================================================================
 const fetchDepartmentTeamMembers = async (departmentName) => {
   if (!departmentName) return;
-  
+ 
   const departmentDisplayToEnum = {
     "HR": "HR",
     "R&D": "ENGG",
@@ -685,135 +685,124 @@ const fetchDepartmentTeamMembers = async (departmentName) => {
     "Tool Maintenance": "TOOL_MAINTENANCE",
     "Stores & Despatch": "STORES_DESPATCH"
   };
-  
+ 
   const enumValue = departmentDisplayToEnum[departmentName] || departmentName.toUpperCase().replace(/[&\s\/]+/g, '_');
-  
+ 
   console.log(`🚀 Fetching team members for: ${departmentName} → enum: ${enumValue}`);
-  
+ 
   setLoadingTeamMembers(true);
   try {
-    // ✅ Get ALL schedules for this department in the selected year
-    const response = await axios.get(
+    // ✅ STEP 1: Fetch department-specific auditors (Regular Auditors - no lead)
+    console.log(`📡 Fetching regular auditors for department: ${enumValue}`);
+    const regularAuditorsRes = await axios.get(
+      `${API_BASE}/audit-schedule/regular-auditors/by-department/${encodeURIComponent(enumValue)}`,
+      { withCredentials: true }
+    );
+   
+    const regularAuditors = regularAuditorsRes.data || [];
+    console.log(`✅ Found ${regularAuditors.length} regular auditors for ${departmentName}:`,
+      regularAuditors.map(a => `${a.firstName} ${a.lastName} (${a.role})`)
+    );
+   
+    // ✅ STEP 2: Also fetch lead auditor for this department (to display but not include in dropdown)
+    let leadAuditorInfo = null;
+    try {
+      const leadAuditorsRes = await axios.get(
+        `${API_BASE}/audit-schedule/lead-auditors/by-department/${encodeURIComponent(enumValue)}`,
+        { withCredentials: true }
+      );
+      const leadAuditors = leadAuditorsRes.data || [];
+      leadAuditorInfo = leadAuditors[0] || null; // Usually one lead auditor per department
+      console.log(`✅ Lead auditor for ${departmentName}:`, leadAuditorInfo ? `${leadAuditorInfo.firstName} ${leadAuditorInfo.lastName}` : 'None');
+    } catch (err) {
+      console.warn('Could not fetch lead auditor:', err);
+    }
+   
+    // ✅ STEP 3: Get the approved schedule to check which auditors are assigned to this week
+    const scheduleResponse = await axios.get(
       `${API_BASE}/audit-schedule/year/${selectedYear}/department/${encodeURIComponent(enumValue)}`,
       { withCredentials: true }
     );
-    
-    const schedules = response.data || [];
-    // Find the approved schedule (or draft if no approved)
+   
+    const schedules = scheduleResponse.data || [];
     const deptSchedule = schedules.find(s => s.approvalStatus === 'APPROVED') || schedules.find(s => s.approvalStatus === 'DRAFT');
-    
+   
+    let teamAuditorIds = [];
+    let teamAuditorNames = [];
+   
     if (deptSchedule) {
-      // ✅ Parse team auditor IDs (co-auditors)
-      let teamIds = deptSchedule.teamAuditorIds || [];
-      if (typeof teamIds === 'string') {
-        try { teamIds = JSON.parse(teamIds); } catch(e) { teamIds = []; }
+      // Get the team auditors already assigned to this schedule
+      teamAuditorIds = deptSchedule.teamAuditorIds || [];
+      if (typeof teamAuditorIds === 'string') {
+        try { teamAuditorIds = JSON.parse(teamAuditorIds); } catch(e) { teamAuditorIds = []; }
       }
-      
-      // ✅ Parse team auditor names
-      let teamNames = deptSchedule.teamAuditorNames || [];
-      if (typeof teamNames === 'string') {
-        try { teamNames = JSON.parse(teamNames); } catch(e) { teamNames = []; }
+     
+      teamAuditorNames = deptSchedule.teamAuditorNames || [];
+      if (typeof teamAuditorNames === 'string') {
+        try { teamAuditorNames = JSON.parse(teamAuditorNames); } catch(e) { teamAuditorNames = []; }
       }
-      
-      // ✅ Also check coAuditorIdList as fallback
-      if (teamIds.length === 0 && deptSchedule.coAuditorIdList) {
-        let coIds = deptSchedule.coAuditorIdList;
-        if (typeof coIds === 'string') {
-          try { coIds = JSON.parse(coIds); } catch(e) { coIds = []; }
-        }
-        teamIds = coIds;
-      }
-      
-      if (teamNames.length === 0 && deptSchedule.coAuditorNames) {
-        let coNames = deptSchedule.coAuditorNames;
-        if (typeof coNames === 'string') {
-          try { coNames = JSON.parse(coNames); } catch(e) { coNames = []; }
-        }
-        teamNames = coNames;
-      }
-      
-      // ✅ Parse auditee IDs and names
-      let auditeeIds = deptSchedule.auditeeIdList || deptSchedule.auditeeIds || [];
-      if (typeof auditeeIds === 'string') {
-        try { auditeeIds = JSON.parse(auditeeIds); } catch(e) { auditeeIds = []; }
-      }
-      
-      let auditeeNames = deptSchedule.auditeeNames || [];
-      if (typeof auditeeNames === 'string') {
-        try { auditeeNames = JSON.parse(auditeeNames); } catch(e) { auditeeNames = []; }
-      }
-      
-      // ✅ Fetch all user details for team members
-      const allTeamIds = [...(deptSchedule.leadAuditorId ? [deptSchedule.leadAuditorId] : []), ...teamIds];
-      
-      const teamMembers = await Promise.all(
-  teamIds.filter(id => id).map(async (id) => {
+    }
+   
+    // ✅ STEP 4: Set the team members - regular auditors only (NO lead auditors)
+    setDepartmentTeamMembers({
+      // Only regular auditors (these are the ones who can be reassigned or added as co-auditors)
+      auditors: regularAuditors,  
+      auditees: [],
+      leadAuditorId: leadAuditorInfo?.id || null,
+      leadAuditorName: leadAuditorInfo ? `${leadAuditorInfo.firstName} ${leadAuditorInfo.lastName}` : null,
+      teamAuditorIds: teamAuditorIds,
+      teamAuditorNames: teamAuditorNames,
+      auditeeIds: [],
+      auditeeNames: []
+    });
+   
+    console.log(`✅ Final auditors list (excluding lead): ${regularAuditors.length} auditors`);
+   
+  } catch (error) {
+    console.error('Error fetching department team members:', error);
+   
+    // ✅ FALLBACK: If department-specific endpoint fails, try to get all regular auditors
     try {
-      const userRes = await axios.get(`${API_BASE}/users/${id}`, { withCredentials: true });
-      return userRes.data;
-    } catch(e) { return null; }
-  })
-);
-
-let leadAuditorData = null;
-if (deptSchedule.leadAuditorId) {
-  try {
-    const leadRes = await axios.get(`${API_BASE}/users/${deptSchedule.leadAuditorId}`, { withCredentials: true });
-    leadAuditorData = leadRes.data;
-  } catch(e) { console.error('Error fetching lead auditor:', e); }
-}
-
-      
-            setDepartmentTeamMembers({
-        auditors: teamMembers.filter(m => m !== null), // ✅ EXCLUDE lead auditor from auditors array
-        auditees: [],
-        leadAuditorId: deptSchedule.leadAuditorId,
-        leadAuditorName: deptSchedule.leadAuditorName,
-        teamAuditorIds: teamIds,
-        teamAuditorNames: teamNames,
-         leadAuditorData: leadAuditorData,
-        auditeeIds: auditeeIds,
-        auditeeNames: auditeeNames
+      console.log('⚠️ Department endpoint failed, fetching all regular auditors as fallback');
+      const allUsersResponse = await axios.get(`${API_BASE}/users`, { withCredentials: true });
+      const allUsers = allUsersResponse.data || [];
+     
+      // Filter for regular auditors only (exclude LEAD_AUDITOR)
+      const regularAuditorsOnly = allUsers.filter(u => {
+        const role = u.role?.toUpperCase() || '';
+        return role === 'AUDITOR' || (role.includes('AUDITOR') && !role.includes('LEAD'));
       });
-      
-      console.log(`✅ Found schedule: Lead=${deptSchedule.leadAuditorName}, Team IDs=${teamIds.length}, Team Names=${teamNames}`);
-    } else {
-      // ✅ FALLBACK: Get department-wise auditors from the backend
-      console.log(`⚠️ No schedule found for ${departmentName}, fetching department auditors`);
-      const auditorsRes = await axios.get(
-        `${API_BASE}/audit-schedule/auditors/by-department/${encodeURIComponent(enumValue)}`,
-        { withCredentials: true }
-      );
-      
-      const departmentAuditors = auditorsRes.data || [];
-      console.log(`✅ Found ${departmentAuditors.length} department auditors for ${departmentName}`);
-      
+     
+      console.log(`✅ Fallback: Found ${regularAuditorsOnly.length} regular auditors`);
+     
+      setDepartmentTeamMembers({
+        auditors: regularAuditorsOnly,
+        auditees: [],
+        leadAuditorId: null,
+        leadAuditorName: null,
+        teamAuditorIds: [],
+        teamAuditorNames: [],
+        auditeeIds: [],
+        auditeeNames: []
+      });
+    } catch (fallbackError) {
+      console.error('Fallback also failed:', fallbackError);
       setDepartmentTeamMembers({
         auditors: [],
         auditees: [],
         leadAuditorId: null,
         leadAuditorName: null,
-        leadAuditorData: null,
-        teamAuditorIds: [],      // Empty fallback
-        teamAuditorNames: [],    // Empty fallback
+        teamAuditorIds: [],
+        teamAuditorNames: [],
         auditeeIds: [],
         auditeeNames: []
       });
     }
-  } catch (error) {
-    console.error('Error fetching department team members:', error);
-    setDepartmentTeamMembers({ 
-      auditors: [], 
-      auditees: [],
-      teamAuditorIds: [],
-      teamAuditorNames: [],
-      auditeeIds: [],
-      auditeeNames: []
-    });
   } finally {
     setLoadingTeamMembers(false);
   }
 };
+ 
 
 ///UPDATED
 // Add this function to fetch audit stats from your backend

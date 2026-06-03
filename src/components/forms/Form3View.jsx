@@ -1,4 +1,5 @@
-// src/components/forms/Form3View.jsx
+
+​// src/components/forms/Form3View.jsx
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../ToastContext';
@@ -11,7 +12,7 @@ import {
 import { useSearchParams } from 'react-router-dom';
 
 
-const API_BASE = 'https://qsutrarmsclm.hub.swajyot.co.in:8476/api';
+const API_BASE = 'http://localhost:8080/api';
 
 const Form3View = () => {
   
@@ -146,127 +147,136 @@ useEffect(() => {
   
 
   // Add this new function for demo credentials
-  const handleDemoPlanned = async () => {
-    // Check if user can edit
-    if (!canEdit) {
-      addToast('You cannot modify this plan in its current status', 'warning');
-      return;
-    }
+// Add this new function for demo credentials
+const handleDemoPlanned = async () => {
+  // Check if user can edit
+  if (!canEdit) {
+    addToast('You cannot modify this plan in its current status', 'warning');
+    return;
+  }
 
-    setDemoLoading(true);
-    try {
-      // Create a deep copy of the current plan data
-      const newPlanData = [...planData];
-      
-      // If plan data is empty, initialize it with audit elements
-      if (newPlanData.length === 0) {
-        auditElements.forEach(element => {
-          const monthsData = financialMonths.map(month => ({
-            month: month,
-            status: ''
-          }));
-          newPlanData.push({
-            auditElement: element.name,
-            months: monthsData
-          });
+  setDemoLoading(true);
+  try {
+    // Create a deep copy of the current plan data
+    let newPlanData = [...planData];
+    
+    // If plan data is empty, initialize it with audit elements
+    if (newPlanData.length === 0) {
+      auditElements.forEach(element => {
+        const monthsData = financialMonths.map(month => ({
+          month: month,
+          status: ''
+        }));
+        newPlanData.push({
+          auditElement: element.name,
+          months: monthsData
         });
-      }
-      
-      // Mark ALL months as PLANNED for all audit elements
-      let totalPlannedCount = 0;
-      newPlanData.forEach(element => {
+      });
+    }
+    
+    // Mark ONLY IATF16949 and 5S audits as PLANNED for all months
+    let totalPlannedCount = 0;
+    newPlanData.forEach(element => {
+      // Check if this is IATF16949 or 5S Audit
+      if (element.auditElement === "System Audit (IATF16949)" || 
+          element.auditElement === "5S Audit") {
         element.months.forEach(month => {
           if (month.status !== 'PLANNED') {
             month.status = 'PLANNED';
             totalPlannedCount++;
           }
         });
-      });
-      
-      // Update state
-      setPlanData(newPlanData);
-      
-      // Automatically save after demo planned
-      const saveData = {
-        planYear: selectedYear,
-        planItems: newPlanData
-      };
-      
-      await axios.post(`${API_BASE}/audit-plan/save?userId=${user?.id}`, saveData, {
-        withCredentials: true
-      });
-      
-      addToast(`✅ Demo mode: ${totalPlannedCount} audits marked as PLANNED and saved successfully!`, 'success');
-      
-      // Refresh data to ensure sync with backend
-      await fetchPlanData();
-      
-    } catch (error) {
-      console.error('Error in demo planned:', error);
-      addToast('Failed to mark audits as planned', 'error');
-    } finally {
-      setDemoLoading(false);
-    }
-  };
-
-  // Add another helper function for quick plan (first quarter only)
-  const handleQuickPlanned = async () => {
-    if (!canEdit) {
-      addToast('You cannot modify this plan in its current status', 'warning');
-      return;
-    }
-
-    setDemoLoading(true);
-    try {
-      const newPlanData = [...planData];
-      
-      if (newPlanData.length === 0) {
-        auditElements.forEach(element => {
-          const monthsData = financialMonths.map(month => ({
-            month: month,
-            status: ''
-          }));
-          newPlanData.push({
-            auditElement: element.name,
-            months: monthsData
-          });
-        });
       }
-      
-      // Mark only first quarter (Apr, May, Jun) as PLANNED
-      const firstQuarterMonths = ["Apr", "May", "Jun"];
-      let totalPlannedCount = 0;
-      
-      newPlanData.forEach(element => {
+    });
+    
+    // Update state
+    setPlanData(newPlanData);
+    
+    // Automatically save after demo planned
+    const saveData = {
+      planYear: selectedYear,
+      planItems: newPlanData
+    };
+    
+    await axios.post(`${API_BASE}/audit-plan/save?userId=${user?.id}`, saveData, {
+      withCredentials: true
+    });
+    
+    addToast(`✅ Demo mode: ${totalPlannedCount} audits marked as PLANNED for IATF16949 & 5S only!`, 'success');
+    
+    // Refresh data to ensure sync with backend
+    await fetchPlanData();
+    
+  } catch (error) {
+    console.error('Error in demo planned:', error);
+    addToast('Failed to mark audits as planned', 'error');
+  } finally {
+    setDemoLoading(false);
+  }
+};
+
+// Add another helper function for quick plan (first quarter only for IATF16949 & 5S)
+const handleQuickPlanned = async () => {
+  if (!canEdit) {
+    addToast('You cannot modify this plan in its current status', 'warning');
+    return;
+  }
+
+  setDemoLoading(true);
+  try {
+    let newPlanData = [...planData];
+    
+    if (newPlanData.length === 0) {
+      auditElements.forEach(element => {
+        const monthsData = financialMonths.map(month => ({
+          month: month,
+          status: ''
+        }));
+        newPlanData.push({
+          auditElement: element.name,
+          months: monthsData
+        });
+      });
+    }
+    
+    // Mark only first quarter (Apr, May, Jun) as PLANNED for IATF16949 & 5S only
+    const firstQuarterMonths = ["Apr", "May", "Jun"];
+    let totalPlannedCount = 0;
+    
+    newPlanData.forEach(element => {
+      // Check if this is IATF16949 or 5S Audit
+      if (element.auditElement === "System Audit (IATF16949)" || 
+          element.auditElement === "5S Audit") {
         element.months.forEach(month => {
           if (firstQuarterMonths.includes(month.month) && month.status !== 'PLANNED') {
             month.status = 'PLANNED';
             totalPlannedCount++;
           }
         });
-      });
-      
-      setPlanData(newPlanData);
-      
-      const saveData = {
-        planYear: selectedYear,
-        planItems: newPlanData
-      };
-      
-      await axios.post(`${API_BASE}/audit-plan/save?userId=${user?.id}`, saveData, {
-        withCredentials: true
-      });
-      
-      addToast(`✅ Quick plan: ${totalPlannedCount} audits marked as PLANNED for Q1 (Apr-Jun)`, 'success');
-      await fetchPlanData();
-      
-    } catch (error) {
-      console.error('Error in quick planned:', error);
-      addToast('Failed to mark audits as planned', 'error');
-    } finally {
-      setDemoLoading(false);
-    }
-  };
+      }
+    });
+    
+    setPlanData(newPlanData);
+    
+    const saveData = {
+      planYear: selectedYear,
+      planItems: newPlanData
+    };
+    
+    await axios.post(`${API_BASE}/audit-plan/save?userId=${user?.id}`, saveData, {
+      withCredentials: true
+    });
+    
+    addToast(`✅ Quick plan: ${totalPlannedCount} audits marked as PLANNED for Q1 (Apr-Jun) for IATF16949 & 5S only`, 'success');
+    await fetchPlanData();
+    
+  } catch (error) {
+    console.error('Error in quick planned:', error);
+    addToast('Failed to mark audits as planned', 'error');
+  } finally {
+    setDemoLoading(false);
+  }
+};
 
   const handleSave = async () => {
     if (planStatus === 'APPROVED') {
@@ -673,45 +683,46 @@ const handleStatusChange = async (elementIndex, monthName) => {
       </div>
 
       {/* Demo Mode Banner - Only show for Audit Manager in Draft/Rejected status */}
-      {canEdit && (
-        <div className="p-4 mb-6 border border-purple-200 rounded-lg bg-gradient-to-r from-purple-50 to-pink-50">
-          <div className="flex flex-wrap items-center justify-between gap-4">
-            <div className="flex items-center gap-3">
-              <FiStar className="w-6 h-6 text-purple-600" />
-              <div>
-                <h3 className="font-semibold text-purple-900">Quick Planning Demo</h3>
-                <p className="text-sm text-purple-700">Save time with automatic planning options</p>
-              </div>
-            </div>
-            <div className="flex gap-3">
-              <button
-                onClick={handleQuickPlanned}
-                disabled={demoLoading}
-                className="flex items-center gap-2 px-4 py-2 text-white transition-all bg-blue-600 rounded-lg hover:bg-blue-700 disabled:opacity-50"
-              >
-                {demoLoading ? (
-                  <div className="w-4 h-4 border-2 border-white rounded-full animate-spin border-t-transparent"></div>
-                ) : (
-                  <FiClock className="w-4 h-4" />
-                )}
-                Quick Plan (Q1 Only)
-              </button>
-              <button
-                onClick={handleDemoPlanned}
-                disabled={demoLoading}
-                className="flex items-center gap-2 px-4 py-2 text-white transition-all bg-gradient-to-r from-purple-600 to-pink-600 rounded-lg hover:from-purple-700 hover:to-pink-700 disabled:opacity-50"
-              >
-                {demoLoading ? (
-                  <div className="w-4 h-4 border-2 border-white rounded-full animate-spin border-t-transparent"></div>
-                ) : (
-                  <FiStar className="w-4 h-4" />
-                )}
-                Demo: Plan All Months
-              </button>
-            </div>
-          </div>
+      {/* Demo Mode Banner - Only show for Audit Manager in Draft/Rejected status */}
+{canEdit && (
+  <div className="p-4 mb-6 border border-purple-200 rounded-lg bg-gradient-to-r from-purple-50 to-pink-50">
+    <div className="flex flex-wrap items-center justify-between gap-4">
+      <div className="flex items-center gap-3">
+        <FiStar className="w-6 h-6 text-purple-600" />
+        <div>
+          <h3 className="font-semibold text-purple-900">Quick Planning Demo</h3>
+          <p className="text-sm text-purple-700">Save time with automatic planning options for IATF16949 & 5S audits</p>
         </div>
-      )}
+      </div>
+      <div className="flex gap-3">
+        <button
+          onClick={handleQuickPlanned}
+          disabled={demoLoading}
+          className="flex items-center gap-2 px-4 py-2 text-white transition-all bg-blue-600 rounded-lg hover:bg-blue-700 disabled:opacity-50"
+        >
+          {demoLoading ? (
+            <div className="w-4 h-4 border-2 border-white rounded-full animate-spin border-t-transparent"></div>
+          ) : (
+            <FiClock className="w-4 h-4" />
+          )}
+          Quick Plan (Q1 Only - IATF & 5S)
+        </button>
+        <button
+          onClick={handleDemoPlanned}
+          disabled={demoLoading}
+          className="flex items-center gap-2 px-4 py-2 text-white transition-all bg-gradient-to-r from-purple-600 to-pink-600 rounded-lg hover:from-purple-700 hover:to-pink-700 disabled:opacity-50"
+        >
+          {demoLoading ? (
+            <div className="w-4 h-4 border-2 border-white rounded-full animate-spin border-t-transparent"></div>
+          ) : (
+            <FiStar className="w-4 h-4" />
+          )}
+          Demo: Plan All Months (IATF & 5S)
+        </button>
+      </div>
+    </div>
+  </div>
+)}
 
       {/* Main Table */}
       <div className="overflow-hidden bg-white border border-gray-200 rounded-xl">
