@@ -31,7 +31,7 @@ import 'react-big-calendar/lib/css/react-big-calendar.css'
 
 const localizer = momentLocalizer(moment)
 
-const API_BASE = 'https://qsutrarmsclm.hub.swajyot.co.in:8476/api';
+const API_BASE = 'http://localhost:8080/api';
 
 // Helper function to parse time string
 function parseTimeString(timeStr) {
@@ -806,6 +806,12 @@ export default function CalendarView({ embedded = false }) {
   const [expandedLegend, setExpandedLegend] = useState(true)
   const [expandedFilter, setExpandedFilter] = useState(true)
 
+
+
+  const [leadAuditorDepartment, setLeadAuditorDepartment] = useState(null);
+const [userDepartment, setUserDepartment] = useState(null);
+
+
   const currentUser = user || calendarAPI.getCurrentUser()
   
   useEffect(() => {
@@ -884,6 +890,24 @@ export default function CalendarView({ embedded = false }) {
         console.log('📊 Extracted schedules from auditor endpoint:', allSchedules.length);
       }
       
+
+       // ========== ADD THIS DEPARTMENT FILTERING FOR LEAD AUDITOR ==========
+  // Filter by department for Lead Auditor
+  if (userRoleForAPI === 'LEAD_AUDITOR' && leadAuditorDepartment) {
+    const beforeCount = allSchedules.length;
+    allSchedules = allSchedules.filter(schedule => {
+      const scheduleDept = schedule.department;
+      const normalizedScheduleDept = normalizeDepartmentForFilter(scheduleDept);
+      const matches = normalizedScheduleDept === leadAuditorDepartment;
+      if (!matches && scheduleDept) {
+        console.log(`  Filtering out schedule dept "${scheduleDept}" → "${normalizedScheduleDept}" (expected: ${leadAuditorDepartment})`);
+      }
+      return matches;
+    });
+    console.log(`📊 Lead Auditor (${leadAuditorDepartment}): Filtered schedules from ${beforeCount} to ${allSchedules.length}`);
+  }
+
+  
       // Now filter schedules as before
       let filteredSchedules = [];
       
@@ -1116,8 +1140,99 @@ export default function CalendarView({ embedded = false }) {
   } finally {
     setIsLoading(false)
   }
-}, [currentUser, userRole])
+}, [currentUser, userRole, leadAuditorDepartment])
 
+// Normalize department name for comparison (matching your dashboard logic)
+const normalizeDepartmentForFilter = (dept) => {
+  if (!dept) return '';
+  let deptStr = String(dept).toUpperCase().trim();
+  
+  const deptMap = {
+    'HR': 'HR',
+    'R&D': 'ENGG',
+    'ENGINEERING': 'ENGG',
+    'R AND D': 'ENGG',
+    'PURCHASE': 'PURCHASE',
+    'RMS': 'STORES_DESPATCH',
+    'SQA': 'QA',
+    'PPC': 'PPC',
+    'PRODUCTION': 'PRODUCTION',
+    'QA/QC': 'QA',
+    'QA': 'QA',
+    'QC': 'QA',
+    'FGS': 'STORES_DESPATCH',
+    'MARKETING': 'MARKETING',
+    'IMS (BE)': 'MR',
+    'IMS(BE)': 'MR',
+    'IMS': 'MR',
+    'MAINTENANCE': 'PLANT_MAINTENANCE',
+    'MANAGEMENT': 'UNIT_HEAD',
+    'PLANT MAINTENANCE': 'PLANT_MAINTENANCE',
+    'TOOL MAINTENANCE': 'TOOL_MAINTENANCE',
+    'TOOL MANAGEMENT': 'TOOL_MAINTENANCE',
+    'STORES & DESPATCH': 'STORES_DESPATCH',
+    'STORES': 'STORES_DESPATCH',
+    'DESPATCH': 'STORES_DESPATCH',
+    'UNIT HEAD': 'UNIT_HEAD',
+    'MR': 'MR'
+  };
+  
+  return deptMap[deptStr] || deptStr;
+};
+
+// Fetch lead auditor's department
+const fetchLeadAuditorDepartment = useCallback(async () => {
+  if (userRole !== 'LEAD_AUDITOR') return null;
+  
+  try {
+    const response = await axios.get(`${API_BASE}/users/${currentUser?.id}`, { 
+      withCredentials: true 
+    });
+    const userData = response.data;
+    
+    let department = null;
+    if (userData.department) {
+      department = userData.department;
+      if (typeof department === 'object' && department.displayName) {
+        department = department.displayName;
+      } else if (typeof department === 'object' && department.name) {
+        department = department.name;
+      }
+    } else if (userData.departmentName) {
+      department = userData.departmentName;
+    } else if (userData.departmentCode) {
+      department = userData.departmentCode;
+    }
+    
+    // Normalize department
+    const normalizedDept = normalizeDepartmentForFilter(department);
+    console.log('🎯 Lead Auditor Department:', department, '→ Normalized:', normalizedDept);
+    setLeadAuditorDepartment(normalizedDept);
+    setUserDepartment(department);
+    return normalizedDept;
+  } catch (error) {
+    console.error('Error fetching lead auditor department:', error);
+    // Fallback to user context
+    if (currentUser?.department) {
+      let dept = currentUser.department;
+      if (typeof dept === 'object' && dept.displayName) {
+        dept = dept.displayName;
+      }
+      const normalizedDept = normalizeDepartmentForFilter(dept);
+      setLeadAuditorDepartment(normalizedDept);
+      setUserDepartment(dept);
+      return normalizedDept;
+    }
+    return null;
+  }
+}, [currentUser, userRole]);
+
+// Fetch department for Lead Auditor
+useEffect(() => {
+  if (userRole === 'LEAD_AUDITOR') {
+    fetchLeadAuditorDepartment();
+  }
+}, [userRole, fetchLeadAuditorDepartment]);
   useEffect(() => {
     loadEvents()
   }, [loadEvents])
@@ -1326,6 +1441,17 @@ export default function CalendarView({ embedded = false }) {
             </div>
             <p className="text-sm text-gray-500">{currentUser?.name || currentUser?.email}</p>
             
+
+            {/* Inside the sidebar, after the user name display */}
+            {userRole === 'LEAD_AUDITOR' && leadAuditorDepartment && (
+              <div className="p-2 mt-2 border border-indigo-100 rounded-lg bg-indigo-50">
+                <p className="text-xs font-medium text-indigo-600">Department Filter</p>
+                <p className="text-sm font-semibold text-indigo-800">{userDepartment || leadAuditorDepartment}</p>
+                <p className="text-xs text-indigo-500 mt-0.5">Showing only audits for this department</p>
+              </div>
+            )}
+
+
             <div className="grid grid-cols-3 gap-2 mt-3">
               <div className="p-2 text-center rounded-lg bg-blue-50">
                 <p className="text-xs font-medium text-blue-600">Total</p>
