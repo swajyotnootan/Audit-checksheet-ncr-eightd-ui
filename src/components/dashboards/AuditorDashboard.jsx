@@ -123,34 +123,34 @@ const getViewRoute = (audit, form) => {
   const checkSheetType = audit?.checkSheet?.auditType || '';
   
   if (auditType.includes('5s') || auditType.includes('five_s') || processName.includes('5s') || processName.includes('five_s') || checkSheetType === 'FIVE_S') {
-    return `/audit/5s-view`;
+    return '/audit/5s-view';
   }
   
   if (auditType.includes('process') || auditType.includes('manufacturing') || processName.includes('process') || processName.includes('manufacturing') || checkSheetType === 'MANUFACTURING_PROCESS') {
-    return `/audit/manufacturing-view`;
+    return '/audit/manufacturing-view';
   }
   
   if (auditType.includes('iatf') || auditType.includes('system audit') || auditType.includes('internal audit') || auditType === 'iatf_16949' || checkSheetType === 'IATF_16949' || auditType.includes('16949')) {
-    return `/audit/iatf-view`;
+    return '/audit/iatf-view';
   }
   
   if (auditType.includes('product')) {
-    return `/audit/product-view`;
+    return '/audit/product-view';
   }
   
   if (auditType.includes('iso')) {
-    return `/audit/iso-view`;
+    return '/audit/iso-view';
   }
   
   if (auditType.includes('safety') || auditType.includes('safe')) {
-    return `/audit/safety-view`;
+    return '/audit/safety-view';
   }
   
   if (auditType.includes('poka') || auditType.includes('yoke')) {
-    return `/audit/pokayoke-view`;
+    return '/audit/pokayoke-view';
   }
   
-  return `/audit/5s-view`;
+  return '/audit/5s-view'; // Default fallback
 };
 
 const isAuditExpired = (audit) => {
@@ -856,7 +856,7 @@ const [selectedNCRForForum, setSelectedNCRForForum] = useState(null);
     rejected: raisedNCRs.filter(n => n.status === 'REJECTED').length,
   }), [raisedNCRs]);
 
-  const handleViewReport = (responseId, audit, form) => {
+const handleViewReport = (responseId, audit, form) => {
   if (!responseId) {
     addToast('Report not found', 'error');
     return;
@@ -864,14 +864,15 @@ const [selectedNCRForForum, setSelectedNCRForForum] = useState(null);
   
   const route = getViewRoute(audit, form);
   
-  // Determine which dashboard to return to
-  const returnPath = '/auditor';
-  const currentTab = 'my-audits'; // Always return to My Audits tab
+  // Use window.location for Vercel deployment
+  const fullPath = `${route}/${responseId}`;
   
-  navigate(`${route}/${responseId}`, {
+  // Use navigate with replace: true to avoid history issues
+  navigate(fullPath, {
+    replace: true,
     state: {
-      returnTo: returnPath,
-      tab: currentTab
+      returnTo: '/auditor',
+      tab: 'my-audits'
     }
   });
 };
