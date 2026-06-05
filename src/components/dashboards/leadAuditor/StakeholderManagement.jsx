@@ -261,9 +261,9 @@ const StakeholderManagement = ({
 
         {/* Auditor Responses Modal - Using local data instead of API */}
         {showAuditorResponsesModal && selectedAuditorData && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/30 backdrop-blur-md">
-            <GlassCard className="w-full max-w-4xl max-h-[80vh] overflow-hidden shadow-2xl">
-              <div className="px-6 py-4 bg-gradient-to-r from-indigo-600/80 to-purple-600/80">
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50">
+            <div className="w-full max-w-4xl max-h-[80vh] overflow-hidden bg-white rounded-lg shadow-xl">
+              <div className="px-6 py-4 rounded-t-lg bg-purple-950 bg-gradient-to-r">
                 <div className="flex items-center justify-between">
                   <div>
                     <h3 className="text-lg font-semibold text-white">
@@ -331,7 +331,7 @@ const StakeholderManagement = ({
                       {responses.map(r => {
                         const answers = typeof r.answers === 'string' ? JSON.parse(r.answers) : r.answers;
                         return (
-                          <GlassCard key={r.id} className="p-3 transition-all duration-300 hover:shadow-md">
+                          <div key={r.id} className="p-3 transition-all duration-300 border rounded-lg hover:shadow-md">
                             <div className="flex items-start justify-between mb-2">
                               <span className="font-mono text-xs font-medium text-gray-500">
                                 {answers?.documentNumber || `RES-${r.id}`}
@@ -358,22 +358,22 @@ const StakeholderManagement = ({
                                 <FiEye className="inline w-3 h-3 mr-1" /> View Report
                               </button>
                             </div>
-                          </GlassCard>
+                          </div>
                         );
                       })}
                     </div>
                   );
                 })()}
               </div>
-            </GlassCard>
+            </div>
           </div>
         )}
 
         {/* Auditor NCRs Modal */}
         {showAuditorNCRsModal && selectedAuditorData && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/30 backdrop-blur-md">
-            <GlassCard className="w-full max-w-4xl max-h-[80vh] overflow-hidden shadow-2xl">
-              <div className="px-6 py-4 bg-gradient-to-r from-red-600/80 to-rose-600/80">
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50">
+            <div className="w-full max-w-4xl max-h-[80vh] overflow-hidden bg-white rounded-lg shadow-xl">
+              <div className="px-6 py-4 rounded-t-lg bg-gradient-to-r from-red-600/80 to-rose-600/80">
                 <div className="flex items-center justify-between">
                   <div>
                     <h3 className="text-lg font-semibold text-white">
@@ -409,7 +409,7 @@ const StakeholderManagement = ({
                   return (
                     <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                       {ncrs.map(ncr => (
-                        <GlassCard key={ncr.id} className="p-3 transition-all duration-300 hover:shadow-md">
+                        <div key={ncr.id} className="p-3 transition-all duration-300 border rounded-lg hover:shadow-md">
                           <div className="flex items-start justify-between mb-2">
                             <span className={`px-2 py-0.5 text-xs rounded-full ${getSeverityBadge(ncr.severity)}`}>
                               {ncr.severity || 'N/A'}
@@ -432,13 +432,13 @@ const StakeholderManagement = ({
                               <FiEye className="inline w-3 h-3 mr-1" /> View
                             </button>
                           </div>
-                        </GlassCard>
+                        </div>
                       ))}
                     </div>
                   );
                 })()}
               </div>
-            </GlassCard>
+            </div>
           </div>
         )}
       </>
@@ -551,191 +551,191 @@ const StakeholderManagement = ({
         </div>
 
         {/* Auditee Responses Modal */}
-        {showAuditeeResponsesModal && selectedAuditeeData && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/30 backdrop-blur-md">
-            <GlassCard className="w-full max-w-4xl max-h-[80vh] overflow-hidden shadow-2xl">
-              <div className="px-6 py-4 bg-gradient-to-r from-green-600/80 to-emerald-600/80">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <h3 className="text-lg font-semibold text-white">
-                      Responses by {selectedAuditeeData.firstName} {selectedAuditeeData.lastName}
-                    </h3>
-                    <p className="text-sm text-white/80">
-                      {getAuditeeResponses(selectedAuditeeData.id).length} total responses
-                    </p>
+          {showAuditeeResponsesModal && selectedAuditeeData && (
+            <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50">
+              <div className="w-full max-w-4xl max-h-[80vh] overflow-hidden bg-white rounded-lg shadow-xl">
+                <div className="px-6 py-4 rounded-t-lg bg-gradient-to-r from-green-600/80 to-emerald-600/80">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <h3 className="text-lg font-semibold text-white">
+                        Responses by {selectedAuditeeData.firstName} {selectedAuditeeData.lastName}
+                      </h3>
+                      <p className="text-sm text-white/80">
+                        {getAuditeeResponses(selectedAuditeeData.id).length} total responses
+                      </p>
+                    </div>
+                    <button 
+                      onClick={() => { 
+                        setShowAuditeeResponsesModal(false); 
+                        setSelectedAuditeeData(null); 
+                      }} 
+                      className="text-xl text-white hover:text-gray-200"
+                    >
+                      ✕
+                    </button>
                   </div>
-                  <button 
-                    onClick={() => { 
-                      setShowAuditeeResponsesModal(false); 
-                      setSelectedAuditeeData(null); 
-                    }} 
-                    className="text-xl text-white hover:text-gray-200"
-                  >
-                    ✕
-                  </button>
                 </div>
-              </div>
-              
-              {(() => {
-                const summary = getAuditeeSummary(selectedAuditeeData.id);
-                return (
-                  <div className="grid grid-cols-1 gap-3 p-4 border-b md:grid-cols-5">
-                    <div className="p-3 text-center rounded-lg bg-blue-50/60">
-                      <p className="text-2xl font-bold text-blue-600">{summary.total}</p>
-                      <p className="text-xs">Total</p>
-                    </div>
-                    <div className="p-3 text-center rounded-lg bg-emerald-50/60">
-                      <p className="text-2xl font-bold text-emerald-600">{summary.approved}</p>
-                      <p className="text-xs">APPROVED</p>
-                    </div>
-                    <div className="p-3 text-center rounded-lg bg-red-50/60">
-                      <p className="text-2xl font-bold text-red-600">{summary.rejected}</p>
-                      <p className="text-xs">REJECTED</p>
-                    </div>
-                    <div className="p-3 text-center rounded-lg bg-amber-50/60">
-                      <p className="text-2xl font-bold text-amber-600">{summary.pending}</p>
-                      <p className="text-xs">SUBMITTED</p>
-                    </div>
-                    <div className="p-3 text-center rounded-lg bg-purple-50/60">
-                      <p className="text-2xl font-bold text-purple-600">{summary.approvalRate.toFixed(1)}%</p>
-                      <p className="text-xs">Approval Rate</p>
-                    </div>
-                  </div>
-                );
-              })()}
-              
-              <div className="overflow-y-auto max-h-[calc(80vh-120px)] p-4">
+                
                 {(() => {
-                  const responses = getAuditeeResponses(selectedAuditeeData.id);
-                  if (responses.length === 0) {
-                    return (
-                      <div className="py-12 text-center text-gray-400">
-                        <FiFileText className="w-12 h-12 mx-auto mb-3 text-gray-300" />
-                        <p>No responses found for this auditee</p>
-                      </div>
-                    );
-                  }
+                  const summary = getAuditeeSummary(selectedAuditeeData.id);
                   return (
-                    <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-                      {responses.map(r => {
-                        const answers = typeof r.answers === 'string' ? JSON.parse(r.answers) : r.answers;
-                        const auditor = allAuditors.find(a => a.id === r.auditorId);
-                        const auditorName = auditor ? `${auditor.firstName || ''} ${auditor.lastName || ''}`.trim() || auditor.username : 'N/A';
-                        return (
-                          <GlassCard key={r.id} className="p-3 transition-all duration-300 hover:shadow-md">
-                            <div className="flex items-start justify-between mb-2">
-                              <span className="font-mono text-xs font-medium text-gray-500">
-                                {answers?.documentNumber || `RES-${r.id}`}
-                              </span>
-                              <span className={`px-2 py-0.5 text-xs rounded-full ${getResponseStatusBadge(r.status)}`}>
-                                {r.status || 'DRAFT'}
-                              </span>
-                            </div>
-                            <h4 className="font-semibold text-gray-800">{r.department || 'N/A'}</h4>
-                            <p className="text-sm text-gray-600">
-                              <span className="font-medium">Auditor:</span> {auditorName}
-                            </p>
-                            <div className="flex items-center justify-between mt-2">
-                              <div className="text-xs text-gray-500">
-                                Score: <span className="font-semibold text-indigo-600">{(r.percentageScore || 0).toFixed(1)}%</span>
+                    <div className="grid grid-cols-1 gap-3 p-4 border-b md:grid-cols-5">
+                      <div className="p-3 text-center rounded-lg bg-blue-50/60">
+                        <p className="text-2xl font-bold text-blue-600">{summary.total}</p>
+                        <p className="text-xs">Total</p>
+                      </div>
+                      <div className="p-3 text-center rounded-lg bg-emerald-50/60">
+                        <p className="text-2xl font-bold text-emerald-600">{summary.approved}</p>
+                        <p className="text-xs">APPROVED</p>
+                      </div>
+                      <div className="p-3 text-center rounded-lg bg-red-50/60">
+                        <p className="text-2xl font-bold text-red-600">{summary.rejected}</p>
+                        <p className="text-xs">REJECTED</p>
+                      </div>
+                      <div className="p-3 text-center rounded-lg bg-amber-50/60">
+                        <p className="text-2xl font-bold text-amber-600">{summary.pending}</p>
+                        <p className="text-xs">SUBMITTED</p>
+                      </div>
+                      <div className="p-3 text-center rounded-lg bg-purple-50/60">
+                        <p className="text-2xl font-bold text-purple-600">{summary.approvalRate.toFixed(1)}%</p>
+                        <p className="text-xs">Approval Rate</p>
+                      </div>
+                    </div>
+                  );
+                })()}
+                
+                <div className="overflow-y-auto max-h-[calc(80vh-120px)] p-4">
+                  {(() => {
+                    const responses = getAuditeeResponses(selectedAuditeeData.id);
+                    if (responses.length === 0) {
+                      return (
+                        <div className="py-12 text-center text-gray-400">
+                          <FiFileText className="w-12 h-12 mx-auto mb-3 text-gray-300" />
+                          <p>No responses found for this auditee</p>
+                        </div>
+                      );
+                    }
+                    return (
+                      <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                        {responses.map(r => {
+                          const answers = typeof r.answers === 'string' ? JSON.parse(r.answers) : r.answers;
+                          const auditor = allAuditors.find(a => a.id === r.auditorId);
+                          const auditorName = auditor ? `${auditor.firstName || ''} ${auditor.lastName || ''}`.trim() || auditor.username : 'N/A';
+                          return (
+                            <div key={r.id} className="p-3 transition-all duration-300 border rounded-lg hover:shadow-md">
+                              <div className="flex items-start justify-between mb-2">
+                                <span className="font-mono text-xs font-medium text-gray-500">
+                                  {answers?.documentNumber || `RES-${r.id}`}
+                                </span>
+                                <span className={`px-2 py-0.5 text-xs rounded-full ${getResponseStatusBadge(r.status)}`}>
+                                  {r.status || 'DRAFT'}
+                                </span>
                               </div>
-                              <button 
-                                onClick={() => { 
-                                  onViewResponse(r); 
-                                  setShowAuditeeResponsesModal(false); 
-                                }} 
-                                className="px-3 py-1 text-xs text-indigo-600 transition-colors rounded bg-indigo-50/60 hover:bg-indigo-100/60"
-                              >
-                                <FiEye className="inline w-3 h-3 mr-1" /> View
-                              </button>
+                              <h4 className="font-semibold text-gray-800">{r.department || 'N/A'}</h4>
+                              <p className="text-sm text-gray-600">
+                                <span className="font-medium">Auditor:</span> {auditorName}
+                              </p>
+                              <div className="flex items-center justify-between mt-2">
+                                <div className="text-xs text-gray-500">
+                                  Score: <span className="font-semibold text-indigo-600">{(r.percentageScore || 0).toFixed(1)}%</span>
+                                </div>
+                                <button 
+                                  onClick={() => { 
+                                    onViewResponse(r); 
+                                    setShowAuditeeResponsesModal(false); 
+                                  }} 
+                                  className="px-3 py-1 text-xs text-indigo-600 transition-colors rounded bg-indigo-50/60 hover:bg-indigo-100/60"
+                                >
+                                  <FiEye className="inline w-3 h-3 mr-1" /> View
+                                </button>
+                              </div>
                             </div>
-                          </GlassCard>
-                        );
-                      })}
-                    </div>
-                  );
-                })()}
-              </div>
-            </GlassCard>
-          </div>
-        )}
-
-        {/* Auditee NCRs Modal */}
-        {showAuditeeNCRsModal && selectedAuditeeData && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/30 backdrop-blur-md">
-            <GlassCard className="w-full max-w-4xl max-h-[80vh] overflow-hidden shadow-2xl">
-              <div className="px-6 py-4 bg-gradient-to-r from-red-600/80 to-rose-600/80">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <h3 className="text-lg font-semibold text-white">
-                      NCRs Against {selectedAuditeeData.firstName} {selectedAuditeeData.lastName}
-                    </h3>
-                    <p className="text-sm text-white/80">
-                      {getAuditeeNCRs(selectedAuditeeData.id).length} total NCRs
-                    </p>
-                  </div>
-                  <button 
-                    onClick={() => { 
-                      setShowAuditeeNCRsModal(false); 
-                      setSelectedAuditeeData(null); 
-                    }} 
-                    className="text-xl text-white hover:text-gray-200"
-                  >
-                    ✕
-                  </button>
-                </div>
-              </div>
-              
-              <div className="overflow-y-auto max-h-[calc(80vh-120px)] p-4">
-                {(() => {
-                  const ncrs = getAuditeeNCRs(selectedAuditeeData.id);
-                  if (ncrs.length === 0) {
-                    return (
-                      <div className="py-12 text-center text-gray-400">
-                        <FiAlertTriangle className="w-12 h-12 mx-auto mb-3 text-gray-300" />
-                        <p>No NCRs found against this auditee</p>
+                          );
+                        })}
                       </div>
                     );
-                  }
-                  return (
-                    <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-                      {ncrs.map(ncr => {
-                        const auditor = allAuditors.find(a => a.id === ncr.auditorId);
-                        const auditorName = auditor ? `${auditor.firstName || ''} ${auditor.lastName || ''}`.trim() || auditor.username : 'N/A';
-                        return (
-                          <GlassCard key={ncr.id} className="p-3 transition-all duration-300 hover:shadow-md">
-                            <div className="flex items-start justify-between mb-2">
-                              <span className={`px-2 py-0.5 text-xs rounded-full ${getSeverityBadge(ncr.severity)}`}>
-                                {ncr.severity || 'N/A'}
-                              </span>
-                              <span className={`px-2 py-0.5 text-xs rounded-full ${getNCRStatusBadge(ncr.status)}`}>
-                                {ncr.status || 'OPEN'}
-                              </span>
-                            </div>
-                            <h4 className="font-semibold text-gray-800 truncate">{ncr.ncrNumber || `NCR-${ncr.id}`}</h4>
-                            <p className="mt-1 text-sm text-gray-600 line-clamp-2">{ncr.title || 'No title'}</p>
-                            <div className="flex justify-between mt-2 text-xs">
-                              <span className="text-gray-500">Raised by: {auditorName}</span>
-                              <button 
-                                onClick={() => { 
-                                  onViewNCR(ncr); 
-                                  setShowAuditeeNCRsModal(false); 
-                                }} 
-                                className="text-indigo-600 hover:text-indigo-800"
-                              >
-                                <FiEye className="inline w-3 h-3 mr-1" /> View
-                              </button>
-                            </div>
-                          </GlassCard>
-                        );
-                      })}
-                    </div>
-                  );
-                })()}
+                  })()}
+                </div>
               </div>
-            </GlassCard>
-          </div>
-        )}
+            </div>
+          )}
+
+          {/* Auditee NCRs Modal */}
+          {showAuditeeNCRsModal && selectedAuditeeData && (
+            <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50">
+              <div className="w-full max-w-4xl max-h-[80vh] overflow-hidden bg-white rounded-lg shadow-xl">
+                <div className="px-6 py-4 rounded-t-lg bg-gradient-to-r from-red-600/80 to-rose-600/80">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <h3 className="text-lg font-semibold text-white">
+                        NCRs Against {selectedAuditeeData.firstName} {selectedAuditeeData.lastName}
+                      </h3>
+                      <p className="text-sm text-white/80">
+                        {getAuditeeNCRs(selectedAuditeeData.id).length} total NCRs
+                      </p>
+                    </div>
+                    <button 
+                      onClick={() => { 
+                        setShowAuditeeNCRsModal(false); 
+                        setSelectedAuditeeData(null); 
+                      }} 
+                      className="text-xl text-white hover:text-gray-200"
+                    >
+                      ✕
+                    </button>
+                  </div>
+                </div>
+                
+                <div className="overflow-y-auto max-h-[calc(80vh-120px)] p-4">
+                  {(() => {
+                    const ncrs = getAuditeeNCRs(selectedAuditeeData.id);
+                    if (ncrs.length === 0) {
+                      return (
+                        <div className="py-12 text-center text-gray-400">
+                          <FiAlertTriangle className="w-12 h-12 mx-auto mb-3 text-gray-300" />
+                          <p>No NCRs found against this auditee</p>
+                        </div>
+                      );
+                    }
+                    return (
+                      <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                        {ncrs.map(ncr => {
+                          const auditor = allAuditors.find(a => a.id === ncr.auditorId);
+                          const auditorName = auditor ? `${auditor.firstName || ''} ${auditor.lastName || ''}`.trim() || auditor.username : 'N/A';
+                          return (
+                            <div key={ncr.id} className="p-3 transition-all duration-300 border rounded-lg hover:shadow-md">
+                              <div className="flex items-start justify-between mb-2">
+                                <span className={`px-2 py-0.5 text-xs rounded-full ${getSeverityBadge(ncr.severity)}`}>
+                                  {ncr.severity || 'N/A'}
+                                </span>
+                                <span className={`px-2 py-0.5 text-xs rounded-full ${getNCRStatusBadge(ncr.status)}`}>
+                                  {ncr.status || 'OPEN'}
+                                </span>
+                              </div>
+                              <h4 className="font-semibold text-gray-800 truncate">{ncr.ncrNumber || `NCR-${ncr.id}`}</h4>
+                              <p className="mt-1 text-sm text-gray-600 line-clamp-2">{ncr.title || 'No title'}</p>
+                              <div className="flex justify-between mt-2 text-xs">
+                                <span className="text-gray-500">Raised by: {auditorName}</span>
+                                <button 
+                                  onClick={() => { 
+                                    onViewNCR(ncr); 
+                                    setShowAuditeeNCRsModal(false); 
+                                  }} 
+                                  className="text-indigo-600 hover:text-indigo-800"
+                                >
+                                  <FiEye className="inline w-3 h-3 mr-1" /> View
+                                </button>
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    );
+                  })()}
+                </div>
+              </div>
+            </div>
+          )}
       </>
     );
   }

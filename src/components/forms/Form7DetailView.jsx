@@ -79,24 +79,51 @@ const DetailRow = ({ label, value, multiline = false }) => (
 // ─────────────────────────────────────────────────────────────
 // SignatureField component with proper pending state
 // ─────────────────────────────────────────────────────────────
-const SignatureField = ({ label, name, signature, pending = false }) => (
-  <div className="text-center">
-    <p className="text-xs font-semibold text-gray-600 mb-2 uppercase tracking-wider" style={{ fontFamily }}>{label}</p>
-    {signature && (signature.startsWith('data:image') || signature.startsWith('http')) ? (
-      <div className="border border-gray-200 rounded-lg p-2 bg-gray-50">
-        <img src={signature} alt={label} className="h-12 mx-auto object-contain" />
-      </div>
-    ) : pending ? (
-      <div className="border-2 border-dashed border-amber-300 rounded-lg h-20 bg-amber-50 flex flex-col items-center justify-center">
-        <Clock size={20} className="text-amber-500 mb-1" />
-        <p className="text-xs text-amber-600 font-medium" style={{ fontFamily }}>Pending Acknowledgement</p>
-      </div>
-    ) : (
-      <div className="border-2 border-dashed border-gray-300 rounded-lg h-20 bg-gray-50" />
-    )}
-    <p className="text-xs text-gray-500 mt-2" style={{ fontFamily }}>{name || '—'}</p>
-  </div>
-);
+// ─────────────────────────────────────────────────────────────
+// SignatureField component with timestamp support
+// ─────────────────────────────────────────────────────────────
+const SignatureField = ({ label, name, signature, pending = false, timestamp }) => {
+  const formattedTimestamp = timestamp
+    ? new Date(timestamp).toLocaleString('en-IN', {
+        day: '2-digit',
+        month: 'short',
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+        hour12: true,
+      })
+    : null;
+
+  return (
+    <div className="text-center">
+      <p className="text-xs font-semibold text-gray-600 mb-2 uppercase tracking-wider" style={{ fontFamily }}>
+        {label}
+      </p>
+
+      {signature && (signature.startsWith('data:image') || signature.startsWith('http')) ? (
+        <div className="border border-gray-200 rounded-lg p-2 bg-gray-50">
+          <img src={signature} alt={label} className="h-12 mx-auto object-contain" />
+        </div>
+      ) : pending ? (
+        <div className="border-2 border-dashed border-amber-300 rounded-lg h-20 bg-amber-50 flex flex-col items-center justify-center">
+          <Clock size={20} className="text-amber-500 mb-1" />
+          <p className="text-xs text-amber-600 font-medium" style={{ fontFamily }}>Pending Acknowledgement</p>
+        </div>
+      ) : (
+        <div className="border-2 border-dashed border-gray-300 rounded-lg h-20 bg-gray-50" />
+      )}
+
+      <p className="text-xs text-gray-500 mt-2 font-medium" style={{ fontFamily }}>{name || '—'}</p>
+
+      {formattedTimestamp && (
+        <p className="text-xs text-gray-400 mt-1 flex items-center justify-center gap-1" style={{ fontFamily }}>
+          <Clock size={11} />
+          {formattedTimestamp}
+        </p>
+      )}
+    </div>
+  );
+};
 
 // ─────────────────────────────────────────────────────────────
 // ReviewModal Component
@@ -218,7 +245,7 @@ export default function Form7DetailView() {
     try {
       const token = localStorage.getItem('token');
       const response = await fetch(
-        `https://qsutrarmsclm.hub.swajyot.co.in:8476/api/users/${userId}/signature`,
+        `http://localhost:8080/api/users/${userId}/signature`,
         { headers: { Authorization: token ? `Bearer ${token}` : '' } }
       );
       if (!response.ok) return null;
@@ -272,7 +299,7 @@ export default function Form7DetailView() {
     try {
       const token = localStorage.getItem('token');
       const response = await fetch(
-        `https://qsutrarmsclm.hub.swajyot.co.in:8476/api/ncr/${ncr.id}/form7-pdf`,
+        `http://localhost:8080/api/ncr/${ncr.id}/form7-pdf`,
         { headers: { Authorization: token ? `Bearer ${token}` : '' } }
       );
       if (response.ok) {
@@ -397,7 +424,7 @@ const handleReject = () => {
 
     for (const candidate of directCandidates) {
       try {
-        const response = await fetch(`https://qsutrarmsclm.hub.swajyot.co.in:8476/api/eightd/data/${encodeURIComponent(candidate)}`);
+        const response = await fetch(`http://localhost:8080/api/eightd/data/${encodeURIComponent(candidate)}`);
         const data = await response.json();
         if (response.ok && data?.success && data?.data) return candidate;
       } catch {
@@ -405,7 +432,7 @@ const handleReject = () => {
       }
     }
 
-    const response = await fetch(`https://qsutrarmsclm.hub.swajyot.co.in:8476/api/eightd/data?t=${Date.now()}`);
+    const response = await fetch(`http://localhost:8080/api/eightd/data?t=${Date.now()}`);
     const data = await response.json();
     const events = Array.isArray(data?.data) ? data.data : [];
     const matchedEvent = events.find((event) => {
@@ -478,6 +505,7 @@ const handleReject = () => {
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 py-8 px-4 print:bg-white print:p-0">
       
 
+      {/* Top Action Bar */}
       <div className="flex flex-wrap items-center justify-between max-w-5xl gap-3 mx-auto mb-5 print:hidden">
   <BackButton 
     defaultTab="ncrs" 
@@ -498,7 +526,6 @@ const handleReject = () => {
   </div>
 </div>
 
-
       {/* Main Form Card */}
       <div className={formStyle.container} id="ncr-form">
 
@@ -514,7 +541,7 @@ const handleReject = () => {
                 <span className="opacity-70">Audit Report:</span> {ncr.auditReportNumber || 'INT/20xx/01'}
               </p>
               <p className="text-lg font-bold text-white print:text-gray-800" style={{ fontFamily }}>
-                NCR #{ncr.ncrNumber || '03'}
+                {ncr.ncrNumber || '03'}
               </p>
             </div>
           </div>
@@ -539,21 +566,24 @@ const handleReject = () => {
         </FormSection>
 
         {/* Section 2: Acknowledgement & Signatures */}
-        <FormSection title="✍️ Acknowledgement">
-          <div className="grid md:grid-cols-2 gap-8">
-            <SignatureField
-              label="Auditor Signature"
-              name={ncr.auditorName}
-              signature={finalAuditorSignature}
-            />
-            <SignatureField
-              label="Auditee Representative"
-              name={ncr.auditeeName}
-              signature={finalAuditeeSignature}
-              pending={!auditeeHasReviewed}
-            />
-          </div>
-        </FormSection>
+       {/* Section 2: Acknowledgement & Signatures */}
+<FormSection title="✍️ Acknowledgement">
+  <div className="grid md:grid-cols-2 gap-8">
+    <SignatureField
+      label="Auditor Signature"
+      name={ncr.auditorName}
+      signature={finalAuditorSignature}
+      timestamp={ncr.createdAt || ncr.auditorSignedAt || null}
+    />
+    <SignatureField
+      label="Auditee Representative"
+      name={ncr.auditeeName}
+      signature={finalAuditeeSignature}
+      pending={!auditeeHasReviewed}
+      timestamp={auditeeHasReviewed ? (ncr.updatedAt || ncr.auditeeSignedAt || null) : null}
+    />
+  </div>
+</FormSection>
 
         {/* Manager Comment Section */}
         {ncr.managerReviewComment && (

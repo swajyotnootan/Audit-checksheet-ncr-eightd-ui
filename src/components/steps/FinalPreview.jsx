@@ -30,7 +30,7 @@ import Generate8DWord from "../Generate8DWord";
 import { isInitiator } from "../utils/roleUtils";
 
 // Import the Renewsys logo
-import RenewsysLogo from "../../assets/RenewsysLogo.png";
+import RenewsysLogo from "../../assets/Stratum.png";
 
 const StepIcons = {
   d0: FileText,
@@ -165,8 +165,8 @@ export default function FinalPreview({ eventId, isHOD = false }) {
       try {
         setLoading(true);
         const [eventRes, filesRes] = await Promise.all([
-          axios.get(`https://qsutrarmsclm.hub.swajyot.co.in:8476/api/eightd/data/${eventId}`),
-          axios.get(`https://qsutrarmsclm.hub.swajyot.co.in:8476/api/eightd/data/${eventId}/files`),
+          axios.get(`http://localhost:8080/api/eightd/data/${eventId}`),
+          axios.get(`http://localhost:8080/api/eightd/data/${eventId}/files`),
         ]);
         if (eventRes.data.success && eventRes.data.data) {
           setEventData(eventRes.data.data);
@@ -287,7 +287,7 @@ export default function FinalPreview({ eventId, isHOD = false }) {
       formDataToSend.append('jsonContent', JSON.stringify(jsonPayload));
 
       const res = await axios.put(
-        `https://qsutrarmsclm.hub.swajyot.co.in:8476/api/eightd/data/${eventId}`, 
+        `http://localhost:8080/api/eightd/data/${eventId}`, 
         formDataToSend,
         {
           headers: { 
@@ -380,7 +380,7 @@ export default function FinalPreview({ eventId, isHOD = false }) {
     return files.filter(file => file.formType === formType);
   };
 
-  const getEightDFileUrl = (fileId) => `https://qsutrarmsclm.hub.swajyot.co.in:8476/api/eightd/files/${fileId}`;
+  const getEightDFileUrl = (fileId) => `http://localhost:8080/api/eightd/files/${fileId}`;
 
   const handleFileClick = async (fileId, mimeType, fileName) => {
     try {
@@ -411,7 +411,7 @@ export default function FinalPreview({ eventId, isHOD = false }) {
     try {
       setApproving(true);
       const user = JSON.parse(localStorage.getItem('user'));
-      const res = await axios.post(`https://qsutrarmsclm.hub.swajyot.co.in:8476/api/eightd/approve/${eventId}`, {
+      const res = await axios.post(`http://localhost:8080/api/eightd/approve/${eventId}`, {
         userEmail: user.email,
         comment: approvalComment.trim()
       });
@@ -433,7 +433,7 @@ export default function FinalPreview({ eventId, isHOD = false }) {
     try {
       setRejecting(true);
       const user = JSON.parse(localStorage.getItem('user'));
-      const res = await axios.post(`https://qsutrarmsclm.hub.swajyot.co.in:8476/api/eightd/reject/${eventId}`, {
+      const res = await axios.post(`http://localhost:8080/api/eightd/reject/${eventId}`, {
         userEmail: user.email,
         comment: approvalComment.trim()
       });
@@ -546,7 +546,7 @@ export default function FinalPreview({ eventId, isHOD = false }) {
           <img 
             src={RenewsysLogo} 
             alt="Renewsys Logo" 
-            className="h-20 w-auto mr-3"
+            className="h-12 w-auto mr-3"
           />
           <div className="border-l border-gray-300 pl-3">
             {/* <h1 className="text-lg font-semibold text-gray-800">Renewsys</h1> */}

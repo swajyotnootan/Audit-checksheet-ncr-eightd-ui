@@ -19,7 +19,7 @@ import axios from 'axios';
 // Add this import with your existing imports (around line 20)
 import AuditCheckSheetNCRForumModal from '../modals/AuditCheckSheetNCRForumModal';
 
-const API_BASE = 'https://qsutrarmsclm.hub.swajyot.co.in:8476/api';
+const API_BASE = 'http://localhost:8080/api';
 
 const TIME_OPTIONS = [
   '09:00 AM', '09:30 AM', '10:00 AM', '10:30 AM', '11:00 AM', '11:30 AM',
@@ -119,56 +119,132 @@ const getFormRoute = (audit) => {
 
 const getViewRoute = (audit, form) => {
   const auditType = (audit?.auditType || '').toLowerCase().trim();
+  const processName = (form?.processName || form?.name || '').toLowerCase();
+  const checkSheetType = audit?.checkSheet?.auditType || '';
   
-  if (auditType.includes('5s') || auditType.includes('five_s')) {
-    return '/fives-view';  // ← REMOVED '/audit/'
+  if (auditType.includes('5s') || auditType.includes('five_s') || processName.includes('5s') || processName.includes('five_s') || checkSheetType === 'FIVE_S') {
+    return `/audit/5s-view`;
   }
   
-  if (auditType.includes('process') || auditType.includes('manufacturing')) {
-    return '/manufacturing-view';  // ← REMOVED '/audit/'
+  if (auditType.includes('process') || auditType.includes('manufacturing') || processName.includes('process') || processName.includes('manufacturing') || checkSheetType === 'MANUFACTURING_PROCESS') {
+    return `/audit/manufacturing-view`;
   }
   
-  if (auditType.includes('iatf') || auditType.includes('system audit') || auditType.includes('16949')) {
-    return '/iatf-view';  // ← REMOVED '/audit/'
+  if (auditType.includes('iatf') || auditType.includes('system audit') || auditType.includes('internal audit') || auditType === 'iatf_16949' || checkSheetType === 'IATF_16949' || auditType.includes('16949')) {
+    return `/audit/iatf-view`;
   }
   
   if (auditType.includes('product')) {
-    return '/product-view';  // ← REMOVED '/audit/'
+    return `/audit/product-view`;
   }
   
   if (auditType.includes('iso')) {
-    return '/iso-view';  // ← REMOVED '/audit/'
+    return `/audit/iso-view`;
   }
   
   if (auditType.includes('safety') || auditType.includes('safe')) {
-    return '/safety-view';  // ← REMOVED '/audit/'
+    return `/audit/safety-view`;
   }
   
   if (auditType.includes('poka') || auditType.includes('yoke')) {
-    return '/pokayoke-view';  // ← REMOVED '/audit/'
+    return `/audit/pokayoke-view`;
   }
   
-  return '/fives-view';
+  return `/audit/5s-view`;
 };
 
 const isAuditExpired = (audit) => {
-  if (!audit?.scheduledDate || audit.status === 'COMPLETED') return false;
-  const scheduleDate = new Date(audit.toDate || audit.scheduledDate);
-  const today = new Date(); today.setHours(0, 0, 0, 0);
-  if (scheduleDate < today) return true;
-  if (scheduleDate.getTime() === today.getTime()) {
-    const now = new Date();
-    const cur = now.getHours() * 60 + now.getMinutes();
-    const parse = (s) => {
-      const m = (s || '').match(/(\d+):(\d+)\s*(AM|PM)/i);
-      if (!m) return 0;
-      let h = parseInt(m[1]); const min = parseInt(m[2]); const mer = m[3].toUpperCase();
-      if (mer === 'PM' && h !== 12) h += 12;
-      if (mer === 'AM' && h === 12) h = 0;
-      return h * 60 + min;
-    };
-    if (cur > parse(audit.endTime)) return true;
+  if (!audit || audit.status === 'COMPLETED') return false;
+  
+  // Check if it's a date range audit
+  const isDateRange = audit.fromDate && audit.toDate && audit.fromDate !== audit.toDate;
+  
+  if (isDateRange) {
+    // For date range audits, check if the entire range has passed
+    const toDate = new Date(audit.toDate);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    toDate.setHours(23, 59, 59, 999);
+    
+    // If end date is in the past
+    if (toDate < today) {
+      return true;
+    }
+    
+    // If today is the last day, check if end time has passed
+    if (toDate.toDateString() === today.toDateString() && audit.endTime) {
+      const now = new Date();
+      const currentHours = now.getHours();
+      const currentMinutes = now.getMinutes();
+      
+      // Parse end time
+      const parseTime = (timeStr) => {
+        const match = timeStr.match(/(\d+):(\d+)\s*(AM|PM)/i);
+        if (!match) return { hours: 23, minutes: 59 };
+        let hours = parseInt(match[1]);
+        const minutes = parseInt(match[2]);
+        const meridian = match[3].toUpperCase();
+        
+        if (meridian === 'PM' && hours !== 12) hours += 12;
+        if (meridian === 'AM' && hours === 12) hours = 0;
+        
+        return { hours, minutes };
+      };
+      
+      const endTime = parseTime(audit.endTime);
+      const currentTimeMinutes = (currentHours * 60) + currentMinutes;
+      const endTimeMinutes = (endTime.hours * 60) + endTime.minutes;
+      
+      // If current time is past end time on the due date
+      if (currentTimeMinutes > endTimeMinutes) {
+        return true;
+      }
+    }
+    
+    return false;
   }
+  
+  // For single date audits
+  if (!audit?.scheduledDate) return false;
+  
+  const scheduleDate = new Date(audit.scheduledDate);
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  scheduleDate.setHours(0, 0, 0, 0);
+  
+  // If date is in the past
+  if (scheduleDate < today) {
+    return true;
+  }
+  
+  // If today, check if end time has passed
+  if (scheduleDate.getTime() === today.getTime() && audit.endTime) {
+    const now = new Date();
+    const currentHours = now.getHours();
+    const currentMinutes = now.getMinutes();
+    
+    const parseTime = (timeStr) => {
+      const match = timeStr.match(/(\d+):(\d+)\s*(AM|PM)/i);
+      if (!match) return { hours: 23, minutes: 59 };
+      let hours = parseInt(match[1]);
+      const minutes = parseInt(match[2]);
+      const meridian = match[3].toUpperCase();
+      
+      if (meridian === 'PM' && hours !== 12) hours += 12;
+      if (meridian === 'AM' && hours === 12) hours = 0;
+      
+      return { hours, minutes };
+    };
+    
+    const endTime = parseTime(audit.endTime);
+    const currentTimeMinutes = (currentHours * 60) + currentMinutes;
+    const endTimeMinutes = (endTime.hours * 60) + endTime.minutes;
+    
+    if (currentTimeMinutes > endTimeMinutes) {
+      return true;
+    }
+  }
+  
   return false;
 };
 
@@ -226,21 +302,20 @@ const AuditCard = ({
   isRescheduleRequested, isExtensionRequested , onOpenForum
 }) => {
   const [expanded, setExpanded] = useState(false);
-  const isExpired = timeStatus === 'EXPIRED' || isAuditExpired(audit);
+  const isExpired = isAuditExpired(audit); // Change this line - remove timeStatus === 'EXPIRED'
+  const isMultiForm = totalForms > 1
   const isDateRange = audit.fromDate && audit.toDate && audit.fromDate !== audit.toDate;
-  const isMultiForm = totalForms > 1;
   const allFormsCompleted = completedForms === totalForms && totalForms > 0;
   const hasPendingForms = pendingForms > 0;
   const progressPercent = totalForms > 0 ? (completedForms / totalForms) * 100 : 0;
-  
+
   // Distinguish between overdue scenarios
   const hasStartedWork = hasFormData && completedForms > 0;
   const isOverdueNoWork = isExpired && !hasStartedWork;
   const isOverduePartialWork = isExpired && hasStartedWork && hasPendingForms;
-  
-  // CRITICAL: Check if request has been SUBMITTED
-  const hasPendingReschedule = isRescheduleRequested === true;
-  const hasPendingExtension = isExtensionRequested === true;
+    // CRITICAL: Check if request has been SUBMITTED
+    const hasPendingReschedule = isRescheduleRequested === true;
+    const hasPendingExtension = isExtensionRequested === true;
   
   // Determine button visibility
   // Show Reschedule button ONLY if: overdue with no work AND no pending reschedule request
@@ -310,16 +385,19 @@ const AuditCard = ({
               </div>
             )}
             <div className={`flex items-center gap-1.5 px-2 py-1 text-xs rounded-lg backdrop-blur-sm ${
-              audit.originalScheduledDate
-                ? 'bg-emerald-50 text-emerald-700 border border-emerald-100'
-                : 'text-gray-500 bg-white/50'
-            }`}>
-              <CalendarIcon size={10} />
-              {isDateRange ? `${audit.fromDate} → ${audit.toDate}` : audit.scheduledDate}
-              {audit.originalScheduledDate && (
-                <span className="ml-1 font-medium">(Rescheduled)</span>
-              )}
-            </div>
+  audit.originalScheduledDate
+    ? 'bg-emerald-50 text-emerald-700 border border-emerald-100'
+    : isExpired ? 'bg-red-50 text-red-700 border border-red-200' : 'text-gray-500 bg-white/50'
+}`}>
+  <CalendarIcon size={10} />
+  {isDateRange ? `${audit.fromDate} → ${audit.toDate}` : audit.scheduledDate}
+  {audit.originalScheduledDate && (
+    <span className="ml-1 font-medium">(Rescheduled)</span>
+  )}
+  {isExpired && !audit.originalScheduledDate && (
+    <span className="ml-1 font-medium text-red-600">(Overdue)</span>
+  )}
+</div>
           </div>
         </div>
         
@@ -348,18 +426,26 @@ const AuditCard = ({
         
         {/* Warning Messages - Only show if NO request submitted yet */}
         {isOverdueNoWork && !hasPendingReschedule && (
-          <div className="flex items-center gap-2 p-2 mb-3 text-xs text-red-700 border backdrop-blur-sm bg-red-50/80 rounded-xl border-red-200/50">
-            <AlertCircle size={14} />
-            <span className="flex-1">This audit hasn't started and is overdue! Please reschedule to begin.</span>
-          </div>
-        )}
-        
-        {isOverduePartialWork && !hasPendingExtension && (
-          <div className="flex items-center gap-2 p-2 mb-3 text-xs text-orange-700 border backdrop-blur-sm bg-orange-50/80 rounded-xl border-orange-200/50">
-            <AlertCircle size={14} />
-            <span className="flex-1">You've completed {completedForms} of {totalForms} forms. Please request an extension to complete the remaining forms.</span>
-          </div>
-        )}
+  <div className="flex items-center gap-2 p-2 mb-3 text-xs text-red-700 border backdrop-blur-sm bg-red-50/80 rounded-xl border-red-200/50">
+    <AlertCircle size={14} />
+    <span className="flex-1">
+      {isDateRange 
+        ? `This date range audit (${audit.fromDate} to ${audit.toDate}) has expired without any work started. Please reschedule to begin.`
+        : "This audit hasn't started and is overdue! Please reschedule to begin."}
+    </span>
+  </div>
+)}
+
+{isOverduePartialWork && !hasPendingExtension && (
+  <div className="flex items-center gap-2 p-2 mb-3 text-xs text-orange-700 border backdrop-blur-sm bg-orange-50/80 rounded-xl border-orange-200/50">
+    <AlertCircle size={14} />
+    <span className="flex-1">
+      {isDateRange
+        ? `This date range audit expired on ${audit.toDate}. You've completed ${completedForms} of ${totalForms} forms. Please request an extension to complete the remaining forms.`
+        : `You've completed ${completedForms} of ${totalForms} forms. Please request an extension to complete the remaining forms.`}
+    </span>
+  </div>
+)}
         
         {/* Pending Request Message */}
         {hasPendingExtension && (
@@ -813,159 +899,181 @@ const [selectedNCRForForum, setSelectedNCRForForum] = useState(null);
     } catch { return []; }
   };
 
-  const fetchSchedulesWithStatus = async () => {
-    try {
-      setLoading(true); setRefreshing(true);
+ const fetchSchedulesWithStatus = async () => {
+  try {
+    setLoading(true); setRefreshing(true);
 
-      const [responsesRes, ncrRes, rescheduleRequestsRes, extensionRequestsRes] = await Promise.all([
-        axios.get(`${API_BASE}/templates/responses/all`, { withCredentials: true }),
-        axios.get(`${API_BASE}/ncr/all`, { withCredentials: true }),
-        axios.get(`${API_BASE}/audit-schedule/reschedule-requests/auditor/${user?.id}`, { withCredentials: true }).catch(() => ({ data: [] })),
-        axios.get(`${API_BASE}/audit-schedule/extension-requests/auditor/${user?.id}`, { withCredentials: true }).catch(() => ({ data: [] }))
-      ]);
+    const [responsesRes, ncrRes, rescheduleRequestsRes, extensionRequestsRes] = await Promise.all([
+      axios.get(`${API_BASE}/templates/responses/all`, { withCredentials: true }),
+      axios.get(`${API_BASE}/ncr/all`, { withCredentials: true }),
+      axios.get(`${API_BASE}/audit-schedule/reschedule-requests/auditor/${user?.id}`, { withCredentials: true }).catch(() => ({ data: [] })),
+      axios.get(`${API_BASE}/audit-schedule/extension-requests/auditor/${user?.id}`, { withCredentials: true }).catch(() => ({ data: [] }))
+    ]);
 
-      // Track pending requests
-      const pendingRescheduleIds = new Set();
-      (rescheduleRequestsRes.data || []).forEach(req => {
-        if (req.status === 'PENDING') {
-          pendingRescheduleIds.add(req.scheduleId);
-        }
-      });
+    // Track pending requests
+    const pendingRescheduleIds = new Set();
+    (rescheduleRequestsRes.data || []).forEach(req => {
+      if (req.status === 'PENDING') {
+        pendingRescheduleIds.add(req.scheduleId);
+      }
+    });
+    
+    const pendingExtensionIds = new Set();
+    (extensionRequestsRes.data || []).forEach(req => {
+      if (req.status === 'PENDING') {
+        pendingExtensionIds.add(req.scheduleId);
+      }
+    });
+    
+    setRescheduleRequestedMap(Object.fromEntries([...pendingRescheduleIds].map(id => [id, true])));
+    setExtensionRequestedMap(Object.fromEntries([...pendingExtensionIds].map(id => [id, true])));
+
+    const allResponses = responsesRes.data || [];
+    const existingNcrAuditIds = new Set((ncrRes.data || []).map(n => Number(n.auditId)).filter(Boolean));
+
+    const pendingNcrItems = allResponses
+      .filter(r => Number(r.auditorId) === Number(user?.id))
+      .map(r => {
+        const answers = parseResponseAnswers(r);
+        return {
+          responseId: r.id,
+          auditReportNumber: getAuditReportNumber(answers, r),
+          formName: answers.formName || r.checkSheet?.name || 'Audit Form',
+          department: r.department || answers.department || 'Production',
+          shift: r.shift || answers.shift || 'Day',
+          auditeeId: r.auditeeId || answers.auditeeId,
+          auditeeName: r.auditeeName || answers.auditeeName,
+          findings: getNcrFindingEntries(answers),
+        };
+      })
+      .filter(item => item.findings.length > 0 && !existingNcrAuditIds.has(Number(item.responseId)));
+
+    setPendingNcrAudits(pendingNcrItems);
+
+    const responseMapByScheduleAndSheet = {};
+    allResponses.forEach(r => {
+      if (r.auditScheduleId) responseMapByScheduleAndSheet[`${r.auditScheduleId}_${r.checkSheet?.id}`] = r;
+    });
+
+    const schedulesRes = await axios.get(`${API_BASE}/audit-schedule/auditor/${user?.id}/schedules-with-status`, { withCredentials: true });
+    const schedulesData = schedulesRes.data || [];
+
+    // ✅ CRITICAL FIX: Filter schedules that are NOT approved
+    // Only show schedules that have been approved by Top Management
+    const approvedSchedulesData = schedulesData.filter(item => {
+      const schedule = item.schedule;
+      if (!schedule) return false;
       
-      const pendingExtensionIds = new Set();
-      (extensionRequestsRes.data || []).forEach(req => {
-        if (req.status === 'PENDING') {
-          pendingExtensionIds.add(req.scheduleId);
-        }
-      });
+      // For week schedules (Form 5 basic - no scheduledDate)
+      if (!schedule.scheduledDate) {
+        return schedule.approvalStatus === 'APPROVED';
+      }
       
-      setRescheduleRequestedMap(Object.fromEntries([...pendingRescheduleIds].map(id => [id, true])));
-      setExtensionRequestedMap(Object.fromEntries([...pendingExtensionIds].map(id => [id, true])));
+      // For detailed schedules (Form 5 Detailed - has scheduledDate)
+      if (schedule.scheduledDate) {
+        return schedule.detailedApprovalStatus === 'APPROVED' || 
+               schedule.approvalStatus === 'APPROVED';
+      }
+      
+      return false;
+    });
 
-      const allResponses = responsesRes.data || [];
-      const existingNcrAuditIds = new Set((ncrRes.data || []).map(n => Number(n.auditId)).filter(Boolean));
+    console.log(`📋 Filtered schedules: ${approvedSchedulesData.length} approved out of ${schedulesData.length} total`);
 
-      const pendingNcrItems = allResponses
-        .filter(r => Number(r.auditorId) === Number(user?.id))
-        .map(r => {
-          const answers = parseResponseAnswers(r);
-          return {
-            responseId: r.id,
-            auditReportNumber: getAuditReportNumber(answers, r),
-            formName: answers.formName || r.checkSheet?.name || 'Audit Form',
-            department: r.department || answers.department || 'Production',
-            shift: r.shift || answers.shift || 'Day',
-            auditeeId: r.auditeeId || answers.auditeeId,
-            auditeeName: r.auditeeName || answers.auditeeName,
-            findings: getNcrFindingEntries(answers),
-          };
-        })
-        .filter(item => item.findings.length > 0 && !existingNcrAuditIds.has(Number(item.responseId)));
+    const enhancedData = await Promise.all(approvedSchedulesData.map(async (item) => {
+      const scheduleId = item.schedule?.id;
+      const department = item.schedule?.department;
+      const auditType = item.schedule?.auditType || '';
+      const isIATF = auditType.toLowerCase().includes('iatf') || auditType.toLowerCase().includes('16949');
+      const is5S = auditType.toLowerCase().includes('5s') || auditType.toLowerCase().includes('five_s');
+      
+      let formDetails = [];
 
-      setPendingNcrAudits(pendingNcrItems);
-
-      const responseMapByScheduleAndSheet = {};
-      allResponses.forEach(r => {
-        if (r.auditScheduleId) responseMapByScheduleAndSheet[`${r.auditScheduleId}_${r.checkSheet?.id}`] = r;
-      });
-
-      const schedulesRes = await axios.get(`${API_BASE}/audit-schedule/auditor/${user?.id}/schedules-with-status`, { withCredentials: true });
-      const schedulesData = schedulesRes.data || [];
-
-      const enhancedData = await Promise.all(schedulesData.map(async (item) => {
-        const scheduleId = item.schedule?.id;
-        const department = item.schedule?.department;
-        const auditType = item.schedule?.auditType || '';
-        const isIATF = auditType.toLowerCase().includes('iatf') || auditType.toLowerCase().includes('16949');
-        const is5S = auditType.toLowerCase().includes('5s') || auditType.toLowerCase().includes('five_s');
-        
-        let formDetails = [];
-
-        if (isIATF && department) {
-          const availableForms = await fetchAvailableFormsForDepartment(department);
-          formDetails = availableForms.map(form => {
-            const existing = responseMapByScheduleAndSheet[`${scheduleId}_${form.id}`];
-            return { 
-              id: form.id, 
-              name: form.name, 
-              processName: form.processName, 
-              completed: !!existing, 
-              responseId: existing?.id,
-            };
-          });
-        } else if (is5S) {
-          const existing = allResponses.find(r => r.auditScheduleId === scheduleId);
-          formDetails = [{
-            id: item.schedule?.checkSheet?.id || '5S',
-            name: '5S Audit Checklist',
-            processName: '5S Audit',
-            completed: !!existing,
-            responseId: existing?.id,
-          }];
-        } else {
-          const existing = allResponses.find(r => r.auditScheduleId === scheduleId);
-          formDetails = [{ 
-            id: item.schedule?.checkSheet?.id || 1, 
-            name: item.schedule?.auditType || 'Audit Form', 
-            processName: item.schedule?.auditType, 
+      if (isIATF && department) {
+        const availableForms = await fetchAvailableFormsForDepartment(department);
+        formDetails = availableForms.map(form => {
+          const existing = responseMapByScheduleAndSheet[`${scheduleId}_${form.id}`];
+          return { 
+            id: form.id, 
+            name: form.name, 
+            processName: form.processName, 
             completed: !!existing, 
             responseId: existing?.id,
-          }];
-        }
+          };
+        });
+      } else if (is5S) {
+        const existing = allResponses.find(r => r.auditScheduleId === scheduleId);
+        formDetails = [{
+          id: item.schedule?.checkSheet?.id || '5S',
+          name: '5S Audit Checklist',
+          processName: '5S Audit',
+          completed: !!existing,
+          responseId: existing?.id,
+        }];
+      } else {
+        const existing = allResponses.find(r => r.auditScheduleId === scheduleId);
+        formDetails = [{ 
+          id: item.schedule?.checkSheet?.id || 1, 
+          name: item.schedule?.auditType || 'Audit Form', 
+          processName: item.schedule?.auditType, 
+          completed: !!existing, 
+          responseId: existing?.id,
+        }];
+      }
 
-        const totalForms = formDetails.length;
-        const completedForms = formDetails.filter(f => f.completed).length;
+      const totalForms = formDetails.length;
+      const completedForms = formDetails.filter(f => f.completed).length;
 
-        return {
-          ...item,
-          schedule: {
-            ...item.schedule,
-            hasFormData: completedForms > 0,
-            totalForms, completedForms,
-            pendingForms: totalForms - completedForms,
-            allFormsCompleted: totalForms > 0 && totalForms === completedForms,
-            formDetails,
-            rescheduleRequested: pendingRescheduleIds.has(scheduleId),
-            extensionRequested: pendingExtensionIds.has(scheduleId),
-            coAuditorNames: item.schedule.coAuditorNames || [],
-            originalScheduledDate: item.schedule.originalScheduledDate || null,
-          },
-        };
-      }));
+      return {
+        ...item,
+        schedule: {
+          ...item.schedule,
+          hasFormData: completedForms > 0,
+          totalForms, completedForms,
+          pendingForms: totalForms - completedForms,
+          allFormsCompleted: totalForms > 0 && totalForms === completedForms,
+          formDetails,
+          rescheduleRequested: pendingRescheduleIds.has(scheduleId),
+          extensionRequested: pendingExtensionIds.has(scheduleId),
+          coAuditorNames: item.schedule.coAuditorNames || [],
+          originalScheduledDate: item.schedule.originalScheduledDate || null,
+        },
+      };
+    }));
 
-      setSchedules(enhancedData);
-      
-      // Calculate stats
-      const partiallyCompletedAudits = enhancedData.filter(s => s.schedule.hasFormData && !s.schedule.allFormsCompleted);
-      const overdueNoWork = enhancedData.filter(s => {
-        const isExpired = s.timeStatus === 'EXPIRED' || isAuditExpired(s.schedule);
-        const hasStartedWork = s.schedule.hasFormData && s.schedule.completedForms > 0;
-        return isExpired && !hasStartedWork;
-      });
-      const overduePartialWork = enhancedData.filter(s => {
-        const isExpired = s.timeStatus === 'EXPIRED' || isAuditExpired(s.schedule);
-        const hasStartedWork = s.schedule.hasFormData && s.schedule.completedForms > 0;
-        const hasPending = s.schedule.pendingForms > 0;
-        return isExpired && hasStartedWork && hasPending;
-      });
-      
-      setStats({
-        upcoming: enhancedData.filter(s => s.timeStatus === 'UPCOMING' && !s.schedule.hasFormData).length,
-        active: enhancedData.filter(s => s.timeStatus === 'ACTIVE' && s.canStart && !s.schedule.hasFormData).length,
-        inProgress: enhancedData.filter(s => s.schedule.hasFormData && !s.schedule.allFormsCompleted && s.timeStatus !== 'EXPIRED' && !isAuditExpired(s.schedule)).length,
-        expired: enhancedData.filter(s => s.timeStatus === 'EXPIRED' && !s.schedule.hasFormData).length,
-        partiallyCompleted: partiallyCompletedAudits.length,
-        completed: enhancedData.filter(s => s.schedule.allFormsCompleted).length,
-        overdueNoWork: overdueNoWork.length,
-        overduePartialWork: overduePartialWork.length,
-      });
-    } catch (error) {
-      console.error('Error fetching schedules:', error);
-      addToast('Failed to load schedules', 'error');
-    } finally {
-      setLoading(false); setRefreshing(false);
-    }
-  };
+    setSchedules(enhancedData);
+    
+    // Calculate stats
+    const partiallyCompletedAudits = enhancedData.filter(s => s.schedule.hasFormData && !s.schedule.allFormsCompleted);
+    const overdueNoWork = enhancedData.filter(s => {
+      const isExpired = s.timeStatus === 'EXPIRED' || isAuditExpired(s.schedule);
+      const hasStartedWork = s.schedule.hasFormData && s.schedule.completedForms > 0;
+      return isExpired && !hasStartedWork;
+    });
+    const overduePartialWork = enhancedData.filter(s => {
+      const isExpired = s.timeStatus === 'EXPIRED' || isAuditExpired(s.schedule);
+      const hasStartedWork = s.schedule.hasFormData && s.schedule.completedForms > 0;
+      const hasPending = s.schedule.pendingForms > 0;
+      return isExpired && hasStartedWork && hasPending;
+    });
+    
+    setStats({
+      upcoming: enhancedData.filter(s => s.timeStatus === 'UPCOMING' && !s.schedule.hasFormData).length,
+      active: enhancedData.filter(s => s.timeStatus === 'ACTIVE' && s.canStart && !s.schedule.hasFormData).length,
+      inProgress: enhancedData.filter(s => s.schedule.hasFormData && !s.schedule.allFormsCompleted && s.timeStatus !== 'EXPIRED' && !isAuditExpired(s.schedule)).length,
+      expired: enhancedData.filter(s => s.timeStatus === 'EXPIRED' && !s.schedule.hasFormData).length,
+      partiallyCompleted: partiallyCompletedAudits.length,
+      completed: enhancedData.filter(s => s.schedule.allFormsCompleted).length,
+      overdueNoWork: overdueNoWork.length,
+      overduePartialWork: overduePartialWork.length,
+    });
+  } catch (error) {
+    console.error('Error fetching schedules:', error);
+    addToast('Failed to load schedules', 'error');
+  } finally {
+    setLoading(false); setRefreshing(false);
+  }
+};
 
 
    const fetchAllUsers = async () => {
@@ -1640,9 +1748,19 @@ const handleRequestExtension = async (scheduleId, newDate, newStartTime, newEndT
   );
 }
 
-// ─────────────────────────────────────────────────────────────
-// Reschedule Modal with Frontend Overlap Detection
-// ─────────────────────────────────────────────────────────────
+
+// Add this helper function before the RescheduleRequestModal component
+const getValidEndTimes = (startTime, endTimeOptions) => {
+  if (!startTime) return endTimeOptions;
+  const startMinutes = parseTimeToMinutes(startTime);
+  return endTimeOptions.filter(time => parseTimeToMinutes(time) > startMinutes);
+};
+
+const getValidStartTimes = (endTime, startTimeOptions) => {
+  if (!endTime) return startTimeOptions;
+  const endMinutes = parseTimeToMinutes(endTime);
+  return startTimeOptions.filter(time => parseTimeToMinutes(time) < endMinutes);
+};
 const RescheduleRequestModal = ({ audit, isOpen, onClose, onSubmit }) => {
   const [newDate, setNewDate] = useState('');
   const [newStartTime, setNewStartTime] = useState('');
@@ -1671,6 +1789,16 @@ const RescheduleRequestModal = ({ audit, isOpen, onClose, onSubmit }) => {
     return hours * 60 + minutes;
   };
 
+  // Get valid end times based on selected start time (only show times AFTER start time)
+  const getValidEndTimes = (startTime) => {
+    if (!startTime) return TIME_OPTIONS;
+    const startMinutes = parseTimeToMinutes(startTime);
+    return TIME_OPTIONS.filter(time => parseTimeToMinutes(time) > startMinutes);
+  };
+
+  // Get filtered end times based on current start time
+  const validEndTimes = getValidEndTimes(newStartTime);
+
   // Helper: Check if two time ranges overlap
   const doTimeRangesOverlap = (start1, end1, start2, end2) => {
     const start1Min = parseTimeToMinutes(start1);
@@ -1678,7 +1806,6 @@ const RescheduleRequestModal = ({ audit, isOpen, onClose, onSubmit }) => {
     const start2Min = parseTimeToMinutes(start2);
     const end2Min = parseTimeToMinutes(end2);
     
-    // Overlap condition: start1 < end2 AND end1 > start2
     return start1Min < end2Min && end1Min > start2Min;
   };
 
@@ -1700,7 +1827,7 @@ const RescheduleRequestModal = ({ audit, isOpen, onClose, onSubmit }) => {
     }
   };
 
-  // Check for scheduling conflicts with overlap detection (frontend-only)
+  // Check for scheduling conflicts with overlap detection
   const checkSchedulingConflict = async (date, startTime, endTime) => {
     if (!date || !startTime || !endTime || !audit?.id) return false;
     
@@ -1711,36 +1838,29 @@ const RescheduleRequestModal = ({ audit, isOpen, onClose, onSubmit }) => {
     try {
       const formattedDate = new Date(date).toISOString().split('T')[0];
       
-      // Fetch schedules if not already fetched
       let schedules = existingSchedules;
       if (schedules.length === 0) {
         schedules = await fetchExistingSchedules();
         setExistingSchedules(schedules);
       }
       
-      // Find conflicting schedules on the same date with overlapping times
       const conflicts = schedules.filter(schedule => {
-        // Skip current audit
         if (schedule.schedule?.id === audit.id) return false;
         
-        // Check if same date
         const scheduleDate = schedule.schedule?.scheduledDate;
         if (scheduleDate !== formattedDate) return false;
         
-        // Get schedule times
         const scheduleStart = schedule.schedule?.startTime;
         const scheduleEnd = schedule.schedule?.endTime;
         
         if (!scheduleStart || !scheduleEnd) return false;
         
-        // Check for time overlap
         return doTimeRangesOverlap(startTime, endTime, scheduleStart, scheduleEnd);
       });
       
       if (conflicts.length > 0) {
         setConflictDetails(conflicts);
         
-        // Build user-friendly error message
         const conflict = conflicts[0];
         const conflictStart = conflict.schedule?.startTime;
         const conflictEnd = conflict.schedule?.endTime;
@@ -1766,7 +1886,6 @@ const RescheduleRequestModal = ({ audit, isOpen, onClose, onSubmit }) => {
     }
   };
 
-  // Calculate date restrictions
   const getDateRestrictions = () => {
     const today = new Date();
     const tomorrow = new Date(today);
@@ -1821,7 +1940,14 @@ const RescheduleRequestModal = ({ audit, isOpen, onClose, onSubmit }) => {
   };
 
   const handleStartTimeChange = (e) => {
-    setNewStartTime(e.target.value);
+    const selectedStart = e.target.value;
+    setNewStartTime(selectedStart);
+    
+    // Auto-reset end time if current end time is now invalid (before or equal to new start time)
+    if (newEndTime && parseTimeToMinutes(selectedStart) >= parseTimeToMinutes(newEndTime)) {
+      setNewEndTime(''); // Clear end time so user can select a valid one
+    }
+    
     setTimeConflictError('');
     setConflictDetails([]);
   };
@@ -1834,12 +1960,17 @@ const RescheduleRequestModal = ({ audit, isOpen, onClose, onSubmit }) => {
 
   // Check for conflicts when time selection changes
   useEffect(() => {
-    if (newDate && newStartTime && newEndTime && !dateError) {
-      const delayDebounce = setTimeout(() => {
-        checkSchedulingConflict(newDate, newStartTime, newEndTime);
-      }, 500);
-      
-      return () => clearTimeout(delayDebounce);
+    if (newDate && newStartTime && newEndTime && !dateError && newStartTime && newEndTime) {
+      // Only check if end time is after start time
+      if (parseTimeToMinutes(newStartTime) < parseTimeToMinutes(newEndTime)) {
+        const delayDebounce = setTimeout(() => {
+          checkSchedulingConflict(newDate, newStartTime, newEndTime);
+        }, 500);
+        
+        return () => clearTimeout(delayDebounce);
+      } else {
+        setTimeConflictError('End time must be after start time');
+      }
     }
   }, [newDate, newStartTime, newEndTime, dateError]);
 
@@ -1855,7 +1986,7 @@ const RescheduleRequestModal = ({ audit, isOpen, onClose, onSubmit }) => {
       setDateError('');
       setTimeConflictError('');
       setConflictDetails([]);
-      setExistingSchedules([]); // Clear cache to force fresh fetch
+      setExistingSchedules([]);
     }
   }, [audit, isOpen]);
 
@@ -1867,6 +1998,16 @@ const RescheduleRequestModal = ({ audit, isOpen, onClose, onSubmit }) => {
     
     if (!validateDate(newDate)) {
       addToast(dateError, 'error');
+      return;
+    }
+    
+    if (!newStartTime || !newEndTime) {
+      addToast('Please select both start and end times', 'error');
+      return;
+    }
+    
+    if (parseTimeToMinutes(newStartTime) >= parseTimeToMinutes(newEndTime)) {
+      addToast('End time must be after start time', 'error');
       return;
     }
     
@@ -1931,15 +2072,14 @@ const RescheduleRequestModal = ({ audit, isOpen, onClose, onSubmit }) => {
               <select 
                 value={newStartTime} 
                 onChange={handleStartTimeChange}
-                className={`w-full p-2 text-sm border rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
-                  timeConflictError && newStartTime && newEndTime ? 'border-red-500 bg-red-50' : 'border-gray-200'
-                }`}
+                className="w-full p-2 text-sm border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               >
                 {TIME_OPTIONS.map((t, idx) => (
                   <option key={idx} value={t}>{t}</option>
                 ))}
               </select>
             </div>
+            
             <div>
               <label className="block mb-1 text-sm font-medium text-gray-700">End Time *</label>
               <select 
@@ -1948,13 +2088,29 @@ const RescheduleRequestModal = ({ audit, isOpen, onClose, onSubmit }) => {
                 className={`w-full p-2 text-sm border rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
                   timeConflictError && newStartTime && newEndTime ? 'border-red-500 bg-red-50' : 'border-gray-200'
                 }`}
+                disabled={!newStartTime}
               >
-                {TIME_OPTIONS.map((t, idx) => (
+                <option value="">Select end time</option>
+                {validEndTimes.map((t, idx) => (
                   <option key={idx} value={t}>{t}</option>
                 ))}
               </select>
+              {newStartTime && validEndTimes.length === 0 && (
+                <p className="mt-1 text-xs text-red-600">
+                  No valid end times available. Please select an earlier start time.
+                </p>
+              )}
+              
             </div>
           </div>
+          
+          {/* Time validation message */}
+          {newStartTime && newEndTime && parseTimeToMinutes(newStartTime) >= parseTimeToMinutes(newEndTime) && (
+            <div className="flex items-center gap-2 p-2 text-xs text-red-600 bg-red-50/80 rounded-xl">
+              <AlertCircle size={12} />
+              <span>End time must be after start time</span>
+            </div>
+          )}
           
           {/* Time Conflict Error Message */}
           {timeConflictError && (
@@ -1985,7 +2141,8 @@ const RescheduleRequestModal = ({ audit, isOpen, onClose, onSubmit }) => {
           )}
           
           {/* Success indicator for available slot */}
-          {!checkingConflict && newDate && newStartTime && newEndTime && !timeConflictError && !dateError && (
+          {!checkingConflict && newDate && newStartTime && newEndTime && !timeConflictError && !dateError && 
+           parseTimeToMinutes(newStartTime) < parseTimeToMinutes(newEndTime) && (
             <div className="flex items-center gap-2 p-2 text-xs text-green-600">
               <CheckCircle size={12} />
               <span>Time slot available</span>
@@ -2018,9 +2175,9 @@ const RescheduleRequestModal = ({ audit, isOpen, onClose, onSubmit }) => {
           </button>
           <button 
             onClick={handleSubmit} 
-            disabled={submitting || !!dateError || !!timeConflictError || checkingConflict} 
+            disabled={submitting || !!dateError || !!timeConflictError || checkingConflict || !newStartTime || !newEndTime || parseTimeToMinutes(newStartTime) >= parseTimeToMinutes(newEndTime)} 
             className={`px-4 py-1.5 text-sm font-medium text-white rounded-xl transition-all shadow-sm ${
-              submitting || dateError || timeConflictError || checkingConflict
+              submitting || dateError || timeConflictError || checkingConflict || !newStartTime || !newEndTime || parseTimeToMinutes(newStartTime) >= parseTimeToMinutes(newEndTime)
                 ? 'bg-gray-400 cursor-not-allowed'
                 : 'bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700'
             }`}
@@ -2032,7 +2189,6 @@ const RescheduleRequestModal = ({ audit, isOpen, onClose, onSubmit }) => {
     </div>
   );
 };
-
 // ─────────────────────────────────────────────────────────────
 // Extension Modal with Time Fields
 // ─────────────────────────────────────────────────────────────
@@ -2042,27 +2198,226 @@ const ExtensionRequestModal = ({ audit, form, isOpen, onClose, onSubmit }) => {
   const [newEndTime, setNewEndTime] = useState('');
   const [reason, setReason] = useState('');
   const [submitting, setSubmitting] = useState(false);
+  const [timeError, setTimeError] = useState('');
+  const [checkingConflict, setCheckingConflict] = useState(false);
+  const [conflictDetails, setConflictDetails] = useState([]);
+  const [existingSchedules, setExistingSchedules] = useState([]);
   const { addToast } = useToast();
+
+  // Helper: Parse time string to minutes for comparison
+  const parseTimeToMinutes = (timeStr) => {
+    if (!timeStr) return 0;
+    const match = timeStr.match(/(\d+):(\d+)\s*(AM|PM)/i);
+    if (!match) return 0;
+    let hours = parseInt(match[1]);
+    const minutes = parseInt(match[2]);
+    const meridian = match[3].toUpperCase();
+    
+    if (meridian === 'PM' && hours !== 12) hours += 12;
+    if (meridian === 'AM' && hours === 12) hours = 0;
+    
+    return hours * 60 + minutes;
+  };
+
+  // Get valid end times based on selected start time (only show times AFTER start time)
+  const getValidEndTimes = (startTime) => {
+    if (!startTime) return TIME_OPTIONS;
+    const startMinutes = parseTimeToMinutes(startTime);
+    return TIME_OPTIONS.filter(time => parseTimeToMinutes(time) > startMinutes);
+  };
+
+  // Get filtered end times based on current start time
+  const validEndTimes = getValidEndTimes(newStartTime);
+
+  // Helper: Check if two time ranges overlap
+  const doTimeRangesOverlap = (start1, end1, start2, end2) => {
+    const start1Min = parseTimeToMinutes(start1);
+    const end1Min = parseTimeToMinutes(end1);
+    const start2Min = parseTimeToMinutes(start2);
+    const end2Min = parseTimeToMinutes(end2);
+    
+    return start1Min < end2Min && end1Min > start2Min;
+  };
+
+  // Fetch all existing schedules for the auditor to check conflicts
+  const fetchExistingSchedules = async () => {
+    try {
+      const auditorId = audit?.auditorId || audit?.leadAuditorId;
+      if (!auditorId) return [];
+      
+      const response = await axios.get(
+        `${API_BASE}/audit-schedule/auditor/${auditorId}/schedules-with-status`,
+        { withCredentials: true }
+      );
+      
+      return response.data || [];
+    } catch (error) {
+      console.error('Error fetching schedules:', error);
+      return [];
+    }
+  };
+
+  // Check for scheduling conflicts with overlap detection
+  const checkSchedulingConflict = async (date, startTime, endTime) => {
+    if (!date || !startTime || !endTime || !audit?.id) return false;
+    
+    setCheckingConflict(true);
+    setTimeError('');
+    setConflictDetails([]);
+    
+    try {
+      const formattedDate = new Date(date).toISOString().split('T')[0];
+      
+      let schedules = existingSchedules;
+      if (schedules.length === 0) {
+        schedules = await fetchExistingSchedules();
+        setExistingSchedules(schedules);
+      }
+      
+      const conflicts = schedules.filter(schedule => {
+        // Skip current audit
+        if (schedule.schedule?.id === audit.id) return false;
+        
+        const scheduleDate = schedule.schedule?.scheduledDate;
+        if (scheduleDate !== formattedDate) return false;
+        
+        const scheduleStart = schedule.schedule?.startTime;
+        const scheduleEnd = schedule.schedule?.endTime;
+        
+        if (!scheduleStart || !scheduleEnd) return false;
+        
+        return doTimeRangesOverlap(startTime, endTime, scheduleStart, scheduleEnd);
+      });
+      
+      if (conflicts.length > 0) {
+        setConflictDetails(conflicts);
+        
+        const conflict = conflicts[0];
+        const conflictStart = conflict.schedule?.startTime;
+        const conflictEnd = conflict.schedule?.endTime;
+        const conflictDept = conflict.schedule?.department;
+        
+        const errorMsg = `Time conflict: You already have an audit scheduled on ${formattedDate} from ${conflictStart} - ${conflictEnd}. ` +
+                        `Your requested time (${startTime} - ${endTime}) overlaps with this audit.` +
+                        (conflictDept ? ` (Department: ${conflictDept})` : '');
+        
+        setTimeError(errorMsg);
+        return true;
+      }
+      
+      setTimeError('');
+      setConflictDetails([]);
+      return false;
+    } catch (error) {
+      console.error('Error checking schedule conflict:', error);
+      addToast('Unable to verify schedule availability. Please proceed with caution.', 'warning');
+      return false;
+    } finally {
+      setCheckingConflict(false);
+    }
+  };
+
+  const handleStartTimeChange = (e) => {
+    const selectedStart = e.target.value;
+    setNewStartTime(selectedStart);
+    
+    // Reset end time if current end time is now invalid (before or equal to new start time)
+    if (newEndTime && parseTimeToMinutes(selectedStart) >= parseTimeToMinutes(newEndTime)) {
+      setNewEndTime(''); // Clear end time so user can select a valid one
+    }
+    
+    setTimeError('');
+    setConflictDetails([]);
+  };
+
+  const handleEndTimeChange = (e) => {
+    setNewEndTime(e.target.value);
+    setTimeError('');
+    setConflictDetails([]);
+  };
+
+  // Check for conflicts when time selection changes
+  useEffect(() => {
+    if (newDate && newStartTime && newEndTime && newStartTime && newEndTime) {
+      // Only check if end time is after start time
+      if (parseTimeToMinutes(newStartTime) < parseTimeToMinutes(newEndTime)) {
+        const delayDebounce = setTimeout(() => {
+          checkSchedulingConflict(newDate, newStartTime, newEndTime);
+        }, 500);
+        
+        return () => clearTimeout(delayDebounce);
+      } else {
+        setTimeError('End time must be after start time');
+      }
+    }
+  }, [newDate, newStartTime, newEndTime]);
 
   useEffect(() => {
     if (audit && isOpen) { 
-      // Set default extension date to 7 days from now
       const defaultDate = new Date();
       defaultDate.setDate(defaultDate.getDate() + 7);
       setNewDate(defaultDate.toISOString().split('T')[0]); 
       setNewStartTime(audit.startTime || '09:00 AM');
       setNewEndTime(audit.endTime || '10:00 AM');
-      setReason(''); 
+      setReason('');
+      setTimeError('');
+      setConflictDetails([]);
+      setExistingSchedules([]);
     }
   }, [audit, isOpen]);
 
   const handleSubmit = async () => {
-    if (!newDate) { addToast('Please select new date', 'error'); return; }
-    if (!reason.trim()) { addToast('Please provide a reason', 'error'); return; }
+    if (!newDate) { 
+      addToast('Please select new date', 'error'); 
+      return; 
+    }
+    
+    // Validate date is not in the past
+    const selectedDate = new Date(newDate);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    
+    if (selectedDate < today) {
+      addToast('Extension date cannot be in the past', 'error');
+      return;
+    }
+    
+    if (!newStartTime || !newEndTime) {
+      addToast('Please select both start and end times', 'error');
+      return;
+    }
+    
+    if (parseTimeToMinutes(newStartTime) >= parseTimeToMinutes(newEndTime)) {
+      addToast('End time must be after start time', 'error');
+      return;
+    }
+    
+    // Check for scheduling conflicts
+    const hasConflict = await checkSchedulingConflict(newDate, newStartTime, newEndTime);
+    if (hasConflict) {
+      addToast(timeError || 'Time slot conflicts with another audit schedule', 'error');
+      return;
+    }
+    
+    if (!reason.trim()) { 
+      addToast('Please provide a reason', 'error'); 
+      return; 
+    }
+    
     setSubmitting(true);
-    await onSubmit(audit.id, newDate, newStartTime, newEndTime, reason, form);
-    setSubmitting(false); 
-    onClose();
+    try {
+      await onSubmit(audit.id, newDate, newStartTime, newEndTime, reason, form);
+      addToast('Extension request submitted successfully!', 'success');
+      onClose();
+    } catch (error) {
+      console.error('Extension error:', error);
+      const errorMessage = error.response?.data?.message ||
+                          error.response?.data?.error ||
+                          'Failed to submit extension request';
+      addToast(errorMessage, 'error');
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   if (!isOpen) return null;
@@ -2072,7 +2427,7 @@ const ExtensionRequestModal = ({ audit, form, isOpen, onClose, onSubmit }) => {
   
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/30 backdrop-blur-sm">
-      <div className="w-full max-w-md p-5 border shadow-2xl backdrop-blur-xl bg-white/95 rounded-2xl border-white/30">
+      <div className="w-full max-w-md p-5 border shadow-2xl backdrop-blur-xl bg-white/95 rounded-2xl border-white/30 max-h-[90vh] overflow-y-auto">
         <h3 className="mb-3 text-lg font-semibold text-gray-800">Request Extension</h3>
         <div className="p-3 mb-3 border bg-orange-50/80 rounded-xl border-orange-200/50">
           <p className="text-sm text-gray-700">
@@ -2086,6 +2441,7 @@ const ExtensionRequestModal = ({ audit, form, isOpen, onClose, onSubmit }) => {
           Request extension for <strong>{audit?.auditType}</strong> - <strong>{audit?.department}</strong>
           {form && <span className="block mt-1 text-xs text-gray-500">Form: {form.name}</span>}
         </p>
+        
         <div className="space-y-3">
           <div>
             <label className="block mb-1 text-sm font-medium text-gray-700">New Due Date *</label>
@@ -2096,6 +2452,7 @@ const ExtensionRequestModal = ({ audit, form, isOpen, onClose, onSubmit }) => {
               className="w-full p-2 text-sm border border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent" 
               min={new Date().toISOString().split('T')[0]} 
             />
+            <p className="mt-1 text-xs text-gray-500">Select new completion date</p>
           </div>
           
           <div className="grid grid-cols-2 gap-3">
@@ -2103,23 +2460,86 @@ const ExtensionRequestModal = ({ audit, form, isOpen, onClose, onSubmit }) => {
               <label className="block mb-1 text-sm font-medium text-gray-700">Start Time</label>
               <select 
                 value={newStartTime} 
-                onChange={e => setNewStartTime(e.target.value)} 
+                onChange={handleStartTimeChange} 
                 className="w-full p-2 text-sm border border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent"
               >
-                {TIME_OPTIONS.map(t => <option key={t}>{t}</option>)}
+                {TIME_OPTIONS.map((t, idx) => (
+                  <option key={idx} value={t}>{t}</option>
+                ))}
               </select>
+              <p className="mt-1 text-xs text-gray-500">All times available</p>
             </div>
+            
             <div>
               <label className="block mb-1 text-sm font-medium text-gray-700">End Time</label>
               <select 
                 value={newEndTime} 
-                onChange={e => setNewEndTime(e.target.value)} 
+                onChange={handleEndTimeChange} 
                 className="w-full p-2 text-sm border border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                disabled={!newStartTime}
               >
-                {TIME_OPTIONS.map(t => <option key={t}>{t}</option>)}
+                <option value="">Select end time</option>
+                {validEndTimes.map((t, idx) => (
+                  <option key={idx} value={t}>{t}</option>
+                ))}
               </select>
+              {newStartTime && validEndTimes.length === 0 && (
+                <p className="mt-1 text-xs text-red-600">
+                  No valid end times available. Please select an earlier start time.
+                </p>
+              )}
+              {newStartTime && validEndTimes.length > 0 && (
+                <p className="mt-1 text-xs text-green-600">
+                  Showing {validEndTimes.length} time(s) after {newStartTime}
+                </p>
+              )}
             </div>
           </div>
+          
+          {/* Time validation message */}
+          {newStartTime && newEndTime && parseTimeToMinutes(newStartTime) >= parseTimeToMinutes(newEndTime) && (
+            <div className="flex items-center gap-2 p-2 text-xs text-red-600 bg-red-50/80 rounded-xl">
+              <AlertCircle size={12} />
+              <span>End time must be after start time</span>
+            </div>
+          )}
+          
+          {/* Time Conflict Error Message */}
+          {timeError && (
+            <div className="flex items-start gap-2 p-3 text-sm border backdrop-blur-sm bg-red-50/80 rounded-xl border-red-200/50">
+              <AlertCircle size={16} className="text-red-600 mt-0.5 flex-shrink-0" />
+              <div className="flex-1">
+                <span className="text-red-700">{timeError}</span>
+                {conflictDetails.length > 0 && (
+                  <div className="mt-2 text-xs text-red-600">
+                    {conflictDetails.map((conflict, idx) => (
+                      <div key={idx} className="mt-1">
+                        🔴 Conflict: {conflict.schedule?.startTime} - {conflict.schedule?.endTime}
+                        {conflict.schedule?.department && ` (${conflict.schedule.department})`}
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+          
+          {/* Loading indicator for conflict check */}
+          {checkingConflict && newDate && newStartTime && newEndTime && !timeError && (
+            <div className="flex items-center gap-2 p-2 text-xs text-blue-600">
+              <RefreshCw size={12} className="animate-spin" />
+              <span>Checking availability...</span>
+            </div>
+          )}
+          
+          {/* Success indicator for available slot */}
+          {!checkingConflict && newDate && newStartTime && newEndTime && !timeError && 
+           parseTimeToMinutes(newStartTime) < parseTimeToMinutes(newEndTime) && (
+            <div className="flex items-center gap-2 p-2 text-xs text-green-600">
+              <CheckCircle size={12} />
+              <span>Time slot available</span>
+            </div>
+          )}
           
           <div>
             <label className="block mb-1 text-sm font-medium text-gray-700">Reason for Extension *</label>
@@ -2137,14 +2557,27 @@ const ExtensionRequestModal = ({ audit, form, isOpen, onClose, onSubmit }) => {
             <p className="mt-1">Extension requests will be reviewed by the audit coordinator. You will be notified once approved.</p>
           </div>
         </div>
+        
         <div className="flex justify-end gap-2 mt-4">
-          <button onClick={onClose} className="px-4 py-1.5 text-sm font-medium text-gray-700 transition-all rounded-xl backdrop-blur-sm bg-gray-100/80 hover:bg-gray-200/80">Cancel</button>
-          <button onClick={handleSubmit} disabled={submitting} className="px-4 py-1.5 text-sm font-medium text-white bg-gradient-to-r from-purple-500 to-purple-600 rounded-xl hover:from-purple-600 hover:to-purple-700 transition-all shadow-sm">
+          <button 
+            onClick={onClose} 
+            className="px-4 py-1.5 text-sm font-medium text-gray-700 transition-all rounded-xl backdrop-blur-sm bg-gray-100/80 hover:bg-gray-200/80"
+          >
+            Cancel
+          </button>
+          <button 
+            onClick={handleSubmit} 
+            disabled={submitting || !newStartTime || !newEndTime || !!timeError || checkingConflict || parseTimeToMinutes(newStartTime) >= parseTimeToMinutes(newEndTime)} 
+            className={`px-4 py-1.5 text-sm font-medium text-white rounded-xl transition-all shadow-sm ${
+              submitting || !newStartTime || !newEndTime || !!timeError || checkingConflict || parseTimeToMinutes(newStartTime) >= parseTimeToMinutes(newEndTime)
+                ? 'bg-gray-400 cursor-not-allowed'
+                : 'bg-gradient-to-r from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700'
+            }`}
+          >
             {submitting ? 'Submitting...' : 'Submit Extension Request'}
           </button>
         </div>
       </div>
-     
     </div>
   );
 };

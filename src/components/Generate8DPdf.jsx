@@ -2,7 +2,7 @@
 import React, { useState } from "react";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
-import logo from "../assets/RenewsysLogo.png";
+import logo from "../assets/Stratum.png";
 
 // User-friendly field definitions — same as FinalPreview.jsx
 const stepFields = {
@@ -477,7 +477,7 @@ export default function Generate8DPdf({ title, formData, attachments = [] }) {
 
       // Get D0 data for header
       const d0Data = formData?.d0?.[0] || {};
-      const companyName = d0Data.companyName || "Renewsys";
+      const companyName = d0Data.companyName || "Stratum Aerospace";
       const contactPerson = d0Data.contactPerson || "";
       const companyEmail = d0Data.email || "";
       const companyPhone = d0Data.phone || "";
@@ -502,7 +502,7 @@ export default function Generate8DPdf({ title, formData, attachments = [] }) {
         const startY = 15;
         
         try {
-          pdf.addImage(logo, "JPEG", margin, startY, 120, 60);
+          pdf.addImage(logo, "JPEG", margin, startY, 120, 40);
         } catch (err) {
           console.warn("Logo not loaded:", err);
         }

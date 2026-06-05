@@ -1390,288 +1390,255 @@ const handleBulkRejectByAuditType = async () => {
           </div>
         </div>
 
-        {/* Department Audit Plans Section - Form 4 */}
-        <div className="bg-white rounded-xl border border-gray-200 overflow-hidden mb-6 shadow-sm">
-          <div className="px-5 py-4 border-b border-gray-200 bg-gray-50">
-            <h2 className="font-semibold text-gray-800 flex items-center gap-2">
-              <FiList className="w-4 h-4 text-green-500" />
-              Department Audit Plans (Form 4) - Pending Approval ({pendingDeptPlans.length})
-            </h2>
-          </div>
-          <div className="divide-y divide-gray-100">
-            {pendingDeptPlans.length === 0 ? (
-              <div className="p-8 text-center text-gray-400">
-                <FiCheckCircle className="w-12 h-12 mx-auto mb-2 opacity-50" />
-                <p>No department plans pending approval</p>
-              </div>
-            ) : (
-              pendingDeptPlans.map((plan) => (
-                <div key={plan.year} className="p-4 hover:bg-gray-50 transition-colors">
-                  <div className="flex justify-between items-center">
-                    <div>
-                      <p className="font-medium text-gray-800">Department Audit Plan {plan.year}</p>
-                      <div className="flex items-center gap-3 mt-1 text-xs text-gray-400">
-                        <span>Prepared by: {plan.preparedBy || 'N/A'}</span>
-                      </div>
-                    </div>
-                    <button
-                      onClick={() => handleViewDeptPlan(plan)}
-                      className="px-3 py-1.5 bg-green-600 text-white rounded-lg hover:bg-green-700 text-sm flex items-center gap-1"
-                    >
-                      <FiEye className="w-4 h-4" /> Review
-                    </button>
-                  </div>
-                </div>
-              ))
-            )}
-          </div>
-        </div>
-
-        {/* Form 5 - Week Schedule Plans Section */}
-        <div className="bg-white rounded-xl border border-gray-200 overflow-hidden mb-6 shadow-sm">
-          <div className="px-5 py-4 border-b border-gray-200 bg-gray-50">
-            <h2 className="font-semibold text-gray-800 flex items-center gap-2">
-              <FiCalendarIcon className="w-4 h-4 text-indigo-500" />
-              Week Schedule Plans (Form 5) - Pending Approval ({pendingForm5Plans.length})
-            </h2>
-            <p className="text-xs text-gray-400 mt-1">Week-based audit schedules (W-1 to W-4)</p>
-          </div>
-          <div className="divide-y divide-gray-100">
-            {pendingForm5Plans.length === 0 ? (
-              <div className="p-8 text-center text-gray-400">
-                <FiCheckCircle className="w-12 h-12 mx-auto mb-2 opacity-50" />
-                <p>No week schedule plans pending approval</p>
-              </div>
-            ) : (
-              pendingForm5Plans.map((plan, idx) => (
-                <div key={`${plan.year}-${plan.month}`} className="p-4 hover:bg-gray-50 transition-colors">
-                  <div className="flex justify-between items-center">
-                    <div>
-                      <p className="font-medium text-gray-800">
-                        {monthDisplay[plan.month] || plan.month} {plan.year}
-                      </p>
-                      <div className="flex items-center gap-3 mt-1 text-xs text-gray-400">
-                        <span>Prepared by: {plan.preparedBy || 'N/A'}</span>
-                        <span>Weeks: {plan.scheduleCount || 0}</span>
-                        {plan.leadAuditorName && <span>Lead Auditor: {plan.leadAuditorName}</span>}
-                      </div>
-                    </div>
-                    <button
-                      onClick={() => handleViewForm5Plan(plan)}
-                      className="px-3 py-1.5 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 text-sm flex items-center gap-1"
-                    >
-                      <FiEye className="w-4 h-4" /> Review Week Schedule
-                    </button>
-                  </div>
-                </div>
-              ))
-            )}
-          </div>
-        </div>
-
-        {/* Form 5 Detailed - Daily Schedule Plans Section with Tabs */}
-        <div className="bg-white rounded-xl border border-gray-200 overflow-hidden mb-6 shadow-sm">
-          <div className="px-5 py-4 border-b border-gray-200 bg-gray-50">
-            <div className="flex justify-between items-center">
-              <div>
-                <h2 className="font-semibold text-gray-800 flex items-center gap-2">
-                  <FiClock className="w-4 h-4 text-teal-500" />
-                  Daily Schedule Plans (Form 5 Detailed)
-                </h2>
-                <p className="text-xs text-gray-400 mt-1">Daily audit schedules with time slots</p>
-              </div>
-              <div className="flex gap-2">
-                <span className="px-2 py-1 bg-yellow-100 text-yellow-700 rounded-full text-xs">
-                  {pendingDetailedPlans.length} Pending
-                </span>
-                <span className="px-2 py-1 bg-green-100 text-green-700 rounded-full text-xs">
-                  {approvedDetailedPlans.length} Approved/History
-                </span>
-              </div>
+        <div className="grid grid-cols-1 gap-6 mb-6 md:grid-cols-2">
+          {/* Card 1: Annual Audit Plans Section - Form 3 */}
+          <div className="overflow-hidden bg-white border border-gray-200 shadow-sm rounded-xl">
+            <div className="px-5 py-4 border-b border-gray-200 bg-gray-50">
+              <h2 className="flex items-center gap-2 font-semibold text-gray-800">
+                <FiFileText className="w-4 h-4 text-blue-500" />
+                Annual Audit Plans (Form 3) - Pending Approval ({pendingPlans.length})
+              </h2>
             </div>
-          </div>
-          
-          {/* Tab Navigation for Daily Schedules */}
-          <div className="border-b border-gray-200 bg-white px-5">
-            <div className="flex gap-4">
-              <button
-                onClick={() => setActiveTab('pending')}
-                className={`py-3 px-2 text-sm font-medium transition-colors relative ${
-                  activeTab === 'pending' 
-                    ? 'text-teal-600 border-b-2 border-teal-600' 
-                    : 'text-gray-500 hover:text-gray-700'
-                }`}
-              >
-                <div className="flex items-center gap-2">
-                  <FiClock className="w-4 h-4" />
-                  Pending Approval
-                  {pendingDetailedPlans.length > 0 && (
-                    <span className="ml-1 px-1.5 py-0.5 bg-yellow-100 text-yellow-700 rounded-full text-xs">
-                      {pendingDetailedPlans.length}
-                    </span>
-                  )}
+            <div className="divide-y divide-gray-100">
+              {pendingPlans.length === 0 ? (
+                <div className="p-8 text-center text-gray-400">
+                  <FiCheckCircle className="w-12 h-12 mx-auto mb-2 opacity-50" />
+                  <p>No annual plans pending approval</p>
                 </div>
-              </button>
-              <button
-                onClick={() => setActiveTab('history')}
-                className={`py-3 px-2 text-sm font-medium transition-colors relative ${
-                  activeTab === 'history' 
-                    ? 'text-teal-600 border-b-2 border-teal-600' 
-                    : 'text-gray-500 hover:text-gray-700'
-                }`}
-              >
-                <div className="flex items-center gap-2">
-                  <FiArchive className="w-4 h-4" />
-                  History & Approved
-                  {approvedDetailedPlans.length > 0 && (
-                    <span className="ml-1 px-1.5 py-0.5 bg-green-100 text-green-700 rounded-full text-xs">
-                      {approvedDetailedPlans.length}
-                    </span>
-                  )}
-                </div>
-              </button>
-            </div>
-          </div>
-
-          {/* Content based on active tab */}
-          <div className="divide-y divide-gray-100">
-            {activeTab === 'pending' && pendingDetailedPlans.length === 0 && (
-              <div className="p-8 text-center text-gray-400">
-                <FiCheckCircle className="w-12 h-12 mx-auto mb-2 opacity-50" />
-                <p>No daily schedule plans pending approval</p>
-              </div>
-            )}
-            
-            {activeTab === 'history' && approvedDetailedPlans.length === 0 && (
-              <div className="p-8 text-center text-gray-400">
-                <FiArchive className="w-12 h-12 mx-auto mb-2 opacity-50" />
-                <p>No approved or historical daily schedules</p>
-              </div>
-            )}
-            
-            {((activeTab === 'pending' && pendingDetailedPlans.length > 0) ||
-              (activeTab === 'history' && approvedDetailedPlans.length > 0)) && (
-              (activeTab === 'pending' ? pendingDetailedPlans : approvedDetailedPlans).map((plan, idx) => (
-                <div key={`${plan.year}-${plan.month}`} className="p-4 hover:bg-gray-50 transition-colors">
-                  <div className="flex justify-between items-center">
-                    <div>
-                      <p className="font-medium text-gray-800">
-                        {monthDisplay[plan.month] || plan.month} {plan.year}
-                        {plan.isChangeRequested && activeTab === 'pending' && (
-                          <span className="ml-2 px-2 py-0.5 bg-orange-100 text-orange-700 rounded-full text-xs">
-                            Changes Requested ({plan.changeRequestedCount})
-                          </span>
-                        )}
-                        {plan.pendingCount > 0 && activeTab === 'pending' && !plan.isChangeRequested && (
-                          <span className="ml-2 px-2 py-0.5 bg-yellow-100 text-yellow-700 rounded-full text-xs">
-                            {plan.pendingCount} pending
-                          </span>
-                        )}
-                        {activeTab === 'history' && plan.approvedCount > 0 && (
-                          <span className="ml-2 px-2 py-0.5 bg-green-100 text-green-700 rounded-full text-xs">
-                            {plan.approvedCount} approved
-                          </span>
-                        )}
-                        {activeTab === 'history' && plan.rejectedCount > 0 && (
-                          <span className="ml-2 px-2 py-0.5 bg-red-100 text-red-700 rounded-full text-xs">
-                            {plan.rejectedCount} rejected
-                          </span>
-                        )}
-                      </p>
-                      <div className="flex items-center gap-3 mt-1 text-xs text-gray-400">
-                        <span>Prepared by: {plan.preparedBy || 'N/A'}</span>
-                        <span>Total Schedules: {plan.scheduleCount || 0}</span>
-                        {plan.leadAuditorName && <span>Lead Auditor: {plan.leadAuditorName}</span>}
-                      </div>
-                      {activeTab === 'history' && plan.approvedAt && (
-                        <div className="mt-1 text-xs text-gray-400">
-                          <span>Approved on: {new Date(plan.approvedAt).toLocaleString()}</span>
-                          {plan.approvedBy && <span className="ml-2">by {plan.approvedBy}</span>}
+              ) : (
+                pendingPlans.map((plan) => (
+                  <div key={plan.year} className="p-4 transition-colors hover:bg-gray-50">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="font-medium text-gray-800">Annual Audit Plan {plan.year}</p>
+                        <div className="flex items-center gap-3 mt-1 text-xs text-gray-400">
+                          <span>Prepared by: {plan.preparedBy || 'N/A'}</span>
                         </div>
-                      )}
+                      </div>
+                      <button
+                        onClick={() => handleViewPlan(plan)}
+                        className="px-3 py-1.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-sm flex items-center gap-1"
+                      >
+                        <FiEye className="w-4 h-4" /> Review
+                      </button>
                     </div>
-                    <button
-                      onClick={() => handleViewDetailedPlan(plan, activeTab)}
-                      className="px-3 py-1.5 bg-teal-600 text-white rounded-lg hover:bg-teal-700 text-sm flex items-center gap-1"
-                    >
-                      <FiEye className="w-4 h-4" /> {activeTab === 'pending' ? 'Review & Approve' : 'View History'}
-                    </button>
                   </div>
-                </div>
-              ))
-            )}
+                ))
+              )}
+            </div>
           </div>
-        </div>
 
-        {/* Approved Plans Summary */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
-          <div className="bg-white rounded-xl border border-gray-200 p-4 shadow-sm">
-            <h3 className="font-semibold text-gray-800 flex items-center gap-2 mb-2">
-              <FiCheckCircle className="w-4 h-4 text-green-500" />
-              Approved Annual Plans ({approvedPlans.length})
-            </h3>
-            {approvedPlans.length === 0 ? (
-              <p className="text-sm text-gray-400">No approved annual plans</p>
-            ) : (
-              <div className="space-y-1 max-h-32 overflow-y-auto">
-                {approvedPlans.map(plan => (
-                  <p key={plan.year} className="text-sm text-gray-600">
-                    • {plan.year} - Approved on {plan.approvedAt ? new Date(plan.approvedAt).toLocaleDateString() : 'N/A'}
-                  </p>
-                ))}
-              </div>
-            )}
+          {/* Card 2: Department Audit Plans Section - Form 4 */}
+          <div className="overflow-hidden bg-white border border-gray-200 shadow-sm rounded-xl">
+            <div className="px-5 py-4 border-b border-gray-200 bg-gray-50">
+              <h2 className="flex items-center gap-2 font-semibold text-gray-800">
+                <FiList className="w-4 h-4 text-green-500" />
+                Department Audit Plans (Form 4) - Pending Approval ({pendingDeptPlans.length})
+              </h2>
+            </div>
+            <div className="divide-y divide-gray-100">
+              {pendingDeptPlans.length === 0 ? (
+                <div className="p-8 text-center text-gray-400">
+                  <FiCheckCircle className="w-12 h-12 mx-auto mb-2 opacity-50" />
+                  <p>No department plans pending approval</p>
+                </div>
+              ) : (
+                pendingDeptPlans.map((plan) => (
+                  <div key={plan.year} className="p-4 transition-colors hover:bg-gray-50">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="font-medium text-gray-800">Department Audit Plan {plan.year}</p>
+                        <div className="flex items-center gap-3 mt-1 text-xs text-gray-400">
+                          <span>Prepared by: {plan.preparedBy || 'N/A'}</span>
+                        </div>
+                      </div>
+                      <button
+                        onClick={() => handleViewDeptPlan(plan)}
+                        className="px-3 py-1.5 bg-green-600 text-white rounded-lg hover:bg-green-700 text-sm flex items-center gap-1"
+                      >
+                        <FiEye className="w-4 h-4" /> Review
+                      </button>
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
           </div>
-          <div className="bg-white rounded-xl border border-gray-200 p-4 shadow-sm">
-            <h3 className="font-semibold text-gray-800 flex items-center gap-2 mb-2">
-              <FiCheckCircle className="w-4 h-4 text-green-500" />
-              Approved Department Plans ({approvedDeptPlans.length})
-            </h3>
-            {approvedDeptPlans.length === 0 ? (
-              <p className="text-sm text-gray-400">No approved department plans</p>
-            ) : (
-              <div className="space-y-1 max-h-32 overflow-y-auto">
-                {approvedDeptPlans.map(plan => (
-                  <p key={plan.year} className="text-sm text-gray-600">
-                    • {plan.year} - Approved on {plan.approvedAt ? new Date(plan.approvedAt).toLocaleDateString() : 'N/A'}
-                  </p>
-                ))}
-              </div>
-            )}
+
+          {/* Card 3: Form 5 - Week Schedule Plans Section */}
+          <div className="overflow-hidden bg-white border border-gray-200 shadow-sm rounded-xl">
+            <div className="px-5 py-4 border-b border-gray-200 bg-gray-50">
+              <h2 className="flex items-center gap-2 font-semibold text-gray-800">
+                <FiCalendarIcon className="w-4 h-4 text-indigo-500" />
+                Week Schedule Plans (Form 5) - Pending Approval ({pendingForm5Plans.length})
+              </h2>
+              <p className="mt-1 text-xs text-gray-400">Week-based audit schedules (W-1 to W-4)</p>
+            </div>
+            <div className="divide-y divide-gray-100">
+              {pendingForm5Plans.length === 0 ? (
+                <div className="p-8 text-center text-gray-400">
+                  <FiCheckCircle className="w-12 h-12 mx-auto mb-2 opacity-50" />
+                  <p>No week schedule plans pending approval</p>
+                </div>
+              ) : (
+                pendingForm5Plans.map((plan, idx) => (
+                  <div key={`${plan.year}-${plan.month}`} className="p-4 transition-colors hover:bg-gray-50">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="font-medium text-gray-800">
+                          {monthDisplay[plan.month] || plan.month} {plan.year}
+                        </p>
+                        <div className="flex items-center gap-3 mt-1 text-xs text-gray-400">
+                          <span>Prepared by: {plan.preparedBy || 'N/A'}</span>
+                          <span>Weeks: {plan.scheduleCount || 0}</span>
+                          {plan.leadAuditorName && <span>Lead Auditor: {plan.leadAuditorName}</span>}
+                        </div>
+                      </div>
+                      <button
+                        onClick={() => handleViewForm5Plan(plan)}
+                        className="px-3 py-1.5 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 text-sm flex items-center gap-1"
+                      >
+                        <FiEye className="w-4 h-4" /> Review Week Schedule
+                      </button>
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
           </div>
-          <div className="bg-white rounded-xl border border-gray-200 p-4 shadow-sm">
-            <h3 className="font-semibold text-gray-800 flex items-center gap-2 mb-2">
-              <FiCheckCircle className="w-4 h-4 text-green-500" />
-              Approved Week Schedules ({approvedForm5Plans.length})
-            </h3>
-            {approvedForm5Plans.length === 0 ? (
-              <p className="text-sm text-gray-400">No approved week schedules</p>
-            ) : (
-              <div className="space-y-1 max-h-32 overflow-y-auto">
-                {approvedForm5Plans.map(plan => (
-                  <p key={`${plan.year}-${plan.month}`} className="text-sm text-gray-600">
-                    • {monthDisplay[plan.month] || plan.month} {plan.year}
-                  </p>
-                ))}
+
+          {/* Card 4: Form 5 Detailed - Daily Schedule Plans Section with Tabs */}
+          <div className="overflow-hidden bg-white border border-gray-200 shadow-sm rounded-xl">
+            <div className="px-5 py-4 border-b border-gray-200 bg-gray-50">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h2 className="flex items-center gap-2 font-semibold text-gray-800">
+                    <FiClock className="w-4 h-4 text-teal-500" />
+                    Daily Schedule Plans (Form 5 Detailed)
+                  </h2>
+                  <p className="mt-1 text-xs text-gray-400">Daily audit schedules with time slots</p>
+                </div>
+                <div className="flex gap-2">
+                  <span className="px-2 py-1 text-xs text-yellow-700 bg-yellow-100 rounded-full">
+                    {pendingDetailedPlans.length} Pending
+                  </span>
+                  <span className="px-2 py-1 text-xs text-green-700 bg-green-100 rounded-full">
+                    {approvedDetailedPlans.length} Approved/History
+                  </span>
+                </div>
               </div>
-            )}
-          </div>
-          <div className="bg-white rounded-xl border border-gray-200 p-4 shadow-sm">
-            <h3 className="font-semibold text-gray-800 flex items-center gap-2 mb-2">
-              <FiCheckCircle className="w-4 h-4 text-green-500" />
-              Approved Daily Schedules ({approvedDetailedPlans.length})
-            </h3>
-            {approvedDetailedPlans.length === 0 ? (
-              <p className="text-sm text-gray-400">No approved daily schedules</p>
-            ) : (
-              <div className="space-y-1 max-h-32 overflow-y-auto">
-                {approvedDetailedPlans.map(plan => (
-                  <p key={`${plan.year}-${plan.month}`} className="text-sm text-gray-600">
-                    • {monthDisplay[plan.month] || plan.month} {plan.year} ({plan.scheduleCount} schedules)
-                  </p>
-                ))}
+            </div>
+            
+            {/* Tab Navigation for Daily Schedules */}
+            <div className="px-5 bg-white border-b border-gray-200">
+              <div className="flex gap-4">
+                <button
+                  onClick={() => setActiveTab('pending')}
+                  className={`py-3 px-2 text-sm font-medium transition-colors relative ${
+                    activeTab === 'pending' 
+                      ? 'text-teal-600 border-b-2 border-teal-600' 
+                      : 'text-gray-500 hover:text-gray-700'
+                  }`}
+                >
+                  <div className="flex items-center gap-2">
+                    <FiClock className="w-4 h-4" />
+                    Pending Approval
+                    {pendingDetailedPlans.length > 0 && (
+                      <span className="ml-1 px-1.5 py-0.5 bg-yellow-100 text-yellow-700 rounded-full text-xs">
+                        {pendingDetailedPlans.length}
+                      </span>
+                    )}
+                  </div>
+                </button>
+                <button
+                  onClick={() => setActiveTab('history')}
+                  className={`py-3 px-2 text-sm font-medium transition-colors relative ${
+                    activeTab === 'history' 
+                      ? 'text-teal-600 border-b-2 border-teal-600' 
+                      : 'text-gray-500 hover:text-gray-700'
+                  }`}
+                >
+                  <div className="flex items-center gap-2">
+                    <FiArchive className="w-4 h-4" />
+                    History & Approved
+                    {approvedDetailedPlans.length > 0 && (
+                      <span className="ml-1 px-1.5 py-0.5 bg-green-100 text-green-700 rounded-full text-xs">
+                        {approvedDetailedPlans.length}
+                      </span>
+                    )}
+                  </div>
+                </button>
               </div>
-            )}
+            </div>
+
+            {/* Content based on active tab */}
+            <div className="divide-y divide-gray-100">
+              {activeTab === 'pending' && pendingDetailedPlans.length === 0 && (
+                <div className="p-8 text-center text-gray-400">
+                  <FiCheckCircle className="w-12 h-12 mx-auto mb-2 opacity-50" />
+                  <p>No daily schedule plans pending approval</p>
+                </div>
+              )}
+              
+              {activeTab === 'history' && approvedDetailedPlans.length === 0 && (
+                <div className="p-8 text-center text-gray-400">
+                  <FiArchive className="w-12 h-12 mx-auto mb-2 opacity-50" />
+                  <p>No approved or historical daily schedules</p>
+                </div>
+              )}
+              
+              {((activeTab === 'pending' && pendingDetailedPlans.length > 0) ||
+                (activeTab === 'history' && approvedDetailedPlans.length > 0)) && (
+                (activeTab === 'pending' ? pendingDetailedPlans : approvedDetailedPlans).map((plan, idx) => (
+                  <div key={`${plan.year}-${plan.month}`} className="p-4 transition-colors hover:bg-gray-50">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="font-medium text-gray-800">
+                          {monthDisplay[plan.month] || plan.month} {plan.year}
+                          {plan.isChangeRequested && activeTab === 'pending' && (
+                            <span className="ml-2 px-2 py-0.5 bg-orange-100 text-orange-700 rounded-full text-xs">
+                              Changes Requested ({plan.changeRequestedCount})
+                            </span>
+                          )}
+                          {plan.pendingCount > 0 && activeTab === 'pending' && !plan.isChangeRequested && (
+                            <span className="ml-2 px-2 py-0.5 bg-yellow-100 text-yellow-700 rounded-full text-xs">
+                              {plan.pendingCount} pending
+                            </span>
+                          )}
+                          {activeTab === 'history' && plan.approvedCount > 0 && (
+                            <span className="ml-2 px-2 py-0.5 bg-green-100 text-green-700 rounded-full text-xs">
+                              {plan.approvedCount} approved
+                            </span>
+                          )}
+                          {activeTab === 'history' && plan.rejectedCount > 0 && (
+                            <span className="ml-2 px-2 py-0.5 bg-red-100 text-red-700 rounded-full text-xs">
+                              {plan.rejectedCount} rejected
+                            </span>
+                          )}
+                        </p>
+                        <div className="flex items-center gap-3 mt-1 text-xs text-gray-400">
+                          <span>Prepared by: {plan.preparedBy || 'N/A'}</span>
+                          <span>Total Schedules: {plan.scheduleCount || 0}</span>
+                          {plan.leadAuditorName && <span>Lead Auditor: {plan.leadAuditorName}</span>}
+                        </div>
+                        {activeTab === 'history' && plan.approvedAt && (
+                          <div className="mt-1 text-xs text-gray-400">
+                            <span>Approved on: {new Date(plan.approvedAt).toLocaleString()}</span>
+                            {plan.approvedBy && <span className="ml-2">by {plan.approvedBy}</span>}
+                          </div>
+                        )}
+                      </div>
+                      <button
+                        onClick={() => handleViewDetailedPlan(plan, activeTab)}
+                        className="px-3 py-1.5 bg-teal-600 text-white rounded-lg hover:bg-teal-700 text-sm flex items-center gap-1"
+                      >
+                        <FiEye className="w-4 h-4" /> {activeTab === 'pending' ? 'Review & Approve' : 'View History'}
+                      </button>
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
           </div>
         </div>
 

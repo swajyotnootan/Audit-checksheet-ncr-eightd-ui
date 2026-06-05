@@ -645,7 +645,7 @@ const NCRDashboard = () => {
             ) : (
               <ForumThreadView
                 groupId={`8D-NCR-${selected8DNCR.ncrNumber}`}
-                groupName={`8D Discussion – NCR #${selected8DNCR.ncrNumber}`}
+                groupName={`8D ${selected8DNCR.ncrNumber}`}
                 isInDrawer={true}
                 setForumDrawerOpen={setShow8DForumDrawer}
                 username={user?.email || user?.username}

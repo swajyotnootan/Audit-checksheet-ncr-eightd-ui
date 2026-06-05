@@ -60,83 +60,83 @@ const [availableYears, setAvailableYears] = useState([]);
   
   // Week calculation
   const getWeekNumber = (dateStr) => {
-    if (!dateStr) return 'W-1';
-    const date = new Date(dateStr);
-    const firstDayOfMonth = new Date(date.getFullYear(), date.getMonth(), 1);
-    const firstDayOfWeek = firstDayOfMonth.getDay();
-    const dayOfMonth = date.getDate();
-    let weekNum = Math.ceil((dayOfMonth + firstDayOfWeek) / 7);
-    
-    if (weekNum < 1) weekNum = 1;
-    if (weekNum > 6) weekNum = 6;
-    
-    return `W-${weekNum}`;
-  };
+  if (!dateStr) return 'W-1';
+  const date = new Date(dateStr);
+  const firstDayOfMonth = new Date(date.getFullYear(), date.getMonth(), 1);
+  const firstDayOfWeek = firstDayOfMonth.getDay(); // 0 = Sunday
+  const dayOfMonth = date.getDate();
+  // Remove the + firstDayOfWeek since Sunday is 0
+  let weekNum = Math.ceil((dayOfMonth + firstDayOfWeek) / 7);
+  
+  if (weekNum < 1) weekNum = 1;
+  if (weekNum > 6) weekNum = 6;
+  
+  return `W-${weekNum}`;
+};
   
   // Get date range for a specific week
   const getWeekDateRange = (year, month, week) => {
-    const monthMap = {
-      "Apr": 3, "May": 4, "Jun": 5, "Jul": 6,
-      "Aug": 7, "Sep": 8, "Oct": 9, "Nov": 10,
-      "Dec": 11, "Jan": 0, "Feb": 1, "Mar": 2
-    };
-    
-    const monthNum = monthMap[month];
-    if (monthNum === undefined) {
-      return { startDate: `${year}-04-01`, endDate: `${year}-04-07` };
-    }
-    
-    const actualYear = (month === "Jan" || month === "Feb" || month === "Mar") ? year + 1 : year;
-    const firstDayOfMonth = new Date(actualYear, monthNum, 1);
-    const firstDayWeekday = firstDayOfMonth.getDay();
-    const startOffset = firstDayWeekday === 0 ? 6 : firstDayWeekday - 1;
-    
-    let startDay, endDay;
-    const monthDays = new Date(actualYear, monthNum + 1, 0).getDate();
-    
-    switch(week) {
-      case 'W-1':
-        startDay = 1;
-        endDay = 7 - startOffset;
-        break;
-      case 'W-2':
-        startDay = 8 - startOffset;
-        endDay = 14 - startOffset;
-        break;
-      case 'W-3':
-        startDay = 15 - startOffset;
-        endDay = 21 - startOffset;
-        break;
-      case 'W-4':
-        startDay = 22 - startOffset;
-        endDay = 28 - startOffset;
-        break;
-      case 'W-5':
-        startDay = 29 - startOffset;
-        endDay = 35 - startOffset;
-        break;
-      case 'W-6':
-        startDay = 36 - startOffset;
-        endDay = monthDays;
-        break;
-      default:
-        startDay = 1;
-        endDay = 7;
-    }
-    
-    // Clamp values
-    startDay = Math.max(1, Math.min(startDay, monthDays));
-    endDay = Math.max(startDay, Math.min(endDay, monthDays));
-    
-    const pad = (n) => String(n).padStart(2, '0');
-    const startDateStr = `${actualYear}-${pad(monthNum + 1)}-${pad(startDay)}`;
-    const endDateStr = `${actualYear}-${pad(monthNum + 1)}-${pad(endDay)}`;
-    
-    // Return null if week doesn't exist (startDay > monthDays)
-    if (startDay > monthDays) return null;
-    
-    return { startDate: startDateStr, endDate: endDateStr };
+  const monthMap = {
+    "Apr": 3, "May": 4, "Jun": 5, "Jul": 6,
+    "Aug": 7, "Sep": 8, "Oct": 9, "Nov": 10,
+    "Dec": 11, "Jan": 0, "Feb": 1, "Mar": 2
   };
+  
+  const monthNum = monthMap[month];
+  if (monthNum === undefined) {
+    return { startDate: `${year}-04-01`, endDate: `${year}-04-07` };
+  }
+  
+  const actualYear = (month === "Jan" || month === "Feb" || month === "Mar") ? year + 1 : year;
+  const firstDayOfMonth = new Date(actualYear, monthNum, 1);
+  const firstDayWeekday = firstDayOfMonth.getDay(); // 0 = Sunday, no offset needed
+  
+  let startDay, endDay;
+  const monthDays = new Date(actualYear, monthNum + 1, 0).getDate();
+  
+  switch(week) {
+    case 'W-1':
+      startDay = 1;
+      endDay = 7 - firstDayWeekday;  // Changed: removed startOffset
+      break;
+    case 'W-2':
+      startDay = 8 - firstDayWeekday;  // Changed: removed startOffset
+      endDay = 14 - firstDayWeekday;   // Changed: removed startOffset
+      break;
+    case 'W-3':
+      startDay = 15 - firstDayWeekday; // Changed: removed startOffset
+      endDay = 21 - firstDayWeekday;   // Changed: removed startOffset
+      break;
+    case 'W-4':
+      startDay = 22 - firstDayWeekday; // Changed: removed startOffset
+      endDay = 28 - firstDayWeekday;   // Changed: removed startOffset
+      break;
+    case 'W-5':
+      startDay = 29 - firstDayWeekday; // Changed: removed startOffset
+      endDay = 35 - firstDayWeekday;   // Changed: removed startOffset
+      break;
+    case 'W-6':
+      startDay = 36 - firstDayWeekday; // Changed: removed startOffset
+      endDay = monthDays;
+      break;
+    default:
+      startDay = 1;
+      endDay = 7;
+  }
+  
+  // Clamp values
+  startDay = Math.max(1, Math.min(startDay, monthDays));
+  endDay = Math.max(startDay, Math.min(endDay, monthDays));
+  
+  const pad = (n) => String(n).padStart(2, '0');
+  const startDateStr = `${actualYear}-${pad(monthNum + 1)}-${pad(startDay)}`;
+  const endDateStr = `${actualYear}-${pad(monthNum + 1)}-${pad(endDay)}`;
+  
+  // Return null if week doesn't exist (startDay > monthDays)
+  if (startDay > monthDays) return null;
+  
+  return { startDate: startDateStr, endDate: endDateStr };
+};
   
   // Fetch available months
   const fetchAvailableMonths = async () => {

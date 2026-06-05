@@ -13,6 +13,44 @@ import {
 } from 'react-icons/fi';
 import axios from 'axios';
 
+// Add this helper function to convert time to number for comparison
+const getTimeValue = (timeStr) => {
+  if (!timeStr) return 0;
+  
+  const [time, modifier] = timeStr.split(' ');
+  let [hours, minutes] = time.split(':');
+  
+  let hour = parseInt(hours);
+  const minute = parseInt(minutes);
+  
+  if (modifier === 'PM' && hour !== 12) {
+    hour += 12;
+  }
+  if (modifier === 'AM' && hour === 12) {
+    hour = 0;
+  }
+  
+  return hour + (minute / 60);
+};
+
+// Generate time options from 9 AM to 5 PM
+const timeOptions = (() => {
+  const options = [];
+  for (let hour = 9; hour <= 17; hour++) {
+    for (let minute = 0; minute < 60; minute += 30) {
+      if (hour === 17 && minute > 0) break;
+      
+      const displayHour = hour === 0 ? 12 : (hour > 12 ? hour - 12 : hour);
+      const displayMinute = minute.toString().padStart(2, '0');
+      const period = hour >= 12 ? 'PM' : 'AM';
+      
+      options.push(`${displayHour}:${displayMinute} ${period}`);
+    }
+  }
+  return options;
+})();
+
+
 // Add this after the imports, before the component declaration
 const API_BASE = 'https://qsutrarmsclm.hub.swajyot.co.in:8476/api';
 
@@ -1653,7 +1691,7 @@ useEffect(() => {
         <div className="px-4 py-4 mx-auto max-w-7xl sm:px-6">
           <div className="flex flex-wrap items-center justify-between gap-4">
             <div className="flex items-center gap-3">
-              <button onClick={() => navigate('/form5')} className="p-2 text-gray-500 rounded-lg hover:text-teal-600">
+              <button onClick={() => navigate('/schedule-calendar')} className="p-2 text-gray-500 rounded-lg hover:text-teal-600">
                 <FiArrowLeft className="w-5 h-5" />
               </button>
               <div className="p-2 shadow-lg bg-gradient-to-br from-teal-500 to-cyan-600 rounded-xl">
@@ -2186,37 +2224,58 @@ useEffect(() => {
 
         {/* Date */}
         <div>
-          <label className="block mb-1 text-sm font-medium text-gray-700">Date *</label>
-          <input 
-            type="date" 
-            value={formData.date || ''} 
-            onChange={(e) => setFormData({...formData, date: e.target.value})} 
-            className="w-full p-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-teal-500" 
-          />
-        </div>
+  <label className="block mb-1 text-sm font-medium text-gray-700">Date *</label>
+  <input 
+    type="date" 
+    value={formData.date || ''} 
+    onChange={(e) => setFormData({...formData, date: e.target.value})} 
+    className="w-full p-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-teal-500" 
+  />
+</div>
         
         <div className="grid grid-cols-2 gap-3">
-          <div>
-            <label className="block mb-1 text-sm font-medium text-gray-700">Start Time *</label>
-            <select 
-              value={formData.startTime || '09:00 AM'} 
-              onChange={(e) => setFormData({...formData, startTime: e.target.value})} 
-              className="w-full p-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-teal-500"
-            >
-              {timeOptions.map(time => <option key={time} value={time}>{time}</option>)}
-            </select>
-          </div>
-          <div>
-            <label className="block mb-1 text-sm font-medium text-gray-700">End Time *</label>
-            <select 
-              value={formData.endTime || '10:00 AM'} 
-              onChange={(e) => setFormData({...formData, endTime: e.target.value})} 
-              className="w-full p-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-teal-500"
-            >
-              {timeOptions.map(time => <option key={time} value={time}>{time}</option>)}
-            </select>
-          </div>
-        </div>
+  <div>
+    <label className="block mb-1 text-sm font-medium text-gray-700">Start Time *</label>
+    <select 
+      value={formData.startTime || ''} 
+      onChange={(e) => {
+        const newStartTime = e.target.value;
+        // Reset end time if it becomes invalid
+        let newEndTime = formData.endTime;
+        if (newEndTime && getTimeValue(newEndTime) <= getTimeValue(newStartTime)) {
+          newEndTime = '';
+        }
+        setFormData({...formData, startTime: newStartTime, endTime: newEndTime});
+      }} 
+      className="w-full p-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-teal-500"
+    >
+      <option value="">Select start time</option>
+      {timeOptions.map(time => (
+        <option key={time} value={time}>{time}</option>
+      ))}
+    </select>
+  </div>
+  
+  <div>
+    <label className="block mb-1 text-sm font-medium text-gray-700">End Time *</label>
+    <select 
+      value={formData.endTime || ''} 
+      onChange={(e) => setFormData({...formData, endTime: e.target.value})} 
+      className="w-full p-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-teal-500"
+    >
+      <option value="">Select end time</option>
+      {timeOptions
+        .filter(time => {
+          if (!formData.startTime) return false;
+          return getTimeValue(time) > getTimeValue(formData.startTime);
+        })
+        .map(time => <option key={time} value={time}>{time}</option>)}
+    </select>
+    {formData.startTime && !formData.endTime && (
+      <p className="mt-1 text-xs text-amber-600">Please select an end time after {formData.startTime}</p>
+    )}
+  </div>
+</div>
         
         <div className="flex items-center gap-3">
           <label className="flex items-center gap-2 cursor-pointer">

@@ -724,7 +724,7 @@ useEffect(() => {
           <div className="flex-1 overflow-hidden">
             <ForumThreadView
               groupId={forumGroupId}
-              groupName={`${auditNumber} - ${auditTitle || 'Discussion'}`}
+              groupName={`${auditNumber}`}
               isInDrawer={true}
               setForumDrawerOpen={onClose}
               username={user?.email}

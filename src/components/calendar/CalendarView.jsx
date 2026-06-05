@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react'
+
 import { useNavigate } from 'react-router-dom'
 import { Calendar, momentLocalizer } from 'react-big-calendar'
 import moment from 'moment'
@@ -31,7 +32,79 @@ import 'react-big-calendar/lib/css/react-big-calendar.css'
 
 const localizer = momentLocalizer(moment)
 
-const API_BASE = 'https://qsutrarmsclm.hub.swajyot.co.in:8476/api';
+const API_BASE = 'http://localhost:8080/api';
+
+// ========== ADD THIS USER CACHE CODE ==========
+let userCache = null;
+let userCachePromise = null;
+
+// Function to fetch all users from backend
+const fetchAllUsers = async () => {
+  if (userCache) return userCache;
+  
+  if (userCachePromise) return userCachePromise;
+  
+  userCachePromise = (async () => {
+    try {
+      const userEmail = localStorage.getItem('userEmail') || '';
+      const userId = localStorage.getItem('userId') || '';
+      
+      console.log('📡 Fetching all users from backend...');
+      const response = await fetch(`${API_BASE}/users`, {
+        headers: {
+          'Content-Type': 'application/json',
+          // 'User-Email': userEmail,
+          'User-ID': userId
+        }
+      });
+      
+      if (response.ok) {
+        const users = await response.json();
+        // Create maps for quick lookup
+        userCache = {
+          byId: new Map(),
+          byName: new Map(),
+          byEmail: new Map()
+        };
+        
+        users.forEach(user => {
+          userCache.byId.set(user.id, user);
+          
+          // Store by full name
+          if (user.name) {
+            userCache.byName.set(user.name, user.id);
+          }
+          
+          // Store by first + last name
+          if (user.firstName && user.lastName) {
+            const fullName = `${user.firstName} ${user.lastName}`;
+            userCache.byName.set(fullName, user.id);
+          }
+          
+          // Store by email
+          if (user.email) {
+            userCache.byEmail.set(user.email, user.id);
+          }
+        });
+        
+        console.log('✅ User cache loaded successfully!', {
+          totalUsers: users.length,
+          nameMappings: userCache.byName.size
+        });
+        
+        return userCache;
+      } else {
+        console.error('Failed to fetch users:', response.status);
+      }
+    } catch (error) {
+      console.error('Error fetching users:', error);
+    }
+    return null;
+  })();
+  
+  return userCachePromise;
+};
+// ========== END USER CACHE CODE ==========
 
 // Helper function to parse time string
 function parseTimeString(timeStr) {
@@ -300,6 +373,71 @@ const CustomDateCellWrapper = ({ children, value, events }) => {
 }
 
 
+const UserAvatar = ({ userId, userName, size = 'sm', showName = false }) => {
+  const [imageError, setImageError] = useState(false);
+  
+  // Don't use blob, just use the URL directly like navbar does
+  const photoUrl = userId ? `http://localhost:8080/api/users/${userId}/profile-photo` : null;
+  
+  const sizeClasses = {
+    'xs': 'w-5 h-5 text-[10px]',
+    'sm': 'w-6 h-6 text-xs',
+    'md': 'w-8 h-8 text-sm',
+    'lg': 'w-10 h-10 text-base'
+  };
+
+  const getInitials = (name) => {
+    if (!name) return '?';
+    return name
+      .split(' ')
+      .map(n => n[0])
+      .join('')
+      .toUpperCase()
+      .slice(0, 2);
+  };
+
+  // If no userId, just show initials
+  if (!userId) {
+    const colors = [
+      'bg-red-500', 'bg-blue-500', 'bg-green-500', 'bg-yellow-500', 
+      'bg-purple-500', 'bg-pink-500', 'bg-indigo-500', 'bg-teal-500'
+    ];
+    const colorIndex = Math.floor(Math.random() * colors.length);
+    const bgColor = colors[colorIndex];
+    
+    return (
+      <div className="flex items-center gap-2">
+        <div className={`${sizeClasses[size]} ${bgColor} rounded-full flex items-center justify-center text-white font-medium`}>
+          {getInitials(userName)}
+        </div>
+        {showName && <span className="text-sm text-gray-700">{userName}</span>}
+      </div>
+    );
+  }
+
+  // Show image using direct URL (same as navbar)
+  return (
+    <div className="flex items-center gap-2">
+      <img
+        src={photoUrl}
+        alt={userName || 'User'}
+        className={`${sizeClasses[size]} rounded-full object-cover border border-gray-200`}
+        onError={(e) => {
+          // If image fails to load, show initials instead
+          e.target.style.display = 'none';
+          e.target.parentElement.innerHTML = `
+            <div class="${sizeClasses[size]} bg-purple-500 rounded-full flex items-center justify-center text-white font-medium">
+              ${getInitials(userName)}
+            </div>
+            ${showName ? `<span class="text-sm text-gray-700">${userName}</span>` : ''}
+          `;
+        }}
+      />
+      {showName && <span className="text-sm text-gray-700">{userName}</span>}
+    </div>
+  );
+};
+
 ///UPDATED
 const AuditDetailsPopup = ({ audit, onClose }) => {
 
@@ -311,6 +449,8 @@ const AuditDetailsPopup = ({ audit, onClose }) => {
     extensionHistory: audit.extensionHistory,
     pendingReschedule: audit.pendingReschedule
   });
+
+  
   const progress = getDateRangeProgress(audit)
   const isCompleted = isEventCompleted(audit)
   const isSubmitted = isEventSubmitted(audit)
@@ -537,52 +677,65 @@ const AuditDetailsPopup = ({ audit, onClose }) => {
             </div>
           )}
 
-          {/* Auditor Section */}
-          {hasCoAuditors ? (
-            <div className="grid grid-cols-2 gap-3">
-              <div className="p-3 rounded-lg bg-blue-50">
-                <div className="flex items-center gap-2 mb-2">
-                  <Crown className="w-4 h-4 text-blue-500" />
-                  <span className="text-sm font-semibold text-blue-700">Primary Auditor</span>
-                </div>
-                <p className="text-sm font-medium text-gray-700">{primaryAuditor}</p>
-              </div>
 
-              <div className="p-3 rounded-lg bg-teal-50">
-                <div className="flex items-center gap-2 mb-2">
-                  <UserCheck className="w-4 h-4 text-teal-500" />
-                  <span className="text-sm font-semibold text-teal-700">
-                    Co-Auditors ({coAuditors.length})
-                  </span>
-                </div>
-                <div className="space-y-1.5">
-                  {coAuditors.map((coAuditor, index) => (
-                    <div key={index} className="flex items-center gap-2">
-                      <div className="w-1.5 h-1.5 rounded-full bg-teal-400"></div>
-                      <p className="text-sm text-gray-600">{coAuditor}</p>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
-          ) : (
-            <div className="p-3 rounded-lg bg-blue-50">
-              <div className="flex items-center gap-2 mb-2">
-                <Crown className="w-4 h-4 text-blue-500" />
-                <span className="text-sm font-semibold text-blue-700">Primary Auditor</span>
-              </div>
-              <p className="text-sm font-medium text-gray-700">{primaryAuditor}</p>
-            </div>
-          )}
+{console.log('🎨 Rendering Primary Auditor with:', { 
+  auditorId: audit.auditorId, 
+  primaryAuditor 
+})}
+          {/* Updated Auditor Section with Profile Images */}
+{/* REPLACE with this version showing profile images */}
+{hasCoAuditors ? (
+  <div className="grid grid-cols-2 gap-3">
+    <div className="p-3 rounded-lg bg-blue-50">
+      <div className="flex items-center gap-2 mb-2">
+        <Crown className="w-4 h-4 text-blue-500" />
+        <span className="text-sm font-semibold text-blue-700">Primary Auditor</span>
+      </div>
+      <UserAvatar userId={audit.auditorId} userName={primaryAuditor} size="md" showName={true} />
+    </div>
 
-          {/* Auditee Section */}
-          <div className="p-3 rounded-lg bg-gray-50">
-            <div className="flex items-center gap-2 mb-2">
-              <UserCheck className="w-4 h-4 text-gray-400" />
-              <span className="text-sm font-semibold text-gray-600">Auditee</span>
-            </div>
-            <p className="text-sm font-medium text-gray-700">{audit.auditeeName || 'Not assigned'}</p>
-          </div>
+    <div className="p-3 rounded-lg bg-teal-50">
+      <div className="flex items-center gap-2 mb-2">
+        <UserCheck className="w-4 h-4 text-teal-500" />
+        <span className="text-sm font-semibold text-teal-700">
+          Co-Auditors ({coAuditors.length})
+        </span>
+      </div>
+      <div className="space-y-2">
+        {coAuditors.map((coAuditor, index) => {
+          const coAuditorId = audit.coAuditorIdList?.[index];
+          return (
+            <UserAvatar 
+              key={index} 
+              userId={coAuditorId} 
+              userName={coAuditor} 
+              size="sm" 
+              showName={true} 
+            />
+          );
+        })}
+      </div>
+    </div>
+  </div>
+) : (
+  <div className="p-3 rounded-lg bg-blue-50">
+    <div className="flex items-center gap-2 mb-2">
+      <Crown className="w-4 h-4 text-blue-500" />
+      <span className="text-sm font-semibold text-blue-700">Primary Auditor</span>
+    </div>
+    <UserAvatar userId={audit.auditorId} userName={primaryAuditor} size="md" showName={true} />
+  </div>
+)}
+
+{/* REPLACE with this version showing profile image */}
+<div className="p-3 rounded-lg bg-gray-50">
+  <div className="flex items-center gap-2 mb-2">
+    <UserCheck className="w-4 h-4 text-gray-400" />
+    <span className="text-sm font-semibold text-gray-600">Auditee</span>
+  </div>
+  <UserAvatar userId={audit.auditeeId} userName={audit.auditeeName || 'Not assigned'} size="md" showName={true} />
+</div>
+
 
           {audit.description && (
             <div className="p-3 rounded-lg bg-gray-50">
@@ -716,21 +869,20 @@ const EventListComponent = ({ events, onEventClick }) => {
                       </div>
                       
                       <div className="flex flex-wrap items-center gap-3 mb-2 text-sm text-gray-600">
-                        <div className="flex items-center gap-1">
-                          <Tag className="h-3.5 w-3.5 text-gray-400" />
-                          <span>{event.department || 'General'}</span>
-                        </div>
-                        <div className="flex items-center gap-1">
-                          <Clock className="h-3.5 w-3.5 text-gray-400" />
-                          <span>{event.startTime || '09:00 AM'} - {event.endTime || '10:00 AM'}</span>
-                        </div>
-                        {event.auditorName && (
-                          <div className="flex items-center gap-1">
-                            <Crown className="h-3.5 w-3.5 text-blue-500" />
-                            <span className="text-sm">{event.auditorName}</span>
-                          </div>
-                        )}
-                      </div>
+  <div className="flex items-center gap-1">
+    <Tag className="h-3.5 w-3.5 text-gray-400" />
+    <span>{event.department || 'General'}</span>
+  </div>
+  <div className="flex items-center gap-1">
+    <Clock className="h-3.5 w-3.5 text-gray-400" />
+    <span>{event.startTime || '09:00 AM'} - {event.endTime || '10:00 AM'}</span>
+  </div>
+  
+  {/* NEW: Show auditor with profile image */}
+  {event.auditorName && (
+    <UserAvatar userId={event.auditorId} userName={event.auditorName} size="xs" showName={true} />
+  )}
+</div>
                       
                       {/* Date Range Display with Progress */}
                       {isDateRange && event.fromDate && event.toDate && (
@@ -825,10 +977,14 @@ const [userDepartment, setUserDepartment] = useState(null);
 
 
   ///UPDATED
-  const loadEvents = useCallback(async () => {
+ const loadEvents = useCallback(async () => {
   try {
-    setIsLoading(true)
-    setError(null)
+    setIsLoading(true);
+    setError(null);
+
+    // Load user cache first
+    await fetchAllUsers();
+    const userCacheData = await fetchAllUsers();
 
     let userRoleForAPI = 'AUDITOR'
     if (userRole === 'AUDIT_MANAGER') userRoleForAPI = 'AUDIT_MANAGER'
@@ -839,13 +995,13 @@ const [userDepartment, setUserDepartment] = useState(null);
     // Fetch schedules
     let url;
     if (userRoleForAPI === 'AUDITOR') {
-      // Use the endpoint that includes originalScheduledDate
       url = `${API_BASE}/audit-schedule/auditor/${currentUser?.id}/schedules-with-status`;
       console.log('📡 Using auditor endpoint (includes history)');
     } else {
       url = `${API_BASE}/audit-schedule/year/${new Date().getFullYear()}`;
       console.log('📡 Using year endpoint');
     }
+    
     const response = await fetch(url, {
       headers: {
         'Content-Type': 'application/json',
@@ -884,49 +1040,107 @@ const [userDepartment, setUserDepartment] = useState(null);
       
       // Handle different response structures
       if (userRoleForAPI === 'AUDITOR') {
-        // The auditor endpoint returns an array of objects with a 'schedule' property
-        // Extract the schedule objects
-        allSchedules = allSchedules.map(item => item.schedule);
-        console.log('📊 Extracted schedules from auditor endpoint:', allSchedules.length);
+        // Check if allSchedules is an array and has the schedule property
+        if (Array.isArray(allSchedules) && allSchedules.length > 0 && allSchedules[0].schedule) {
+          allSchedules = allSchedules.map(item => item.schedule);
+          console.log('📊 Extracted schedules from auditor endpoint:', allSchedules.length);
+        } else if (Array.isArray(allSchedules)) {
+          console.log('📊 Schedules already in correct format:', allSchedules.length);
+        } else {
+          console.log('📊 Unexpected data format:', allSchedules);
+          allSchedules = [];
+        }
       }
       
-
-       // ========== ADD THIS DEPARTMENT FILTERING FOR LEAD AUDITOR ==========
-  // Filter by department for Lead Auditor
-  if (userRoleForAPI === 'LEAD_AUDITOR' && leadAuditorDepartment) {
-    const beforeCount = allSchedules.length;
-    allSchedules = allSchedules.filter(schedule => {
-      const scheduleDept = schedule.department;
-      const normalizedScheduleDept = normalizeDepartmentForFilter(scheduleDept);
-      const matches = normalizedScheduleDept === leadAuditorDepartment;
-      if (!matches && scheduleDept) {
-        console.log(`  Filtering out schedule dept "${scheduleDept}" → "${normalizedScheduleDept}" (expected: ${leadAuditorDepartment})`);
+      // ✅ ADD SAFETY CHECK - Make sure allSchedules is an array
+      if (!Array.isArray(allSchedules)) {
+        console.error('allSchedules is not an array:', allSchedules);
+        allSchedules = [];
       }
-      return matches;
-    });
-    console.log(`📊 Lead Auditor (${leadAuditorDepartment}): Filtered schedules from ${beforeCount} to ${allSchedules.length}`);
-  }
 
-  
+      // Filter by department for Lead Auditor
+      if (userRoleForAPI === 'LEAD_AUDITOR' && leadAuditorDepartment) {
+        const beforeCount = allSchedules.length;
+        allSchedules = allSchedules.filter(schedule => {
+          const scheduleDept = schedule.department;
+          const normalizedScheduleDept = normalizeDepartmentForFilter(scheduleDept);
+          const matches = normalizedScheduleDept === leadAuditorDepartment;
+          if (!matches && scheduleDept) {
+            console.log(`  Filtering out schedule dept "${scheduleDept}" → "${normalizedScheduleDept}" (expected: ${leadAuditorDepartment})`);
+          }
+          return matches;
+        });
+        console.log(`📊 Lead Auditor (${leadAuditorDepartment}): Filtered schedules from ${beforeCount} to ${allSchedules.length}`);
+      }
+
       // Now filter schedules as before
       let filteredSchedules = [];
       
       if (userRoleForAPI === 'AUDITOR') {
-        // For auditor role, we already have the correct schedules
-        // But we need to filter for current user (though API already does this)
         filteredSchedules = allSchedules;
         console.log(`📊 Found ${filteredSchedules.length} total audits for user ${currentUser?.id}`);
-        
       } else if (userRoleForAPI === 'AUDITEE') {
-        filteredSchedules = allSchedules.filter(s => s.auditeeId === currentUser?.id);
+        filteredSchedules = allSchedules.filter(s => s && s.auditeeId === currentUser?.id);
       } else {
         filteredSchedules = allSchedules;
       }
   
       const formattedEvents = []
       
+      // ✅ ADD SAFETY CHECK - Make sure filteredSchedules is an array
+      if (!Array.isArray(filteredSchedules)) {
+        console.error('filteredSchedules is not an array:', filteredSchedules);
+        filteredSchedules = [];
+      }
+      
       // Use for...of for async/await support
       for (const audit of filteredSchedules) {
+        // ✅ ADD SAFETY CHECK - Skip if audit is undefined
+        if (!audit) {
+          console.warn('Skipping undefined audit');
+          continue;
+        }
+        
+        // ✅ POPULATE MISSING USER IDs FROM CACHE
+        if (userCacheData) {
+          // Map auditor name to ID if missing
+          if (!audit.auditorId && audit.auditorName) {
+            const mappedId = userCacheData.byName.get(audit.auditorName);
+            if (mappedId) {
+              audit.auditorId = mappedId;
+              console.log(`✅ Mapped auditor "${audit.auditorName}" to ID: ${mappedId}`);
+            } else {
+              console.warn(`⚠️ Could not find ID for auditor: "${audit.auditorName}"`);
+            }
+          }
+          
+          // Map auditee name to ID if missing
+          if (!audit.auditeeId && audit.auditeeName) {
+            const mappedId = userCacheData.byName.get(audit.auditeeName);
+            if (mappedId) {
+              audit.auditeeId = mappedId;
+              console.log(`✅ Mapped auditee "${audit.auditeeName}" to ID: ${mappedId}`);
+            } else {
+              console.warn(`⚠️ Could not find ID for auditee: "${audit.auditeeName}"`);
+            }
+          }
+          
+          // Map co-auditor names to IDs
+          if (audit.coAuditorNames && Array.isArray(audit.coAuditorNames) && audit.coAuditorNames.length > 0) {
+            const coAuditorIds = [];
+            for (const coName of audit.coAuditorNames) {
+              const coId = userCacheData.byName.get(coName);
+              if (coId) {
+                coAuditorIds.push(coId);
+              }
+            }
+            if (coAuditorIds.length > 0) {
+              audit.coAuditorIdList = coAuditorIds;
+              console.log(`✅ Mapped ${coAuditorIds.length} co-auditors to IDs`);
+            }
+          }
+        }
+        
         const completionInfo = auditCompletionMap.get(audit.id)
         const isFullyCompleted = completionInfo?.isFullyCompleted || false
         const isSubmitted = completionInfo?.isSubmitted || false
@@ -945,13 +1159,14 @@ const [userDepartment, setUserDepartment] = useState(null);
 
         // Fetch history for this audit
         const history = {
-  originalScheduledDate: audit.originalScheduledDate || audit.previousScheduledDate || null,
-  originalStartTime: audit.originalStartTime || null,
-  rescheduleHistory: audit.rescheduleHistory || [],
-  extensionHistory: audit.extensionHistory || [],
-  pendingReschedule: audit.pendingReschedule || false,
-  pendingExtension: audit.pendingExtension || false
-};
+          originalScheduledDate: audit.originalScheduledDate || audit.previousScheduledDate || null,
+          originalStartTime: audit.originalStartTime || null,
+          rescheduleHistory: audit.rescheduleHistory || [],
+          extensionHistory: audit.extensionHistory || [],
+          pendingReschedule: audit.pendingReschedule || false,
+          pendingExtension: audit.pendingExtension || false
+        };
+        
         // Determine co-auditor status
         let isCoAuditor = false
         let coAuditorNamesList = []
@@ -983,6 +1198,7 @@ const [userDepartment, setUserDepartment] = useState(null);
           }
         }
         
+        // Continue with your existing event creation code...
         if (isDateRange) {
           const fromDate = new Date(audit.fromDate)
           const toDate = new Date(audit.toDate)
@@ -994,7 +1210,6 @@ const [userDepartment, setUserDepartment] = useState(null);
           const endDateTime = new Date(toDate)
           endDateTime.setHours(endHours, endMinutes)
           
-          // Main event object for date range
           formattedEvents.push({
             id: audit.id,
             title: audit.title || `${audit.department || 'Audit'} - ${audit.auditType || 'General'}`,
@@ -1008,7 +1223,9 @@ const [userDepartment, setUserDepartment] = useState(null);
             isAttendee: audit.auditeeId === currentUser?.id,
             userRelationship: audit.auditorId === currentUser?.id ? 'owner' : (isCoAuditor ? 'co_auditor' : (audit.auditeeId === currentUser?.id ? 'attendee' : 'none')),
             auditorName: audit.auditorName,
+            auditorId: audit.auditorId,
             auditeeName: audit.auditeeName,
+            auditeeId: audit.auditeeId,
             coAuditorIds: audit.coAuditorIds,
             coAuditorNames: coAuditorNamesList,
             coAuditorIdList: coAuditorIdList,
@@ -1022,7 +1239,6 @@ const [userDepartment, setUserDepartment] = useState(null);
             isFullyCompleted: isFullyCompleted,
             isSubmitted: isSubmitted,
             auditCompletionStatus: completionInfo?.status,
-            // History fields
             originalScheduledDate: history.originalScheduledDate,
             originalStartTime: history.originalStartTime,
             rescheduleHistory: history.rescheduleHistory,
@@ -1030,6 +1246,14 @@ const [userDepartment, setUserDepartment] = useState(null);
             pendingReschedule: history.pendingReschedule,
             pendingExtension: history.pendingExtension
           })
+          
+          console.log('📅 Created date range event:', {
+            auditId: audit.id,
+            auditorId: audit.auditorId,
+            auditorName: audit.auditorName,
+            auditeeId: audit.auditeeId,
+            auditeeName: audit.auditeeName
+          });
           
           // Create display events for each day in range
           const currentDate = new Date(fromDate)
@@ -1053,7 +1277,9 @@ const [userDepartment, setUserDepartment] = useState(null);
               isAttendee: audit.auditeeId === currentUser?.id,
               userRelationship: audit.auditorId === currentUser?.id ? 'owner' : (isCoAuditor ? 'co_auditor' : (audit.auditeeId === currentUser?.id ? 'attendee' : 'none')),
               auditorName: audit.auditorName,
+              auditorId: audit.auditorId,
               auditeeName: audit.auditeeName,
+              auditeeId: audit.auditeeId,
               coAuditorIds: audit.coAuditorIds,
               coAuditorNames: coAuditorNamesList,
               coAuditorIdList: coAuditorIdList,
@@ -1070,7 +1296,6 @@ const [userDepartment, setUserDepartment] = useState(null);
               isFullyCompleted: isFullyCompleted,
               isSubmitted: isSubmitted,
               auditCompletionStatus: completionInfo?.status,
-              // History fields
               originalScheduledDate: history.originalScheduledDate,
               originalStartTime: history.originalStartTime,
               rescheduleHistory: history.rescheduleHistory,
@@ -1104,7 +1329,9 @@ const [userDepartment, setUserDepartment] = useState(null);
             isAttendee: audit.auditeeId === currentUser?.id,
             userRelationship: audit.auditorId === currentUser?.id ? 'owner' : (isCoAuditor ? 'co_auditor' : (audit.auditeeId === currentUser?.id ? 'attendee' : 'none')),
             auditorName: audit.auditorName,
+            auditorId: audit.auditorId,
             auditeeName: audit.auditeeName,
+            auditeeId: audit.auditeeId,
             coAuditorIds: audit.coAuditorIds,
             coAuditorNames: coAuditorNamesList,
             coAuditorIdList: coAuditorIdList,
@@ -1117,7 +1344,6 @@ const [userDepartment, setUserDepartment] = useState(null);
             isFullyCompleted: isFullyCompleted,
             isSubmitted: isSubmitted,
             auditCompletionStatus: completionInfo?.status,
-            // History fields
             originalScheduledDate: history.originalScheduledDate,
             originalStartTime: history.originalStartTime,
             rescheduleHistory: history.rescheduleHistory,
@@ -1125,6 +1351,14 @@ const [userDepartment, setUserDepartment] = useState(null);
             pendingReschedule: history.pendingReschedule,
             pendingExtension: history.pendingExtension
           })
+          
+          console.log('📅 Created regular event:', {
+            auditId: audit.id,
+            auditorId: audit.auditorId,
+            auditorName: audit.auditorName,
+            auditeeId: audit.auditeeId,
+            auditeeName: audit.auditeeName
+          });
         }
       }
       
@@ -1135,13 +1369,12 @@ const [userDepartment, setUserDepartment] = useState(null);
       setError('Failed to load calendar data')
     }
   } catch (err) {
-    console.error('Error loading events:', err)
-    setError('Failed to connect to server')
+    console.error('Error loading events:', err);
+    setError('Failed to connect to server');
   } finally {
-    setIsLoading(false)
+    setIsLoading(false);
   }
-}, [currentUser, userRole, leadAuditorDepartment])
-
+}, [currentUser, userRole, leadAuditorDepartment]);
 // Normalize department name for comparison (matching your dashboard logic)
 const normalizeDepartmentForFilter = (dept) => {
   if (!dept) return '';

@@ -18,56 +18,59 @@ const ScheduleMatrixView = ({
 
   // Helper function to check if a week has any working days
   const getWeekWorkingDays = (year, month, week) => {
-    const weekNum = parseInt(week.split('-')[1]);
-    
-    const monthMap = {
-      "Apr": 3, "May": 4, "Jun": 5, "Jul": 6,
-      "Aug": 7, "Sep": 8, "Oct": 9, "Nov": 10,
-      "Dec": 11, "Jan": 0, "Feb": 1, "Mar": 2
-    };
-    
-    const monthNum = monthMap[month];
-    if (monthNum === undefined) return { hasWorkingDays: true, workingDaysCount: 5, isOnlySunday: false };
-    
-    const actualYear = (month === "Jan" || month === "Feb" || month === "Mar") ? year + 1 : year;
-    const firstDayOfMonth = new Date(actualYear, monthNum, 1);
-    const firstDayWeekday = firstDayOfMonth.getDay();
-    const startOffset = firstDayWeekday === 0 ? 6 : firstDayWeekday - 1;
-    
-    let startDay, endDay;
-    const monthDays = new Date(actualYear, monthNum + 1, 0).getDate();
-    
-    switch(weekNum) {
-      case 1: startDay = 1; endDay = 7 - startOffset; break;
-      case 2: startDay = 8 - startOffset; endDay = 14 - startOffset; break;
-      case 3: startDay = 15 - startOffset; endDay = 21 - startOffset; break;
-      case 4: startDay = 22 - startOffset; endDay = 28 - startOffset; break;
-      case 5: startDay = 29 - startOffset; endDay = 35 - startOffset; break;
-      case 6: startDay = 36 - startOffset; endDay = monthDays; break;
-      default: return { hasWorkingDays: true, workingDaysCount: 5, isOnlySunday: false };
-    }
-    
-    startDay = Math.max(1, Math.min(startDay, monthDays));
-    endDay = Math.max(startDay, Math.min(endDay, monthDays));
-    
-    let workingDaysCount = 0;
-    let isOnlySunday = true;
-    
-    for (let day = startDay; day <= endDay; day++) {
-      const date = new Date(actualYear, monthNum, day);
-      const dayOfWeek = date.getDay();
-      if (dayOfWeek !== 0) {
-        workingDaysCount++;
-        isOnlySunday = false;
-      }
-    }
-    
-    return { 
-      hasWorkingDays: workingDaysCount > 0, 
-      workingDaysCount, 
-      isOnlySunday
-    };
+  const weekNum = parseInt(week.split('-')[1]);
+  
+  const monthMap = {
+    "Apr": 3, "May": 4, "Jun": 5, "Jul": 6,
+    "Aug": 7, "Sep": 8, "Oct": 9, "Nov": 10,
+    "Dec": 11, "Jan": 0, "Feb": 1, "Mar": 2
   };
+  
+  const monthNum = monthMap[month];
+  if (monthNum === undefined) return { hasWorkingDays: true, workingDaysCount: 5, isOnlySunday: false };
+  
+  const actualYear = (month === "Jan" || month === "Feb" || month === "Mar") ? year + 1 : year;
+  const firstDayOfMonth = new Date(actualYear, monthNum, 1);
+  // Change: Sunday is now day 0 (was Monday as day 1)
+  const firstDayWeekday = firstDayOfMonth.getDay(); // 0 = Sunday, 1 = Monday, etc.
+  
+  // Change: No offset needed for Sunday-based weeks
+  let startDay, endDay;
+  const monthDays = new Date(actualYear, monthNum + 1, 0).getDate();
+  
+  // Change: Adjusted week calculations for Sunday-first weeks
+  switch(weekNum) {
+    case 1: startDay = 1; endDay = 7 - firstDayWeekday; break;
+    case 2: startDay = 8 - firstDayWeekday; endDay = 14 - firstDayWeekday; break;
+    case 3: startDay = 15 - firstDayWeekday; endDay = 21 - firstDayWeekday; break;
+    case 4: startDay = 22 - firstDayWeekday; endDay = 28 - firstDayWeekday; break;
+    case 5: startDay = 29 - firstDayWeekday; endDay = 35 - firstDayWeekday; break;
+    case 6: startDay = 36 - firstDayWeekday; endDay = monthDays; break;
+    default: return { hasWorkingDays: true, workingDaysCount: 5, isOnlySunday: false };
+  }
+  
+  startDay = Math.max(1, Math.min(startDay, monthDays));
+  endDay = Math.max(startDay, Math.min(endDay, monthDays));
+  
+  let workingDaysCount = 0;
+  let isOnlySunday = true;
+  
+  for (let day = startDay; day <= endDay; day++) {
+    const date = new Date(actualYear, monthNum, day);
+    const dayOfWeek = date.getDay();
+    // Working days: Monday(1) to Friday(5), excluding Sunday(0) and Saturday(6)
+    if (dayOfWeek >= 1 && dayOfWeek <= 5) {
+      workingDaysCount++;
+      isOnlySunday = false;
+    }
+  }
+  
+  return { 
+    hasWorkingDays: workingDaysCount > 0, 
+    workingDaysCount, 
+    isOnlySunday
+  };
+};
 
   // Helper to get display text for multiple items
   const getDisplayNames = (names, maxDisplay = 2) => {
