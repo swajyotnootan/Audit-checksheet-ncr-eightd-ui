@@ -186,14 +186,14 @@ System auto-triggers 2nd NCR form
 ## Application Screenshots
 
 ### Login Page
-<img width="1341" height="701" alt="Login Page" src="YOUR_LOGIN_SCREENSHOT_URL" />
+<img width="1341" height="701" alt="Login Page" src="src/screenshots/LoginPage.jpeg" />
 
 *Role-based login with Qsutra & STRATUM branding. Users select role, enter credentials, and sign in.*
 
 ---
 
 ### Master Dashboard
-<img width="3202" height="1842" alt="Master Dashboard" src="YOUR_MASTER_DASHBOARD_URL" />
+<img width="3202" height="1842" alt="Master Dashboard" src="src/screenshots/MasterDashboard.jpeg" />
 
 *Central hub for user management with full CRUD operations.*
 
@@ -208,7 +208,7 @@ System auto-triggers 2nd NCR form
 ---
 
 ### HR Admin Dashboard
-<img width="3202" height="1842" alt="HR Admin Dashboard" src="YOUR_HR_ADMIN_DASHBOARD_URL" />
+<img width="3202" height="1842" alt="HR Admin Dashboard" src="src/screenshots/HRAdminDashboard.png" />
 
 *Auditor list and competency management.*
 
@@ -219,8 +219,43 @@ System auto-triggers 2nd NCR form
 
 ---
 
-### Audit Manager – Scheduling Dashboard
-<img width="3202" height="1842" alt="Scheduling Dashboard" src="YOUR_SCHEDULING_DASHBOARD_URL" />
+### Lead Auditor Dashboard
+<img width="3202" height="1842" alt="Lead Auditor Dashboard" src="src/screenshots/LeadAuditorDashboard.jpeg" />
+
+---
+
+
+### Audit Manager – Scheduling Dashboard Has Divided in Two parts:
+
+#### AuditManager Schedule Dashboard
+<img width="3202" height="1842" alt="Scheduling Dashboard" src="src/screenshots/AuditManagerSchedule.jpeg" />
+
+---
+
+#### AuditManager NCR Dashboard
+<img width="3202" height="1842" alt="Scheduling Dashboard" src="src/screenshots/AuditManagerNCR.jpeg" />
+
+---
+
+#### Annual Plan
+<img width="3202" height="1842" alt="Annual Plan" src="src/screenshots/AnnualPlan.png" />
+
+---
+
+#### Department Plan
+<img width="3202" height="1842" alt="Department Plan" src="src/screenshots/DepartmentPlan.png" />
+
+---
+
+#### Week Plan
+<img width="3202" height="1842" alt="Week Plan" src="src/screenshots/WeekPlan.png" />
+
+---
+
+#### Day Schedule
+<img width="3202" height="1842" alt="Day Schedule" src="src/screenshots/DaySchedule.png" />
+
+---
 
 *Complete scheduling management with 4-level approval workflow.*
 
@@ -229,6 +264,12 @@ System auto-triggers 2nd NCR form
 2. **Department Plan** – Assign audits to specific departments
 3. **Week Plan** – Select specific weeks in approved months
 4. **Day Schedule** – Assign date, time, and resolve conflicts
+
+
+---
+### Top Management Dashboard
+<img width="3202" height="1842" alt="Top Management Dashboard" src="src/screenshots/top.png" />
+
 
 > ✅ Each level has Approve/Reject/Change Request by Top Management
 
@@ -241,7 +282,18 @@ System auto-triggers 2nd NCR form
 
 ---
 
+### Auditor Dashboard
+<img width="3202" height="1842" alt="Auditor Dashboard" src="src/screenshots/AuditorDashboard.png" />
+
+---
+
+### Auditee Dashboard
+<img width="3202" height="1842" alt="Auditee Dashboard" src="src/screenshots/AuditeeDashboard.jpeg" />
+
+---
+
 ### Audit Forms
+
 
 #### IATF Audit Form (15 forms)
 <img width="3202" height="1842" alt="IATF Form" src="YOUR_IATF_FORM_URL" />
@@ -279,15 +331,37 @@ System auto-triggers 2nd NCR form
 
 ---
 
+#### NCR Dashboards
+
+###### NCR Dashboard
+<img width="3202" height="1842" alt="2nd NCR" src="src/screenshots/NCRDashboard.png" />
+
+###### NCR Corrective Action Dashboard:
+<img width="3202" height="1842" alt="2nd NCR" src="src/screenshots/NCRSecondDashboard.png" />
+
+
+
 ### 8D Integration
 
 #### 8D Dashboard (Initiator View)
-<img width="3202" height="1842" alt="8D Dashboard" src="YOUR_8D_DASHBOARD_URL" />
+<img width="3202" height="1842" alt="8D Dashboard" src="src/screenshots/InitiatorDashboard.jpeg" />
+
+---
+
+#### Create New 8D Dashboard 
+<img width="3202" height="1842" alt="8D Dashboard" src="src/screenshots/EightDdashboard.png" />
+
+---
+
+#### NCR based 8D Dashboard 
+
+<img width="3202" height="1842" alt="8D Dashboard" src="src/screenshots/NCRbasedEightd.png" />
+
 
 *D0 to D8 steps management.*
 
 #### HOD Approval Screen
-<img width="3202" height="1842" alt="HOD Approval" src="YOUR_HOD_APPROVAL_URL" />
+<img width="3202" height="1842" alt="HOD Approval" src="src/screenshots/HODDashboard.jpeg" />
 
 *HOD must approve before proceeding from D0 to D1.*
 
@@ -382,18 +456,18 @@ audit-management-system/
 
 | Module | Status | Test Date |
 |--------|--------|-----------|
-| Scheduling (4 levels) | ✅ Passed | [Date] |
-| IATF Audit Form | ✅ Passed | [Date] |
-| Process Audit Form | ✅ Passed | [Date] |
-| Five S Form | ✅ Passed | [Date] |
-| NCR (Score >70%) | ✅ Passed | [Date] |
-| NCR (Score <70% + 8D) | ✅ Passed | [Date] |
-| 8D Workflow (D0-D8) | ✅ Passed | [Date] |
-| Discussion Forums (3) | ✅ Passed | [Date] |
-| Role-Based Calendar | ✅ Passed | [Date] |
-| Email & Notifications | ✅ Passed | [Date] |
+| Scheduling (4 levels) | ✅ Passed | 
+| IATF Audit Form | ✅ Passed | 
+| Process Audit Form | ✅ Passed |    
+| Five S Form | ✅ Passed | 
+| NCR (Score >70%) | ✅ Passed | 
+| NCR (Score <70% + 8D) | ✅ Passed | 
+| 8D Workflow (D0-D8) | ✅ Passed | 
+| Discussion Forums (3) | ✅ Passed | 
+| Role-Based Calendar | ✅ Passed | 
+| Email & Notifications | ✅ Passed |
 
-**Overall Status:** ✅ **Testing Completed – Ready for Deployment**
+**Overall Status:** ✅ **Testing Completed 
 
 ---
 
@@ -412,20 +486,8 @@ audit-management-system/
 
 ---
 
-## Contributors
-
-| Name | Role | Contribution |
-|------|------|--------------|
-| [Your Name] | Developer | Full-stack development |
-| [Tester Name] | QA | 50+ test scenarios |
-| [Name] | Documentation | Workflow docs & screenshots |
-
----
-
 ## Last Updated
 
 5th June, 2026
 
 ---
-
-**For any questions, please contact:** [Your Email]
