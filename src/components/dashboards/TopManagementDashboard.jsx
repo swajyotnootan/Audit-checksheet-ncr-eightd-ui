@@ -1353,43 +1353,7 @@ const handleBulkRejectByAuditType = async () => {
           </div>
         </div>
 
-        {/* Annual Audit Plans Section - Form 3 */}
-        <div className="bg-white rounded-xl border border-gray-200 overflow-hidden mb-6 shadow-sm">
-          <div className="px-5 py-4 border-b border-gray-200 bg-gray-50">
-            <h2 className="font-semibold text-gray-800 flex items-center gap-2">
-              <FiFileText className="w-4 h-4 text-blue-500" />
-              Annual Audit Plans (Form 3) - Pending Approval ({pendingPlans.length})
-            </h2>
-          </div>
-          <div className="divide-y divide-gray-100">
-            {pendingPlans.length === 0 ? (
-              <div className="p-8 text-center text-gray-400">
-                <FiCheckCircle className="w-12 h-12 mx-auto mb-2 opacity-50" />
-                <p>No annual plans pending approval</p>
-              </div>
-            ) : (
-              pendingPlans.map((plan) => (
-                <div key={plan.year} className="p-4 hover:bg-gray-50 transition-colors">
-                  <div className="flex justify-between items-center">
-                    <div>
-                      <p className="font-medium text-gray-800">Annual Audit Plan {plan.year}</p>
-                      <div className="flex items-center gap-3 mt-1 text-xs text-gray-400">
-                        <span>Prepared by: {plan.preparedBy || 'N/A'}</span>
-                      </div>
-                    </div>
-                    <button
-                      onClick={() => handleViewPlan(plan)}
-                      className="px-3 py-1.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-sm flex items-center gap-1"
-                    >
-                      <FiEye className="w-4 h-4" /> Review
-                    </button>
-                  </div>
-                </div>
-              ))
-            )}
-          </div>
-        </div>
-
+        
         <div className="grid grid-cols-1 gap-6 mb-6 md:grid-cols-2">
           {/* Card 1: Annual Audit Plans Section - Form 3 */}
           <div className="overflow-hidden bg-white border border-gray-200 shadow-sm rounded-xl">
