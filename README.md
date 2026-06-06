@@ -276,7 +276,7 @@ System auto-triggers 2nd NCR form
 ---
 
 ### Day Schedule – Time Conflict Detection
-<img width="3202" height="1842" alt="Time Conflict Detection" src="YOUR_CONFLICT_DETECTION_URL" />
+<img width="3202" height="1842" alt="Time Conflict Detection" src="src/screenshots/TimeConflict.jpeg" />
 
 *System automatically detects and prevents time conflicts for both Auditor and Auditee.*
 
@@ -296,17 +296,17 @@ System auto-triggers 2nd NCR form
 
 
 #### IATF Audit Form (15 forms)
-<img width="3202" height="1842" alt="IATF Form" src="YOUR_IATF_FORM_URL" />
+<img width="3202" height="1842" alt="IATF Form" src="src/screenshots/IATFForm.jpeg" />
 
 *Clause-wise form with scoring and automatic NCR trigger.*
 
 #### Process Audit Form
-<img width="3202" height="1842" alt="Process Form" src="YOUR_PROCESS_FORM_URL" />
+<img width="3202" height="1842" alt="Process Form" src="src/screenshots/ManufacturingForm.jpeg" />
 
 *Manufacturing audit checklist.*
 
 #### Five S Form
-<img width="3202" height="1842" alt="Five S Form" src="YOUR_FIVE_S_FORM_URL" />
+<img width="3202" height="1842" alt="Five S Form" src="src/screenshots/FiveSAuditForm.jpeg" />
 
 *Simple 5S checklist.*
 
@@ -315,17 +315,17 @@ System auto-triggers 2nd NCR form
 ### NCR Workflow
 
 #### NCR Raised (Score > 70%)
-<img width="3202" height="1842" alt="NCR Normal" src="YOUR_NCR_NORMAL_URL" />
+<img width="3202" height="1842" alt="NCR Normal" src="src/screenshots/NCRRaised.jpeg" />
 
 *Standard NCR with information, question, audit number, auditor data, and auditee data.*
 
 #### NCR with 8D Integration (Score < 70%)
-<img width="3202" height="1842" alt="NCR with 8D" src="YOUR_NCR_8D_URL" />
+<img width="3202" height="1842" alt="NCR with 8D" src="src/screenshots/NCRRaisedwithD.jpeg" />
 
 *NCR raised with 8D team integration. Audit Manager must check checkbox to send to 8D team.*
 
 #### 2nd NCR (Corrective Action)
-<img width="3202" height="1842" alt="2nd NCR" src="YOUR_SECOND_NCR_URL" />
+<img width="3202" height="1842" alt="2nd NCR" src="src/screenshots/NCRTwoForm.jpeg" />
 
 *Corrective action form filled by Auditee and closed by Audit Manager.*
 
@@ -370,12 +370,12 @@ System auto-triggers 2nd NCR form
 ### Discussion Forums
 
 #### Forum 1: Audit Manager ↔ Top Management
-<img width="3202" height="1842" alt="Forum 1" src="YOUR_FORUM1_URL" />
+<img width="3202" height="1842" alt="Forum 1" src="src/screenshots/AuditScheduleGlobalForum.jpeg" />
 
 *For schedule-related discussions.*
 
 #### Forum 2: Auditor ↔ Auditee
-<img width="3202" height="1842" alt="Forum 2" src="YOUR_FORUM2_URL" />
+<img width="3202" height="1842" alt="Forum 2" src="src/screenshots/NCRForm.jpeg" />
 
 *For audit and NCR-related discussions.*
 
@@ -387,7 +387,7 @@ System auto-triggers 2nd NCR form
 ---
 
 ### Role-Based Calendar View
-<img width="3202" height="1842" alt="Calendar" src="YOUR_CALENDAR_URL" />
+<img width="3202" height="1842" alt="Calendar" src="src/screenshots/CalendarViewmodal.jpeg" />
 
 *Each user sees only their relevant audits, schedules, and tasks.*
 
@@ -454,7 +454,7 @@ audit-management-system/
 
 ## Testing Status
 
-| Module | Status | Test Date |
+| Module | Status | 
 |--------|--------|-----------|
 | Scheduling (4 levels) | ✅ Passed | 
 | IATF Audit Form | ✅ Passed | 
