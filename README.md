@@ -18,7 +18,7 @@ Qsutra - Audit Management System is a web-based audit lifecycle management appli
    </tr>
 </table>
 
-**Version**: 1.0.0 (5th June, 2026)  
+**Version**: 2.0.1 (7th April, 2025)  
 **Client**: STRATUM aerospace
 
 ---
@@ -380,14 +380,14 @@ System auto-triggers 2nd NCR form
 *For audit and NCR-related discussions.*
 
 #### Forum 3: 8D Team Internal
-<img width="3202" height="1842" alt="Forum 3" src="YOUR_FORUM3_URL" />
+<img width="3202" height="1842" alt="Forum 3" src="src/screenshots/8Dforum.jpeg"/>
 
 *For 8D team internal communications.*
 
 ---
 
 ### Role-Based Calendar View
-<img width="3202" height="1842" alt="Calendar" src="src/screenshots/CalendarViewmodal.jpeg" />
+<img width="3202" height="1842" alt="Calendar" src="src/screenshots/CalensarViewmodal.jpeg" />
 
 *Each user sees only their relevant audits, schedules, and tasks.*
 
@@ -397,7 +397,7 @@ System auto-triggers 2nd NCR form
 +---------------------------------------------------+
 | Frontend (React) |
 +---------------------------------------------------+
-| Backend APIs (Node.js) |
+| Backend APIs (Springboot) |
 +---------------------------------------------------+
 | Database (PostgreSQL) |
 +---------------------------------------------------+
@@ -455,7 +455,7 @@ audit-management-system/
 ## Testing Status
 
 | Module | Status | 
-|--------|--------|-----------|
+|--------|--------|
 | Scheduling (4 levels) | ✅ Passed | 
 | IATF Audit Form | ✅ Passed | 
 | Process Audit Form | ✅ Passed |    
