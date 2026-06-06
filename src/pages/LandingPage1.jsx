@@ -1411,7 +1411,7 @@ export default function LandingPage1() {
         allUsers={[]}
         memberEmails={teamMembersMap[selectedGroupId] || []}
         onBack={() => setForumDrawerOpen(false)}
-        groupName={`8D Discussion - ${selectedGroupId}`}
+        groupName={`${selectedGroupId}`}
       />
       {/* ✅ ADD: Debug info */}
       <div style={{ display: 'none' }}>

@@ -1,4 +1,4 @@
-// src/components/dashboards/AuditorDashboard.jsx - COMPLETE UPDATED CODE
+​// src/components/dashboards/AuditorDashboard.jsx - COMPLETE UPDATED CODE
 
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
@@ -133,28 +133,28 @@ const getViewRoute = (audit) => {
 
 const isAuditExpired = (audit) => {
   if (!audit || audit.status === 'COMPLETED') return false;
-  
+ 
   // Check if it's a date range audit
   const isDateRange = audit.fromDate && audit.toDate && audit.fromDate !== audit.toDate;
-  
+ 
   if (isDateRange) {
     // For date range audits, check if the entire range has passed
     const toDate = new Date(audit.toDate);
     const today = new Date();
     today.setHours(0, 0, 0, 0);
     toDate.setHours(23, 59, 59, 999);
-    
+   
     // If end date is in the past
     if (toDate < today) {
       return true;
     }
-    
+   
     // If today is the last day, check if end time has passed
     if (toDate.toDateString() === today.toDateString() && audit.endTime) {
       const now = new Date();
       const currentHours = now.getHours();
       const currentMinutes = now.getMinutes();
-      
+     
       // Parse end time
       const parseTime = (timeStr) => {
         const match = timeStr.match(/(\d+):(\d+)\s*(AM|PM)/i);
@@ -162,69 +162,71 @@ const isAuditExpired = (audit) => {
         let hours = parseInt(match[1]);
         const minutes = parseInt(match[2]);
         const meridian = match[3].toUpperCase();
-        
+       
         if (meridian === 'PM' && hours !== 12) hours += 12;
         if (meridian === 'AM' && hours === 12) hours = 0;
-        
+       
         return { hours, minutes };
       };
-      
+     
       const endTime = parseTime(audit.endTime);
       const currentTimeMinutes = (currentHours * 60) + currentMinutes;
       const endTimeMinutes = (endTime.hours * 60) + endTime.minutes;
-      
+     
       // If current time is past end time on the due date
       if (currentTimeMinutes > endTimeMinutes) {
         return true;
       }
     }
-    
+   
     return false;
   }
-  
+ 
   // For single date audits
   if (!audit?.scheduledDate) return false;
-  
+ 
   const scheduleDate = new Date(audit.scheduledDate);
   const today = new Date();
   today.setHours(0, 0, 0, 0);
   scheduleDate.setHours(0, 0, 0, 0);
-  
+ 
   // If date is in the past
   if (scheduleDate < today) {
     return true;
   }
-  
+ 
   // If today, check if end time has passed
   if (scheduleDate.getTime() === today.getTime() && audit.endTime) {
     const now = new Date();
     const currentHours = now.getHours();
     const currentMinutes = now.getMinutes();
-    
+   
     const parseTime = (timeStr) => {
       const match = timeStr.match(/(\d+):(\d+)\s*(AM|PM)/i);
       if (!match) return { hours: 23, minutes: 59 };
       let hours = parseInt(match[1]);
       const minutes = parseInt(match[2]);
       const meridian = match[3].toUpperCase();
-      
+     
       if (meridian === 'PM' && hours !== 12) hours += 12;
       if (meridian === 'AM' && hours === 12) hours = 0;
-      
+     
       return { hours, minutes };
     };
-    
+   
     const endTime = parseTime(audit.endTime);
     const currentTimeMinutes = (currentHours * 60) + currentMinutes;
     const endTimeMinutes = (endTime.hours * 60) + endTime.minutes;
-    
+   
     if (currentTimeMinutes > endTimeMinutes) {
       return true;
     }
   }
-  
+ 
   return false;
 };
+ 
+ 
 
 const parseResponseAnswers = (r) => {
   try { return typeof r.answers === 'string' ? JSON.parse(r.answers || '{}') : (r.answers || {}); }
@@ -280,20 +282,21 @@ const AuditCard = ({
   isRescheduleRequested, isExtensionRequested , onOpenForum
 }) => {
   const [expanded, setExpanded] = useState(false);
-  const isExpired = isAuditExpired(audit); // Change this line - remove timeStatus === 'EXPIRED'
-  const isMultiForm = totalForms > 1
+  const isExpired = timeStatus === 'EXPIRED' || isAuditExpired(audit);
   const isDateRange = audit.fromDate && audit.toDate && audit.fromDate !== audit.toDate;
+  const isMultiForm = totalForms > 1;
   const allFormsCompleted = completedForms === totalForms && totalForms > 0;
   const hasPendingForms = pendingForms > 0;
   const progressPercent = totalForms > 0 ? (completedForms / totalForms) * 100 : 0;
-
+  
   // Distinguish between overdue scenarios
   const hasStartedWork = hasFormData && completedForms > 0;
   const isOverdueNoWork = isExpired && !hasStartedWork;
   const isOverduePartialWork = isExpired && hasStartedWork && hasPendingForms;
-    // CRITICAL: Check if request has been SUBMITTED
-    const hasPendingReschedule = isRescheduleRequested === true;
-    const hasPendingExtension = isExtensionRequested === true;
+  
+  // CRITICAL: Check if request has been SUBMITTED
+  const hasPendingReschedule = isRescheduleRequested === true;
+  const hasPendingExtension = isExtensionRequested === true;
   
   // Determine button visibility
   // Show Reschedule button ONLY if: overdue with no work AND no pending reschedule request
@@ -363,19 +366,16 @@ const AuditCard = ({
               </div>
             )}
             <div className={`flex items-center gap-1.5 px-2 py-1 text-xs rounded-lg backdrop-blur-sm ${
-  audit.originalScheduledDate
-    ? 'bg-emerald-50 text-emerald-700 border border-emerald-100'
-    : isExpired ? 'bg-red-50 text-red-700 border border-red-200' : 'text-gray-500 bg-white/50'
-}`}>
-  <CalendarIcon size={10} />
-  {isDateRange ? `${audit.fromDate} → ${audit.toDate}` : audit.scheduledDate}
-  {audit.originalScheduledDate && (
-    <span className="ml-1 font-medium">(Rescheduled)</span>
-  )}
-  {isExpired && !audit.originalScheduledDate && (
-    <span className="ml-1 font-medium text-red-600">(Overdue)</span>
-  )}
-</div>
+              audit.originalScheduledDate
+                ? 'bg-emerald-50 text-emerald-700 border border-emerald-100'
+                : 'text-gray-500 bg-white/50'
+            }`}>
+              <CalendarIcon size={10} />
+              {isDateRange ? `${audit.fromDate} → ${audit.toDate}` : audit.scheduledDate}
+              {audit.originalScheduledDate && (
+                <span className="ml-1 font-medium">(Rescheduled)</span>
+              )}
+            </div>
           </div>
         </div>
         
@@ -404,26 +404,18 @@ const AuditCard = ({
         
         {/* Warning Messages - Only show if NO request submitted yet */}
         {isOverdueNoWork && !hasPendingReschedule && (
-  <div className="flex items-center gap-2 p-2 mb-3 text-xs text-red-700 border backdrop-blur-sm bg-red-50/80 rounded-xl border-red-200/50">
-    <AlertCircle size={14} />
-    <span className="flex-1">
-      {isDateRange 
-        ? `This date range audit (${audit.fromDate} to ${audit.toDate}) has expired without any work started. Please reschedule to begin.`
-        : "This audit hasn't started and is overdue! Please reschedule to begin."}
-    </span>
-  </div>
-)}
-
-{isOverduePartialWork && !hasPendingExtension && (
-  <div className="flex items-center gap-2 p-2 mb-3 text-xs text-orange-700 border backdrop-blur-sm bg-orange-50/80 rounded-xl border-orange-200/50">
-    <AlertCircle size={14} />
-    <span className="flex-1">
-      {isDateRange
-        ? `This date range audit expired on ${audit.toDate}. You've completed ${completedForms} of ${totalForms} forms. Please request an extension to complete the remaining forms.`
-        : `You've completed ${completedForms} of ${totalForms} forms. Please request an extension to complete the remaining forms.`}
-    </span>
-  </div>
-)}
+          <div className="flex items-center gap-2 p-2 mb-3 text-xs text-red-700 border backdrop-blur-sm bg-red-50/80 rounded-xl border-red-200/50">
+            <AlertCircle size={14} />
+            <span className="flex-1">This audit hasn't started and is overdue! Please reschedule to begin.</span>
+          </div>
+        )}
+        
+        {isOverduePartialWork && !hasPendingExtension && (
+          <div className="flex items-center gap-2 p-2 mb-3 text-xs text-orange-700 border backdrop-blur-sm bg-orange-50/80 rounded-xl border-orange-200/50">
+            <AlertCircle size={14} />
+            <span className="flex-1">You've completed {completedForms} of {totalForms} forms. Please request an extension to complete the remaining forms.</span>
+          </div>
+        )}
         
         {/* Pending Request Message */}
         {hasPendingExtension && (
@@ -834,7 +826,7 @@ const [selectedNCRForForum, setSelectedNCRForForum] = useState(null);
     rejected: raisedNCRs.filter(n => n.status === 'REJECTED').length,
   }), [raisedNCRs]);
 
-const handleViewReport = (responseId, audit, form) => {
+  const handleViewReport = (responseId, audit, form) => {
   if (!responseId) {
     addToast('Report not found', 'error');
     return;
@@ -842,15 +834,14 @@ const handleViewReport = (responseId, audit, form) => {
   
   const route = getViewRoute(audit, form);
   
-  // Use window.location for Vercel deployment
-  const fullPath = `${route}/${responseId}`;
+  // Determine which dashboard to return to
+  const returnPath = '/auditor';
+  const currentTab = 'my-audits'; // Always return to My Audits tab
   
-  // Use navigate with replace: true to avoid history issues
-  navigate(fullPath, {
-    replace: true,
+  navigate(`${route}/${responseId}`, {
     state: {
-      returnTo: '/auditor',
-      tab: 'my-audits'
+      returnTo: returnPath,
+      tab: currentTab
     }
   });
 };
@@ -878,17 +869,17 @@ const handleViewReport = (responseId, audit, form) => {
     } catch { return []; }
   };
 
- const fetchSchedulesWithStatus = async () => {
+   const fetchSchedulesWithStatus = async () => {
   try {
     setLoading(true); setRefreshing(true);
-
+ 
     const [responsesRes, ncrRes, rescheduleRequestsRes, extensionRequestsRes] = await Promise.all([
       axios.get(`${API_BASE}/templates/responses/all`, { withCredentials: true }),
       axios.get(`${API_BASE}/ncr/all`, { withCredentials: true }),
       axios.get(`${API_BASE}/audit-schedule/reschedule-requests/auditor/${user?.id}`, { withCredentials: true }).catch(() => ({ data: [] })),
       axios.get(`${API_BASE}/audit-schedule/extension-requests/auditor/${user?.id}`, { withCredentials: true }).catch(() => ({ data: [] }))
     ]);
-
+ 
     // Track pending requests
     const pendingRescheduleIds = new Set();
     (rescheduleRequestsRes.data || []).forEach(req => {
@@ -896,20 +887,20 @@ const handleViewReport = (responseId, audit, form) => {
         pendingRescheduleIds.add(req.scheduleId);
       }
     });
-    
+   
     const pendingExtensionIds = new Set();
     (extensionRequestsRes.data || []).forEach(req => {
       if (req.status === 'PENDING') {
         pendingExtensionIds.add(req.scheduleId);
       }
     });
-    
+   
     setRescheduleRequestedMap(Object.fromEntries([...pendingRescheduleIds].map(id => [id, true])));
     setExtensionRequestedMap(Object.fromEntries([...pendingExtensionIds].map(id => [id, true])));
-
+ 
     const allResponses = responsesRes.data || [];
     const existingNcrAuditIds = new Set((ncrRes.data || []).map(n => Number(n.auditId)).filter(Boolean));
-
+ 
     const pendingNcrItems = allResponses
       .filter(r => Number(r.auditorId) === Number(user?.id))
       .map(r => {
@@ -926,57 +917,57 @@ const handleViewReport = (responseId, audit, form) => {
         };
       })
       .filter(item => item.findings.length > 0 && !existingNcrAuditIds.has(Number(item.responseId)));
-
+ 
     setPendingNcrAudits(pendingNcrItems);
-
+ 
     const responseMapByScheduleAndSheet = {};
     allResponses.forEach(r => {
       if (r.auditScheduleId) responseMapByScheduleAndSheet[`${r.auditScheduleId}_${r.checkSheet?.id}`] = r;
     });
-
+ 
     const schedulesRes = await axios.get(`${API_BASE}/audit-schedule/auditor/${user?.id}/schedules-with-status`, { withCredentials: true });
     const schedulesData = schedulesRes.data || [];
-
+ 
     // ✅ CRITICAL FIX: Filter schedules that are NOT approved
     // Only show schedules that have been approved by Top Management
     const approvedSchedulesData = schedulesData.filter(item => {
       const schedule = item.schedule;
       if (!schedule) return false;
-      
+     
       // For week schedules (Form 5 basic - no scheduledDate)
       if (!schedule.scheduledDate) {
         return schedule.approvalStatus === 'APPROVED';
       }
-      
+     
       // For detailed schedules (Form 5 Detailed - has scheduledDate)
       if (schedule.scheduledDate) {
-        return schedule.detailedApprovalStatus === 'APPROVED' || 
+        return schedule.detailedApprovalStatus === 'APPROVED' ||
                schedule.approvalStatus === 'APPROVED';
       }
-      
+     
       return false;
     });
-
+ 
     console.log(`📋 Filtered schedules: ${approvedSchedulesData.length} approved out of ${schedulesData.length} total`);
-
+ 
     const enhancedData = await Promise.all(approvedSchedulesData.map(async (item) => {
       const scheduleId = item.schedule?.id;
       const department = item.schedule?.department;
       const auditType = item.schedule?.auditType || '';
       const isIATF = auditType.toLowerCase().includes('iatf') || auditType.toLowerCase().includes('16949');
       const is5S = auditType.toLowerCase().includes('5s') || auditType.toLowerCase().includes('five_s');
-      
+     
       let formDetails = [];
-
+ 
       if (isIATF && department) {
         const availableForms = await fetchAvailableFormsForDepartment(department);
         formDetails = availableForms.map(form => {
           const existing = responseMapByScheduleAndSheet[`${scheduleId}_${form.id}`];
-          return { 
-            id: form.id, 
-            name: form.name, 
-            processName: form.processName, 
-            completed: !!existing, 
+          return {
+            id: form.id,
+            name: form.name,
+            processName: form.processName,
+            completed: !!existing,
             responseId: existing?.id,
           };
         });
@@ -991,18 +982,18 @@ const handleViewReport = (responseId, audit, form) => {
         }];
       } else {
         const existing = allResponses.find(r => r.auditScheduleId === scheduleId);
-        formDetails = [{ 
-          id: item.schedule?.checkSheet?.id || 1, 
-          name: item.schedule?.auditType || 'Audit Form', 
-          processName: item.schedule?.auditType, 
-          completed: !!existing, 
+        formDetails = [{
+          id: item.schedule?.checkSheet?.id || 1,
+          name: item.schedule?.auditType || 'Audit Form',
+          processName: item.schedule?.auditType,
+          completed: !!existing,
           responseId: existing?.id,
         }];
       }
-
+ 
       const totalForms = formDetails.length;
       const completedForms = formDetails.filter(f => f.completed).length;
-
+ 
       return {
         ...item,
         schedule: {
@@ -1019,9 +1010,9 @@ const handleViewReport = (responseId, audit, form) => {
         },
       };
     }));
-
+ 
     setSchedules(enhancedData);
-    
+   
     // Calculate stats
     const partiallyCompletedAudits = enhancedData.filter(s => s.schedule.hasFormData && !s.schedule.allFormsCompleted);
     const overdueNoWork = enhancedData.filter(s => {
@@ -1035,7 +1026,7 @@ const handleViewReport = (responseId, audit, form) => {
       const hasPending = s.schedule.pendingForms > 0;
       return isExpired && hasStartedWork && hasPending;
     });
-    
+   
     setStats({
       upcoming: enhancedData.filter(s => s.timeStatus === 'UPCOMING' && !s.schedule.hasFormData).length,
       active: enhancedData.filter(s => s.timeStatus === 'ACTIVE' && s.canStart && !s.schedule.hasFormData).length,
@@ -1053,6 +1044,8 @@ const handleViewReport = (responseId, audit, form) => {
     setLoading(false); setRefreshing(false);
   }
 };
+ 
+ 
 
 
    const fetchAllUsers = async () => {
@@ -1727,14 +1720,13 @@ const handleRequestExtension = async (scheduleId, newDate, newStartTime, newEndT
   );
 }
 
-
 // Add this helper function before the RescheduleRequestModal component
 const getValidEndTimes = (startTime, endTimeOptions) => {
   if (!startTime) return endTimeOptions;
   const startMinutes = parseTimeToMinutes(startTime);
   return endTimeOptions.filter(time => parseTimeToMinutes(time) > startMinutes);
 };
-
+ 
 const getValidStartTimes = (endTime, startTimeOptions) => {
   if (!endTime) return startTimeOptions;
   const endMinutes = parseTimeToMinutes(endTime);
@@ -1752,7 +1744,7 @@ const RescheduleRequestModal = ({ audit, isOpen, onClose, onSubmit }) => {
   const [checkingConflict, setCheckingConflict] = useState(false);
   const [existingSchedules, setExistingSchedules] = useState([]);
   const { addToast } = useToast();
-
+ 
   // Helper: Parse time string to minutes for comparison
   const parseTimeToMinutes = (timeStr) => {
     if (!timeStr) return 0;
@@ -1761,98 +1753,98 @@ const RescheduleRequestModal = ({ audit, isOpen, onClose, onSubmit }) => {
     let hours = parseInt(match[1]);
     const minutes = parseInt(match[2]);
     const meridian = match[3].toUpperCase();
-    
+   
     if (meridian === 'PM' && hours !== 12) hours += 12;
     if (meridian === 'AM' && hours === 12) hours = 0;
-    
+   
     return hours * 60 + minutes;
   };
-
+ 
   // Get valid end times based on selected start time (only show times AFTER start time)
   const getValidEndTimes = (startTime) => {
     if (!startTime) return TIME_OPTIONS;
     const startMinutes = parseTimeToMinutes(startTime);
     return TIME_OPTIONS.filter(time => parseTimeToMinutes(time) > startMinutes);
   };
-
+ 
   // Get filtered end times based on current start time
   const validEndTimes = getValidEndTimes(newStartTime);
-
+ 
   // Helper: Check if two time ranges overlap
   const doTimeRangesOverlap = (start1, end1, start2, end2) => {
     const start1Min = parseTimeToMinutes(start1);
     const end1Min = parseTimeToMinutes(end1);
     const start2Min = parseTimeToMinutes(start2);
     const end2Min = parseTimeToMinutes(end2);
-    
+   
     return start1Min < end2Min && end1Min > start2Min;
   };
-
+ 
   // Fetch all existing schedules for the auditor
   const fetchExistingSchedules = async () => {
     try {
       const auditorId = audit?.auditorId || audit?.leadAuditorId;
       if (!auditorId) return [];
-      
+     
       const response = await axios.get(
         `${API_BASE}/audit-schedule/auditor/${auditorId}/schedules-with-status`,
         { withCredentials: true }
       );
-      
+     
       return response.data || [];
     } catch (error) {
       console.error('Error fetching schedules:', error);
       return [];
     }
   };
-
+ 
   // Check for scheduling conflicts with overlap detection
   const checkSchedulingConflict = async (date, startTime, endTime) => {
     if (!date || !startTime || !endTime || !audit?.id) return false;
-    
+   
     setCheckingConflict(true);
     setTimeConflictError('');
     setConflictDetails([]);
-    
+   
     try {
       const formattedDate = new Date(date).toISOString().split('T')[0];
-      
+     
       let schedules = existingSchedules;
       if (schedules.length === 0) {
         schedules = await fetchExistingSchedules();
         setExistingSchedules(schedules);
       }
-      
+     
       const conflicts = schedules.filter(schedule => {
         if (schedule.schedule?.id === audit.id) return false;
-        
+       
         const scheduleDate = schedule.schedule?.scheduledDate;
         if (scheduleDate !== formattedDate) return false;
-        
+       
         const scheduleStart = schedule.schedule?.startTime;
         const scheduleEnd = schedule.schedule?.endTime;
-        
+       
         if (!scheduleStart || !scheduleEnd) return false;
-        
+       
         return doTimeRangesOverlap(startTime, endTime, scheduleStart, scheduleEnd);
       });
-      
+     
       if (conflicts.length > 0) {
         setConflictDetails(conflicts);
-        
+       
         const conflict = conflicts[0];
         const conflictStart = conflict.schedule?.startTime;
         const conflictEnd = conflict.schedule?.endTime;
         const conflictDept = conflict.schedule?.department;
-        
+       
         const errorMsg = `Time conflict: You already have an audit scheduled on ${formattedDate} from ${conflictStart} - ${conflictEnd}. ` +
                         `Your requested time (${startTime} - ${endTime}) overlaps with this audit.` +
                         (conflictDept ? ` (Department: ${conflictDept})` : '');
-        
+       
         setTimeConflictError(errorMsg);
         return true;
       }
-      
+     
       setTimeConflictError('');
       setConflictDetails([]);
       return false;
@@ -1864,48 +1856,48 @@ const RescheduleRequestModal = ({ audit, isOpen, onClose, onSubmit }) => {
       setCheckingConflict(false);
     }
   };
-
+ 
   const getDateRestrictions = () => {
     const today = new Date();
     const tomorrow = new Date(today);
     tomorrow.setDate(today.getDate() + 1);
-    
+   
     const minDate = tomorrow;
     const maxDate = new Date(today);
     maxDate.setDate(today.getDate() + 21);
-    
+   
     const formatDate = (date) => date.toISOString().split('T')[0];
-    
+   
     return {
       minDate: formatDate(minDate),
       maxDate: formatDate(maxDate),
     };
   };
-
+ 
   const { minDate, maxDate } = getDateRestrictions();
-
+ 
   const validateDate = (date) => {
     const selectedDate = new Date(date);
     const today = new Date();
     today.setHours(0, 0, 0, 0);
-    
+   
     if (selectedDate <= today) {
       setDateError('Reschedule date must be a future date (tomorrow or later)');
       return false;
     }
-    
+   
     const maxAllowed = new Date();
     maxAllowed.setDate(maxAllowed.getDate() + 21);
-    
+   
     if (selectedDate > maxAllowed) {
       setDateError('Reschedule date should be within the next 3 weeks');
       return false;
     }
-    
+   
     setDateError('');
     return true;
   };
-
+ 
   const handleDateChange = (e) => {
     const newValue = e.target.value;
     setNewDate(newValue);
@@ -1917,26 +1909,26 @@ const RescheduleRequestModal = ({ audit, isOpen, onClose, onSubmit }) => {
     setTimeConflictError('');
     setConflictDetails([]);
   };
-
+ 
   const handleStartTimeChange = (e) => {
     const selectedStart = e.target.value;
     setNewStartTime(selectedStart);
-    
+   
     // Auto-reset end time if current end time is now invalid (before or equal to new start time)
     if (newEndTime && parseTimeToMinutes(selectedStart) >= parseTimeToMinutes(newEndTime)) {
       setNewEndTime(''); // Clear end time so user can select a valid one
     }
-    
+   
     setTimeConflictError('');
     setConflictDetails([]);
   };
-
+ 
   const handleEndTimeChange = (e) => {
     setNewEndTime(e.target.value);
     setTimeConflictError('');
     setConflictDetails([]);
   };
-
+ 
   // Check for conflicts when time selection changes
   useEffect(() => {
     if (newDate && newStartTime && newEndTime && !dateError && newStartTime && newEndTime) {
@@ -1945,14 +1937,14 @@ const RescheduleRequestModal = ({ audit, isOpen, onClose, onSubmit }) => {
         const delayDebounce = setTimeout(() => {
           checkSchedulingConflict(newDate, newStartTime, newEndTime);
         }, 500);
-        
+       
         return () => clearTimeout(delayDebounce);
       } else {
         setTimeConflictError('End time must be after start time');
       }
     }
   }, [newDate, newStartTime, newEndTime, dateError]);
-
+ 
   // Refresh schedules when modal opens
   useEffect(() => {
     if (audit && isOpen) {
@@ -1968,43 +1960,43 @@ const RescheduleRequestModal = ({ audit, isOpen, onClose, onSubmit }) => {
       setExistingSchedules([]);
     }
   }, [audit, isOpen]);
-
+ 
   const handleSubmit = async () => {
     if (!newDate) {
       addToast('Please select new date', 'error');
       return;
     }
-    
+   
     if (!validateDate(newDate)) {
       addToast(dateError, 'error');
       return;
     }
-    
+   
     if (!newStartTime || !newEndTime) {
       addToast('Please select both start and end times', 'error');
       return;
     }
-    
+   
     if (parseTimeToMinutes(newStartTime) >= parseTimeToMinutes(newEndTime)) {
       addToast('End time must be after start time', 'error');
       return;
     }
-    
+   
     const hasConflict = await checkSchedulingConflict(newDate, newStartTime, newEndTime);
     if (hasConflict) {
       addToast(timeConflictError || 'Time slot conflicts with another audit schedule', 'error');
       return;
     }
-    
+   
     if (!reason.trim()) {
       addToast('Please provide a reason', 'error');
       return;
     }
-    
+   
     setSubmitting(true);
     try {
       const formattedDate = new Date(newDate).toISOString().split('T')[0];
-      
+     
       await onSubmit(audit.id, formattedDate, newStartTime, newEndTime, reason);
       addToast('Reschedule request submitted successfully!', 'success');
       onClose();
@@ -2018,22 +2010,22 @@ const RescheduleRequestModal = ({ audit, isOpen, onClose, onSubmit }) => {
       setSubmitting(false);
     }
   };
-
+ 
   if (!isOpen) return null;
-  
+ 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/30 backdrop-blur-sm">
       <div className="w-full max-w-md p-5 border shadow-2xl backdrop-blur-xl bg-white/95 rounded-2xl border-white/30 max-h-[90vh] overflow-y-auto">
         <h3 className="mb-3 text-lg font-semibold text-gray-800">Request Reschedule</h3>
         <p className="mb-2 text-sm text-gray-600">Reschedule <strong>{audit?.auditType}</strong> for <strong>{audit?.department}</strong></p>
-        
+       
         <div className="space-y-3">
           <div>
             <label className="block mb-1 text-sm font-medium text-gray-700">New Date *</label>
-            <input 
-              type="date" 
-              value={newDate} 
-              onChange={handleDateChange} 
+            <input
+              type="date"
+              value={newDate}
+              onChange={handleDateChange}
               className={`w-full p-2 text-sm border rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
                 dateError ? 'border-red-500 bg-red-50' : 'border-gray-200'
               }`}
@@ -2044,12 +2036,12 @@ const RescheduleRequestModal = ({ audit, isOpen, onClose, onSubmit }) => {
               <p className="mt-1 text-xs text-red-600">{dateError}</p>
             )}
           </div>
-          
+         
           <div className="grid grid-cols-2 gap-3">
             <div>
               <label className="block mb-1 text-sm font-medium text-gray-700">Start Time *</label>
-              <select 
-                value={newStartTime} 
+              <select
+                value={newStartTime}
                 onChange={handleStartTimeChange}
                 className="w-full p-2 text-sm border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               >
@@ -2058,11 +2050,11 @@ const RescheduleRequestModal = ({ audit, isOpen, onClose, onSubmit }) => {
                 ))}
               </select>
             </div>
-            
+           
             <div>
               <label className="block mb-1 text-sm font-medium text-gray-700">End Time *</label>
-              <select 
-                value={newEndTime} 
+              <select
+                value={newEndTime}
                 onChange={handleEndTimeChange}
                 className={`w-full p-2 text-sm border rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
                   timeConflictError && newStartTime && newEndTime ? 'border-red-500 bg-red-50' : 'border-gray-200'
@@ -2079,10 +2071,10 @@ const RescheduleRequestModal = ({ audit, isOpen, onClose, onSubmit }) => {
                   No valid end times available. Please select an earlier start time.
                 </p>
               )}
-              
+             
             </div>
           </div>
-          
+         
           {/* Time validation message */}
           {newStartTime && newEndTime && parseTimeToMinutes(newStartTime) >= parseTimeToMinutes(newEndTime) && (
             <div className="flex items-center gap-2 p-2 text-xs text-red-600 bg-red-50/80 rounded-xl">
@@ -2090,7 +2082,7 @@ const RescheduleRequestModal = ({ audit, isOpen, onClose, onSubmit }) => {
               <span>End time must be after start time</span>
             </div>
           )}
-          
+         
           {/* Time Conflict Error Message */}
           {timeConflictError && (
             <div className="flex items-start gap-2 p-3 text-sm border backdrop-blur-sm bg-red-50/80 rounded-xl border-red-200/50">
@@ -2110,7 +2102,7 @@ const RescheduleRequestModal = ({ audit, isOpen, onClose, onSubmit }) => {
               </div>
             </div>
           )}
-          
+         
           {/* Loading indicator for conflict check */}
           {checkingConflict && newDate && newStartTime && newEndTime && !timeConflictError && (
             <div className="flex items-center gap-2 p-2 text-xs text-blue-600">
@@ -2118,43 +2110,43 @@ const RescheduleRequestModal = ({ audit, isOpen, onClose, onSubmit }) => {
               <span>Checking availability...</span>
             </div>
           )}
-          
+         
           {/* Success indicator for available slot */}
-          {!checkingConflict && newDate && newStartTime && newEndTime && !timeConflictError && !dateError && 
+          {!checkingConflict && newDate && newStartTime && newEndTime && !timeConflictError && !dateError &&
            parseTimeToMinutes(newStartTime) < parseTimeToMinutes(newEndTime) && (
             <div className="flex items-center gap-2 p-2 text-xs text-green-600">
               <CheckCircle size={12} />
               <span>Time slot available</span>
             </div>
           )}
-          
+         
           <div>
             <label className="block mb-1 text-sm font-medium text-gray-700">Reason for Reschedule *</label>
-            <textarea 
-              value={reason} 
-              onChange={e => setReason(e.target.value)} 
-              rows={2} 
-              className="w-full p-2 text-sm border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent" 
-              placeholder="Please provide reason for rescheduling..." 
+            <textarea
+              value={reason}
+              onChange={e => setReason(e.target.value)}
+              rows={2}
+              className="w-full p-2 text-sm border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              placeholder="Please provide reason for rescheduling..."
             />
           </div>
-          
+         
           <div className="p-2 text-xs text-gray-500 rounded-lg bg-gray-50/80">
             <p className="font-semibold">Note:</p>
             <p className="mt-1">Once you submit this request, the audit will be put on hold until the reschedule is approved by the coordinator.</p>
           </div>
         </div>
-        
+       
         <div className="flex justify-end gap-2 mt-4">
-          <button 
-            onClick={onClose} 
+          <button
+            onClick={onClose}
             className="px-4 py-1.5 text-sm font-medium text-gray-700 transition-all rounded-xl backdrop-blur-sm bg-gray-100/80 hover:bg-gray-200/80"
           >
             Cancel
           </button>
-          <button 
-            onClick={handleSubmit} 
-            disabled={submitting || !!dateError || !!timeConflictError || checkingConflict || !newStartTime || !newEndTime || parseTimeToMinutes(newStartTime) >= parseTimeToMinutes(newEndTime)} 
+          <button
+            onClick={handleSubmit}
+            disabled={submitting || !!dateError || !!timeConflictError || checkingConflict || !newStartTime || !newEndTime || parseTimeToMinutes(newStartTime) >= parseTimeToMinutes(newEndTime)}
             className={`px-4 py-1.5 text-sm font-medium text-white rounded-xl transition-all shadow-sm ${
               submitting || dateError || timeConflictError || checkingConflict || !newStartTime || !newEndTime || parseTimeToMinutes(newStartTime) >= parseTimeToMinutes(newEndTime)
                 ? 'bg-gray-400 cursor-not-allowed'
@@ -2182,7 +2174,7 @@ const ExtensionRequestModal = ({ audit, form, isOpen, onClose, onSubmit }) => {
   const [conflictDetails, setConflictDetails] = useState([]);
   const [existingSchedules, setExistingSchedules] = useState([]);
   const { addToast } = useToast();
-
+ 
   // Helper: Parse time string to minutes for comparison
   const parseTimeToMinutes = (timeStr) => {
     if (!timeStr) return 0;
@@ -2191,99 +2183,99 @@ const ExtensionRequestModal = ({ audit, form, isOpen, onClose, onSubmit }) => {
     let hours = parseInt(match[1]);
     const minutes = parseInt(match[2]);
     const meridian = match[3].toUpperCase();
-    
+   
     if (meridian === 'PM' && hours !== 12) hours += 12;
     if (meridian === 'AM' && hours === 12) hours = 0;
-    
+   
     return hours * 60 + minutes;
   };
-
+ 
   // Get valid end times based on selected start time (only show times AFTER start time)
   const getValidEndTimes = (startTime) => {
     if (!startTime) return TIME_OPTIONS;
     const startMinutes = parseTimeToMinutes(startTime);
     return TIME_OPTIONS.filter(time => parseTimeToMinutes(time) > startMinutes);
   };
-
+ 
   // Get filtered end times based on current start time
   const validEndTimes = getValidEndTimes(newStartTime);
-
+ 
   // Helper: Check if two time ranges overlap
   const doTimeRangesOverlap = (start1, end1, start2, end2) => {
     const start1Min = parseTimeToMinutes(start1);
     const end1Min = parseTimeToMinutes(end1);
     const start2Min = parseTimeToMinutes(start2);
     const end2Min = parseTimeToMinutes(end2);
-    
+   
     return start1Min < end2Min && end1Min > start2Min;
   };
-
+ 
   // Fetch all existing schedules for the auditor to check conflicts
   const fetchExistingSchedules = async () => {
     try {
       const auditorId = audit?.auditorId || audit?.leadAuditorId;
       if (!auditorId) return [];
-      
+     
       const response = await axios.get(
         `${API_BASE}/audit-schedule/auditor/${auditorId}/schedules-with-status`,
         { withCredentials: true }
       );
-      
+     
       return response.data || [];
     } catch (error) {
       console.error('Error fetching schedules:', error);
       return [];
     }
   };
-
+ 
   // Check for scheduling conflicts with overlap detection
   const checkSchedulingConflict = async (date, startTime, endTime) => {
     if (!date || !startTime || !endTime || !audit?.id) return false;
-    
+   
     setCheckingConflict(true);
     setTimeError('');
     setConflictDetails([]);
-    
+   
     try {
       const formattedDate = new Date(date).toISOString().split('T')[0];
-      
+     
       let schedules = existingSchedules;
       if (schedules.length === 0) {
         schedules = await fetchExistingSchedules();
         setExistingSchedules(schedules);
       }
-      
+     
       const conflicts = schedules.filter(schedule => {
         // Skip current audit
         if (schedule.schedule?.id === audit.id) return false;
-        
+       
         const scheduleDate = schedule.schedule?.scheduledDate;
         if (scheduleDate !== formattedDate) return false;
-        
+       
         const scheduleStart = schedule.schedule?.startTime;
         const scheduleEnd = schedule.schedule?.endTime;
-        
+       
         if (!scheduleStart || !scheduleEnd) return false;
-        
+       
         return doTimeRangesOverlap(startTime, endTime, scheduleStart, scheduleEnd);
       });
-      
+     
       if (conflicts.length > 0) {
         setConflictDetails(conflicts);
-        
+       
         const conflict = conflicts[0];
         const conflictStart = conflict.schedule?.startTime;
         const conflictEnd = conflict.schedule?.endTime;
         const conflictDept = conflict.schedule?.department;
-        
+       
         const errorMsg = `Time conflict: You already have an audit scheduled on ${formattedDate} from ${conflictStart} - ${conflictEnd}. ` +
                         `Your requested time (${startTime} - ${endTime}) overlaps with this audit.` +
                         (conflictDept ? ` (Department: ${conflictDept})` : '');
-        
+       
         setTimeError(errorMsg);
         return true;
       }
-      
+     
       setTimeError('');
       setConflictDetails([]);
       return false;
@@ -2295,26 +2287,26 @@ const ExtensionRequestModal = ({ audit, form, isOpen, onClose, onSubmit }) => {
       setCheckingConflict(false);
     }
   };
-
+ 
   const handleStartTimeChange = (e) => {
     const selectedStart = e.target.value;
     setNewStartTime(selectedStart);
-    
+   
     // Reset end time if current end time is now invalid (before or equal to new start time)
     if (newEndTime && parseTimeToMinutes(selectedStart) >= parseTimeToMinutes(newEndTime)) {
       setNewEndTime(''); // Clear end time so user can select a valid one
     }
-    
+   
     setTimeError('');
     setConflictDetails([]);
   };
-
+ 
   const handleEndTimeChange = (e) => {
     setNewEndTime(e.target.value);
     setTimeError('');
     setConflictDetails([]);
   };
-
+ 
   // Check for conflicts when time selection changes
   useEffect(() => {
     if (newDate && newStartTime && newEndTime && newStartTime && newEndTime) {
@@ -2323,19 +2315,19 @@ const ExtensionRequestModal = ({ audit, form, isOpen, onClose, onSubmit }) => {
         const delayDebounce = setTimeout(() => {
           checkSchedulingConflict(newDate, newStartTime, newEndTime);
         }, 500);
-        
+       
         return () => clearTimeout(delayDebounce);
       } else {
         setTimeError('End time must be after start time');
       }
     }
   }, [newDate, newStartTime, newEndTime]);
-
+ 
   useEffect(() => {
-    if (audit && isOpen) { 
+    if (audit && isOpen) {
       const defaultDate = new Date();
       defaultDate.setDate(defaultDate.getDate() + 7);
-      setNewDate(defaultDate.toISOString().split('T')[0]); 
+      setNewDate(defaultDate.toISOString().split('T')[0]);
       setNewStartTime(audit.startTime || '09:00 AM');
       setNewEndTime(audit.endTime || '10:00 AM');
       setReason('');
@@ -2344,45 +2336,45 @@ const ExtensionRequestModal = ({ audit, form, isOpen, onClose, onSubmit }) => {
       setExistingSchedules([]);
     }
   }, [audit, isOpen]);
-
+ 
   const handleSubmit = async () => {
-    if (!newDate) { 
-      addToast('Please select new date', 'error'); 
-      return; 
+    if (!newDate) {
+      addToast('Please select new date', 'error');
+      return;
     }
-    
+   
     // Validate date is not in the past
     const selectedDate = new Date(newDate);
     const today = new Date();
     today.setHours(0, 0, 0, 0);
-    
+   
     if (selectedDate < today) {
       addToast('Extension date cannot be in the past', 'error');
       return;
     }
-    
+   
     if (!newStartTime || !newEndTime) {
       addToast('Please select both start and end times', 'error');
       return;
     }
-    
+   
     if (parseTimeToMinutes(newStartTime) >= parseTimeToMinutes(newEndTime)) {
       addToast('End time must be after start time', 'error');
       return;
     }
-    
+   
     // Check for scheduling conflicts
     const hasConflict = await checkSchedulingConflict(newDate, newStartTime, newEndTime);
     if (hasConflict) {
       addToast(timeError || 'Time slot conflicts with another audit schedule', 'error');
       return;
     }
-    
-    if (!reason.trim()) { 
-      addToast('Please provide a reason', 'error'); 
-      return; 
+   
+    if (!reason.trim()) {
+      addToast('Please provide a reason', 'error');
+      return;
     }
-    
+   
     setSubmitting(true);
     try {
       await onSubmit(audit.id, newDate, newStartTime, newEndTime, reason, form);
@@ -2398,12 +2390,12 @@ const ExtensionRequestModal = ({ audit, form, isOpen, onClose, onSubmit }) => {
       setSubmitting(false);
     }
   };
-
+ 
   if (!isOpen) return null;
-  
+ 
   const completedCount = audit?.completedForms || 0;
   const totalCount = audit?.totalForms || 1;
-  
+ 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/30 backdrop-blur-sm">
       <div className="w-full max-w-md p-5 border shadow-2xl backdrop-blur-xl bg-white/95 rounded-2xl border-white/30 max-h-[90vh] overflow-y-auto">
@@ -2420,26 +2412,26 @@ const ExtensionRequestModal = ({ audit, form, isOpen, onClose, onSubmit }) => {
           Request extension for <strong>{audit?.auditType}</strong> - <strong>{audit?.department}</strong>
           {form && <span className="block mt-1 text-xs text-gray-500">Form: {form.name}</span>}
         </p>
-        
+       
         <div className="space-y-3">
           <div>
             <label className="block mb-1 text-sm font-medium text-gray-700">New Due Date *</label>
-            <input 
-              type="date" 
-              value={newDate} 
-              onChange={e => setNewDate(e.target.value)} 
-              className="w-full p-2 text-sm border border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent" 
-              min={new Date().toISOString().split('T')[0]} 
+            <input
+              type="date"
+              value={newDate}
+              onChange={e => setNewDate(e.target.value)}
+              className="w-full p-2 text-sm border border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+              min={new Date().toISOString().split('T')[0]}
             />
             <p className="mt-1 text-xs text-gray-500">Select new completion date</p>
           </div>
-          
+         
           <div className="grid grid-cols-2 gap-3">
             <div>
               <label className="block mb-1 text-sm font-medium text-gray-700">Start Time</label>
-              <select 
-                value={newStartTime} 
-                onChange={handleStartTimeChange} 
+              <select
+                value={newStartTime}
+                onChange={handleStartTimeChange}
                 className="w-full p-2 text-sm border border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent"
               >
                 {TIME_OPTIONS.map((t, idx) => (
@@ -2448,12 +2440,12 @@ const ExtensionRequestModal = ({ audit, form, isOpen, onClose, onSubmit }) => {
               </select>
               <p className="mt-1 text-xs text-gray-500">All times available</p>
             </div>
-            
+           
             <div>
               <label className="block mb-1 text-sm font-medium text-gray-700">End Time</label>
-              <select 
-                value={newEndTime} 
-                onChange={handleEndTimeChange} 
+              <select
+                value={newEndTime}
+                onChange={handleEndTimeChange}
                 className="w-full p-2 text-sm border border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                 disabled={!newStartTime}
               >
@@ -2474,7 +2466,7 @@ const ExtensionRequestModal = ({ audit, form, isOpen, onClose, onSubmit }) => {
               )}
             </div>
           </div>
-          
+         
           {/* Time validation message */}
           {newStartTime && newEndTime && parseTimeToMinutes(newStartTime) >= parseTimeToMinutes(newEndTime) && (
             <div className="flex items-center gap-2 p-2 text-xs text-red-600 bg-red-50/80 rounded-xl">
@@ -2482,7 +2474,7 @@ const ExtensionRequestModal = ({ audit, form, isOpen, onClose, onSubmit }) => {
               <span>End time must be after start time</span>
             </div>
           )}
-          
+         
           {/* Time Conflict Error Message */}
           {timeError && (
             <div className="flex items-start gap-2 p-3 text-sm border backdrop-blur-sm bg-red-50/80 rounded-xl border-red-200/50">
@@ -2502,7 +2494,7 @@ const ExtensionRequestModal = ({ audit, form, isOpen, onClose, onSubmit }) => {
               </div>
             </div>
           )}
-          
+         
           {/* Loading indicator for conflict check */}
           {checkingConflict && newDate && newStartTime && newEndTime && !timeError && (
             <div className="flex items-center gap-2 p-2 text-xs text-blue-600">
@@ -2510,43 +2502,43 @@ const ExtensionRequestModal = ({ audit, form, isOpen, onClose, onSubmit }) => {
               <span>Checking availability...</span>
             </div>
           )}
-          
+         
           {/* Success indicator for available slot */}
-          {!checkingConflict && newDate && newStartTime && newEndTime && !timeError && 
+          {!checkingConflict && newDate && newStartTime && newEndTime && !timeError &&
            parseTimeToMinutes(newStartTime) < parseTimeToMinutes(newEndTime) && (
             <div className="flex items-center gap-2 p-2 text-xs text-green-600">
               <CheckCircle size={12} />
               <span>Time slot available</span>
             </div>
           )}
-          
+         
           <div>
             <label className="block mb-1 text-sm font-medium text-gray-700">Reason for Extension *</label>
-            <textarea 
-              value={reason} 
-              onChange={e => setReason(e.target.value)} 
-              rows={3} 
-              className="w-full p-2 text-sm border border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent" 
-              placeholder="Please provide detailed reason for extension..." 
+            <textarea
+              value={reason}
+              onChange={e => setReason(e.target.value)}
+              rows={3}
+              className="w-full p-2 text-sm border border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+              placeholder="Please provide detailed reason for extension..."
             />
           </div>
-          
+         
           <div className="p-2 text-xs text-gray-500 rounded-lg bg-gray-50/80">
             <p className="font-semibold">Note:</p>
             <p className="mt-1">Extension requests will be reviewed by the audit coordinator. You will be notified once approved.</p>
           </div>
         </div>
-        
+       
         <div className="flex justify-end gap-2 mt-4">
-          <button 
-            onClick={onClose} 
+          <button
+            onClick={onClose}
             className="px-4 py-1.5 text-sm font-medium text-gray-700 transition-all rounded-xl backdrop-blur-sm bg-gray-100/80 hover:bg-gray-200/80"
           >
             Cancel
           </button>
-          <button 
-            onClick={handleSubmit} 
-            disabled={submitting || !newStartTime || !newEndTime || !!timeError || checkingConflict || parseTimeToMinutes(newStartTime) >= parseTimeToMinutes(newEndTime)} 
+          <button
+            onClick={handleSubmit}
+            disabled={submitting || !newStartTime || !newEndTime || !!timeError || checkingConflict || parseTimeToMinutes(newStartTime) >= parseTimeToMinutes(newEndTime)}
             className={`px-4 py-1.5 text-sm font-medium text-white rounded-xl transition-all shadow-sm ${
               submitting || !newStartTime || !newEndTime || !!timeError || checkingConflict || parseTimeToMinutes(newStartTime) >= parseTimeToMinutes(newEndTime)
                 ? 'bg-gray-400 cursor-not-allowed'
@@ -2560,3 +2552,4 @@ const ExtensionRequestModal = ({ audit, form, isOpen, onClose, onSubmit }) => {
     </div>
   );
 };
+ 
