@@ -117,40 +117,18 @@ const getFormRoute = (audit) => {
   return '/audit/iatf_internal';
 };
 
-const getViewRoute = (audit, form) => {
-  const auditType = (audit?.auditType || '').toLowerCase().trim();
-  const processName = (form?.processName || form?.name || '').toLowerCase();
-  const checkSheetType = audit?.checkSheet?.auditType || '';
+const getViewRoute = (audit) => {
+  const auditType = (audit.auditType || '').toLowerCase().trim();
   
-  if (auditType.includes('5s') || auditType.includes('five_s') || processName.includes('5s') || processName.includes('five_s') || checkSheetType === 'FIVE_S') {
-    return '/audit/5s-view';
-  }
+  if (auditType.includes('5s') || auditType.includes('five_s')) return `/fives-view`;  // ← REMOVED '/audit/'
+  if (auditType.includes('process') || auditType.includes('manufacturing')) return `/manufacturing-view`;  // ← REMOVED '/audit/'
+  if (auditType.includes('iatf') || auditType.includes('system')) return `/iatf-view`;  // ← REMOVED '/audit/'
+  if (auditType.includes('product')) return `/product-view`;  // ← REMOVED '/audit/'
+  if (auditType.includes('iso')) return `/iso-view`;  // ← REMOVED '/audit/'
+  if (auditType.includes('safety') || auditType.includes('safe')) return `/safety-view`;  // ← REMOVED '/audit/'
+  if (auditType.includes('poka') || auditType.includes('yoke')) return `/pokayoke-view`;  // ← REMOVED '/audit/'
   
-  if (auditType.includes('process') || auditType.includes('manufacturing') || processName.includes('process') || processName.includes('manufacturing') || checkSheetType === 'MANUFACTURING_PROCESS') {
-    return '/audit/manufacturing-view';
-  }
-  
-  if (auditType.includes('iatf') || auditType.includes('system audit') || auditType.includes('internal audit') || auditType === 'iatf_16949' || checkSheetType === 'IATF_16949' || auditType.includes('16949')) {
-    return '/audit/iatf-view';
-  }
-  
-  if (auditType.includes('product')) {
-    return '/audit/product-view';
-  }
-  
-  if (auditType.includes('iso')) {
-    return '/audit/iso-view';
-  }
-  
-  if (auditType.includes('safety') || auditType.includes('safe')) {
-    return '/audit/safety-view';
-  }
-  
-  if (auditType.includes('poka') || auditType.includes('yoke')) {
-    return '/audit/pokayoke-view';
-  }
-  
-  return '/audit/5s-view'; // Default fallback
+  return `/fives-view`;  // ← REMOVED '/audit/'
 };
 
 const isAuditExpired = (audit) => {
