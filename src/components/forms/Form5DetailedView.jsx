@@ -2614,7 +2614,6 @@ useEffect(() => {
   </div>
 )}
 
-      {/* Bulk Schedule Modal */}
 {/* Bulk Schedule Modal */}
 {showBulkModal && (
   <div className="fixed inset-0 z-50 flex items-center justify-center p-4 overflow-auto bg-black/50 backdrop-blur-sm">
