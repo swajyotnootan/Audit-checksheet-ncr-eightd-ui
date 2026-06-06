@@ -134,6 +134,7 @@ const [selectedAuditDepartment, setSelectedAuditDepartment] = useState('');
 
   // Add this new state in the component (after other useState declarations)
 const [showBulkModal, setShowBulkModal] = useState(false);
+const [bulkSelectedAuditDepartment, setBulkSelectedAuditDepartment] = useState('');
 const [departmentTeamInfo, setDepartmentTeamInfo] = useState({
   leadAuditorId: null,
   leadAuditorName: null,
@@ -2615,6 +2616,8 @@ useEffect(() => {
 )}
 
 {/* Bulk Schedule Modal */}
+{/* Bulk Schedule Modal */}
+{/* Bulk Schedule Modal */}
 {showBulkModal && (
   <div className="fixed inset-0 z-50 flex items-center justify-center p-4 overflow-auto bg-black/50 backdrop-blur-sm">
     <div className="bg-white rounded-xl max-w-2xl w-full max-h-[90vh] overflow-auto">
@@ -2623,7 +2626,10 @@ useEffect(() => {
           <h3 className="text-xl font-semibold">Bulk Schedule</h3>
           <p className="text-sm text-gray-500 mt-0.5">Schedule same audit for multiple dates</p>
         </div>
-        <button onClick={() => setShowBulkModal(false)} className="p-2 rounded-lg hover:bg-gray-100">✕</button>
+        <button onClick={() => {
+          setShowBulkModal(false);
+          setBulkSelectedAuditDepartment('');
+        }} className="p-2 rounded-lg hover:bg-gray-100">✕</button>
       </div>
       
       <div className="p-6 space-y-5">
@@ -2634,7 +2640,10 @@ useEffect(() => {
             <input 
               type="date" 
               value={bulkData.fromDate} 
-              onChange={(e) => setBulkData({...bulkData, fromDate: e.target.value})} 
+              onChange={(e) => {
+                setBulkData({...bulkData, fromDate: e.target.value, toDate: ''});
+                setBulkSelectedAuditDepartment('');
+              }} 
               className="w-full p-2 border border-gray-200 rounded-lg"
               min={startDate}
               max={endDate}
@@ -2645,7 +2654,10 @@ useEffect(() => {
             <input 
               type="date" 
               value={bulkData.toDate} 
-              onChange={(e) => setBulkData({...bulkData, toDate: e.target.value})} 
+              onChange={(e) => {
+                setBulkData({...bulkData, toDate: e.target.value});
+                setBulkSelectedAuditDepartment('');
+              }} 
               className="w-full p-2 border border-gray-200 rounded-lg"
               min={bulkData.fromDate || startDate}
               max={endDate}
@@ -2653,27 +2665,96 @@ useEffect(() => {
           </div>
         </div>
 
-        {/* Time Range */}
+        {/* Department Selection - Same as Show Modal */}
+        <div>
+          <label className="block mb-1 text-sm font-medium text-gray-700">
+            Department to Audit *
+          </label>
+          <select
+            value={bulkSelectedAuditDepartment}
+            onChange={(e) => {
+              const newDepartment = e.target.value;
+              setBulkSelectedAuditDepartment(newDepartment);
+              
+              if (newDepartment && bulkData.fromDate) {
+                const availableDepts = getAvailableDepartmentsForBulk();
+                const selectedDeptInfo = availableDepts.find(d => d.department === newDepartment);
+                
+                if (selectedDeptInfo) {
+                  setBulkData(prev => ({
+                    ...prev,
+                    selectedDepartments: [{
+                      department: newDepartment,
+                      selectedElements: [...selectedDeptInfo.auditElements]
+                    }]
+                  }));
+                }
+              } else if (!newDepartment) {
+                setBulkData(prev => ({ ...prev, selectedDepartments: [] }));
+              }
+            }}
+            className="w-full p-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-teal-500"
+          >
+            <option value="">Select Department</option>
+            {getAvailableDepartmentsForBulk().map((deptInfo, idx) => (
+              <option key={idx} value={deptInfo.department}>
+                {deptInfo.department}
+              </option>
+            ))}
+          </select>
+          {bulkData.fromDate && bulkData.toDate && bulkSelectedAuditDepartment && (
+            <p className="mt-1 text-xs text-gray-400">
+              Selected department for bulk scheduling
+            </p>
+          )}
+        </div>
+
+        {/* Department Info Message */}
+        {bulkSelectedAuditDepartment && (
+          <div className="p-2 text-xs text-blue-600 rounded-lg bg-blue-50">
+            <FiInfo className="inline w-3 h-3 mr-1" />
+            Showing audit elements from {bulkSelectedAuditDepartment} department only
+          </div>
+        )}
+
+        {/* Time Range with validation */}
         <div className="grid grid-cols-2 gap-4">
           <div>
             <label className="block mb-1 text-sm font-medium text-gray-700">Start Time *</label>
             <select 
-              value={bulkData.startTime} 
-              onChange={(e) => setBulkData({...bulkData, startTime: e.target.value})} 
+              value={bulkData.startTime || ''} 
+              onChange={(e) => {
+                const newStartTime = e.target.value;
+                let newEndTime = bulkData.endTime;
+                if (newEndTime && getTimeValue(newEndTime) <= getTimeValue(newStartTime)) {
+                  newEndTime = '';
+                }
+                setBulkData({...bulkData, startTime: newStartTime, endTime: newEndTime});
+              }} 
               className="w-full p-2 border border-gray-200 rounded-lg"
             >
+              <option value="">Select start time</option>
               {timeOptions.map(time => <option key={time} value={time}>{time}</option>)}
             </select>
           </div>
           <div>
             <label className="block mb-1 text-sm font-medium text-gray-700">End Time *</label>
             <select 
-              value={bulkData.endTime} 
+              value={bulkData.endTime || ''} 
               onChange={(e) => setBulkData({...bulkData, endTime: e.target.value})} 
               className="w-full p-2 border border-gray-200 rounded-lg"
             >
-              {timeOptions.map(time => <option key={time} value={time}>{time}</option>)}
+              <option value="">Select end time</option>
+              {timeOptions
+                .filter(time => {
+                  if (!bulkData.startTime) return false;
+                  return getTimeValue(time) > getTimeValue(bulkData.startTime);
+                })
+                .map(time => <option key={time} value={time}>{time}</option>)}
             </select>
+            {bulkData.startTime && !bulkData.endTime && (
+              <p className="mt-1 text-xs text-amber-600">Please select an end time after {bulkData.startTime}</p>
+            )}
           </div>
         </div>
 
@@ -2687,7 +2768,7 @@ useEffect(() => {
                 ...bulkData, 
                 isSpecialEvent: e.target.checked, 
                 specialEventType: '', 
-                selectedDepartments: []  // Clear departments when special event is checked
+                selectedDepartments: []
               })} 
               className="w-4 h-4 text-teal-600 rounded" 
             />
@@ -2696,7 +2777,7 @@ useEffect(() => {
         </div>
 
         {bulkData.isSpecialEvent ? (
-          // ========== SPECIAL EVENT SECTION (NO DEPARTMENTS) ==========
+          // ========== SPECIAL EVENT SECTION ==========
           <>
             <div>
               <label className="block mb-1 text-sm font-medium text-gray-700">Event Type *</label>
@@ -2712,13 +2793,12 @@ useEffect(() => {
               </select>
             </div>
             
-            {/* For LUNCH - no auditor/auditee needed */}
             {bulkData.specialEventType !== 'LUNCH' && (
               <>
                 <div>
                   <label className="block mb-1 text-sm font-medium text-gray-700">Auditor *</label>
                   <select 
-                    value={bulkData.auditorId} 
+                    value={bulkData.auditorId || ''} 
                     onChange={(e) => setBulkData({...bulkData, auditorId: e.target.value})} 
                     className="w-full p-2 border border-gray-200 rounded-lg"
                   >
@@ -2731,7 +2811,7 @@ useEffect(() => {
                 <div>
                   <label className="block mb-1 text-sm font-medium text-gray-700">Auditee *</label>
                   <select 
-                    value={bulkData.auditeeId} 
+                    value={bulkData.auditeeId || ''} 
                     onChange={(e) => setBulkData({...bulkData, auditeeId: e.target.value})} 
                     className="w-full p-2 border border-gray-200 rounded-lg"
                   >
@@ -2744,7 +2824,6 @@ useEffect(() => {
               </>
             )}
             
-            {/* For LUNCH - show info that no auditor/auditee needed */}
             {bulkData.specialEventType === 'LUNCH' && (
               <div className="p-3 text-xs text-orange-700 rounded-lg bg-orange-50">
                 <FiInfo className="inline w-4 h-4 mr-1" />
@@ -2753,43 +2832,50 @@ useEffect(() => {
             )}
           </>
         ) : (
-          // ========== REGULAR AUDIT SECTION (WITH DEPARTMENTS) ==========
+          // ========== REGULAR AUDIT SECTION - LIKE SHOW MODAL ==========
           <>
-            {/* Departments Selection - Filtered by date range */}
+            {/* Audit Elements Selection - Filtered by selected department */}
             <div>
-              <label className="block mb-1 text-sm font-medium text-gray-700">Select Departments & Audit Elements *</label>
+              <label className="block mb-1 text-sm font-medium text-gray-700">Select Audit Elements *</label>
               <div className="p-3 overflow-y-auto border border-gray-200 rounded-lg max-h-60">
-                {getAvailableDepartmentsForBulk().length === 0 ? (
+                {!bulkSelectedAuditDepartment ? (
                   <p className="py-4 text-sm text-center text-gray-400">
-                    {!bulkData.fromDate || !bulkData.toDate 
-                      ? 'Please select From Date and To Date first' 
-                      : 'No departments available for the selected date range'}
+                    Please select a department first
                   </p>
                 ) : (
-                  getAvailableDepartmentsForBulk().map(deptInfo => {
-                    const departmentName = deptInfo.department;
-                    const availableElements = deptInfo.auditElements || [];
-                    const selectedDept = bulkData.selectedDepartments?.find(d => d.department === departmentName);
+                  (() => {
+                    const availableDepts = getAvailableDepartmentsForBulk();
+                    const deptInfo = availableDepts.find(d => d.department === bulkSelectedAuditDepartment);
+                    
+                    if (!deptInfo || deptInfo.auditElements.length === 0) {
+                      return (
+                        <p className="py-4 text-sm text-center text-gray-400">
+                          No audit elements available for {bulkSelectedAuditDepartment}
+                        </p>
+                      );
+                    }
+                    
+                    const selectedDept = bulkData.selectedDepartments?.find(d => d.department === bulkSelectedAuditDepartment);
                     const selectedElements = selectedDept?.selectedElements || [];
                     
                     return (
-                      <div key={departmentName} className="pb-3 mb-4 border-b border-gray-200 last:mb-0">
-                        <div className="flex items-center justify-between mb-2">
+                      <div>
+                        <div className="flex items-center justify-between mb-3 pb-2 border-b border-gray-200">
                           <div className="flex items-center gap-2">
                             <input
                               type="checkbox"
-                              checked={availableElements.length > 0 && selectedElements.length === availableElements.length}
+                              checked={selectedElements.length === deptInfo.auditElements.length}
                               onChange={(e) => {
                                 let updated = [...(bulkData.selectedDepartments || [])];
-                                const existingIndex = updated.findIndex(d => d.department === departmentName);
+                                const existingIndex = updated.findIndex(d => d.department === bulkSelectedAuditDepartment);
                                 
                                 if (e.target.checked) {
                                   if (existingIndex >= 0) {
-                                    updated[existingIndex].selectedElements = [...availableElements];
+                                    updated[existingIndex].selectedElements = [...deptInfo.auditElements];
                                   } else {
                                     updated.push({
-                                      department: departmentName,
-                                      selectedElements: [...availableElements]
+                                      department: bulkSelectedAuditDepartment,
+                                      selectedElements: [...deptInfo.auditElements]
                                     });
                                   }
                                 } else {
@@ -2801,64 +2887,49 @@ useEffect(() => {
                               }}
                               className="w-4 h-4 text-teal-600 rounded"
                             />
-                            <span className="font-medium text-gray-800">{departmentName}</span>
-                            <span className="text-xs text-gray-400">({availableElements.length} audit types)</span>
+                            <span className="font-medium text-gray-800">{bulkSelectedAuditDepartment}</span>
+                            <span className="text-xs text-gray-400">({deptInfo.auditElements.length} audit types)</span>
                           </div>
                         </div>
                         
-                        {availableElements.length > 0 && (
-                          <div className="grid grid-cols-1 gap-2 ml-6 md:grid-cols-2">
-                            {availableElements.map(element => (
-                              <label key={element} className="flex items-center gap-2 p-1 rounded cursor-pointer hover:bg-gray-100">
-                                <input
-                                  type="checkbox"
-                                  checked={selectedElements.includes(element)}
-                                  onChange={(e) => {
-                                    let updated = [...(bulkData.selectedDepartments || [])];
-                                    let deptIndex = updated.findIndex(d => d.department === departmentName);
-                                    
-                                    if (deptIndex === -1) {
-                                      updated.push({ department: departmentName, selectedElements: [] });
-                                      deptIndex = updated.length - 1;
-                                    }
-                                    
-                                    if (e.target.checked) {
-                                      updated[deptIndex].selectedElements = [...updated[deptIndex].selectedElements, element];
-                                    } else {
-                                      updated[deptIndex].selectedElements = updated[deptIndex].selectedElements.filter(el => el !== element);
-                                    }
-                                    
-                                    if (updated[deptIndex].selectedElements.length === 0) {
-                                      updated.splice(deptIndex, 1);
-                                    }
-                                    
-                                    setBulkData(prev => ({ ...prev, selectedDepartments: updated }));
-                                  }}
-                                  className="w-3.5 h-3.5 text-teal-600 rounded"
-                                />
-                                <span className="text-sm text-gray-700">{element}</span>
-                              </label>
-                            ))}
-                          </div>
-                        )}
+                        <div className="grid grid-cols-1 gap-2 ml-6 md:grid-cols-2">
+                          {deptInfo.auditElements.map(element => (
+                            <label key={element} className="flex items-center gap-2 p-1 rounded cursor-pointer hover:bg-gray-100">
+                              <input
+                                type="checkbox"
+                                checked={selectedElements.includes(element)}
+                                onChange={(e) => {
+                                  let updated = [...(bulkData.selectedDepartments || [])];
+                                  let deptIndex = updated.findIndex(d => d.department === bulkSelectedAuditDepartment);
+                                  
+                                  if (deptIndex === -1) {
+                                    updated.push({ department: bulkSelectedAuditDepartment, selectedElements: [] });
+                                    deptIndex = updated.length - 1;
+                                  }
+                                  
+                                  if (e.target.checked) {
+                                    updated[deptIndex].selectedElements = [...updated[deptIndex].selectedElements, element];
+                                  } else {
+                                    updated[deptIndex].selectedElements = updated[deptIndex].selectedElements.filter(el => el !== element);
+                                  }
+                                  
+                                  if (updated[deptIndex].selectedElements.length === 0) {
+                                    updated.splice(deptIndex, 1);
+                                  }
+                                  
+                                  setBulkData(prev => ({ ...prev, selectedDepartments: updated }));
+                                }}
+                                className="w-3.5 h-3.5 text-teal-600 rounded"
+                              />
+                              <span className="text-sm text-gray-700">{element}</span>
+                            </label>
+                          ))}
+                        </div>
                       </div>
                     );
-                  })
+                  })()
                 )}
               </div>
-              {bulkData.fromDate && bulkData.toDate && (
-                <p className="mt-1 text-xs text-gray-400">
-                  Showing departments available for weeks: {Array.from(new Set(
-                    (() => {
-                      const weeks = new Set();
-                      for (let dt = new Date(bulkData.fromDate); dt <= new Date(bulkData.toDate); dt.setDate(dt.getDate() + 1)) {
-                        weeks.add(getWeekNumber(dt.toISOString().split('T')[0]));
-                      }
-                      return Array.from(weeks).join(', ');
-                    })()
-                  ))}
-                </p>
-              )}
             </div>
 
             {/* Audit Type */}
@@ -2870,35 +2941,69 @@ useEffect(() => {
                 disabled
                 className="w-full p-2 text-sm border border-gray-200 rounded-lg bg-gray-50"
               />
+              <p className="mt-1 text-xs text-gray-400">Audit type is set globally for all schedules</p>
             </div>
 
-            {/* Auditor & Auditee */}
+            {/* Auditor & Auditee - Filtered by department team */}
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="block mb-1 text-sm font-medium text-gray-700">Auditor *</label>
-                <select 
-                  value={bulkData.auditorId} 
-                  onChange={(e) => setBulkData({...bulkData, auditorId: e.target.value})} 
-                  className="w-full p-2 border border-gray-200 rounded-lg"
-                >
-                  <option value="">Select Auditor</option>
-                  {availableAuditors.map(a => (
-                    <option key={a.id} value={a.id}>{a.firstName} {a.lastName}</option>
-                  ))}
-                </select>
+                <label className="flex items-center block gap-1 mb-1 text-sm font-medium text-gray-700">
+                  <FiUserCheck className="w-4 h-4 text-blue-500" /> Auditor *
+                </label>
+                {!bulkSelectedAuditDepartment ? (
+                  <div className="w-full p-2 text-sm text-gray-400 border border-gray-200 rounded-lg bg-gray-50">
+                    Please select a department first
+                  </div>
+                ) : (
+                  <select 
+                    value={bulkData.auditorId || ''} 
+                    onChange={(e) => setBulkData({...bulkData, auditorId: e.target.value})} 
+                    className="w-full p-2 border border-gray-200 rounded-lg"
+                  >
+                    <option value="">Select Auditor from Team</option>
+                    {availableAuditors
+                      .filter(auditor => {
+                        // Filter by department team
+                        const teamInfo = getTeamMembersForDepartment(bulkSelectedAuditDepartment, bulkData.fromDate);
+                        const teamAuditorIds = teamInfo.teamAuditorIds || [];
+                        return teamAuditorIds.includes(auditor.id);
+                      })
+                      .map(a => (
+                        <option key={a.id} value={a.id}>
+                          👥 {a.firstName} {a.lastName}
+                        </option>
+                      ))}
+                  </select>
+                )}
               </div>
               <div>
-                <label className="block mb-1 text-sm font-medium text-gray-700">Auditee *</label>
-                <select 
-                  value={bulkData.auditeeId} 
-                  onChange={(e) => setBulkData({...bulkData, auditeeId: e.target.value})} 
-                  className="w-full p-2 border border-gray-200 rounded-lg"
-                >
-                  <option value="">Select Auditee</option>
-                  {getSortedAuditees().map(a => (
-                    <option key={a.id} value={a.id}>{a.firstName} {a.lastName}</option>
-                  ))}
-                </select>
+                <label className="flex items-center block gap-1 mb-1 text-sm font-medium text-gray-700">
+                  <FiUserPlus className="w-4 h-4 text-green-500" /> Auditee *
+                </label>
+                {!bulkSelectedAuditDepartment ? (
+                  <div className="w-full p-2 text-sm text-gray-400 border border-gray-200 rounded-lg bg-gray-50">
+                    Please select a department first
+                  </div>
+                ) : (
+                  <select 
+                    value={bulkData.auditeeId || ''} 
+                    onChange={(e) => setBulkData({...bulkData, auditeeId: e.target.value})} 
+                    className="w-full p-2 border border-gray-200 rounded-lg"
+                  >
+                    <option value="">Select Auditee</option>
+                    {(() => {
+                      const teamInfo = getTeamMembersForDepartment(bulkSelectedAuditDepartment, bulkData.fromDate);
+                      const selectedAuditeeIds = new Set(teamInfo.auditeeIds || []);
+                      return getSortedAuditees()
+                        .filter(auditee => selectedAuditeeIds.has(auditee.id))
+                        .map(a => (
+                          <option key={a.id} value={a.id}>
+                            {a.firstName} {a.lastName} {a.role === 'HOD' ? ' (HOD)' : ''}
+                          </option>
+                        ));
+                    })()}
+                  </select>
+                )}
               </div>
             </div>
           </>
@@ -2919,6 +3024,16 @@ useEffect(() => {
           </select>
         </div>
 
+        {/* Summary */}
+        {bulkSelectedAuditDepartment && bulkData.auditorId && bulkData.auditeeId && (
+          <div className="p-3 border border-green-200 rounded-lg bg-green-50">
+            <p className="flex items-center gap-2 text-sm text-green-800">
+              <FiCheckCircle className="w-4 h-4" />
+              Schedule ready for {bulkSelectedAuditDepartment} department
+            </p>
+          </div>
+        )}
+
         {/* Info Message */}
         <div className="p-3 text-xs text-blue-700 rounded-lg bg-blue-50">
           <FiInfo className="inline w-4 h-4 mr-1" />
@@ -2928,12 +3043,15 @@ useEffect(() => {
       </div>
       
       <div className="sticky bottom-0 flex justify-end gap-3 p-4 bg-white border-t border-gray-200">
-        <button onClick={() => setShowBulkModal(false)} className="px-4 py-2 border border-gray-200 rounded-lg hover:bg-gray-50">
+        <button onClick={() => {
+          setShowBulkModal(false);
+          setBulkSelectedAuditDepartment('');
+        }} className="px-4 py-2 border border-gray-200 rounded-lg hover:bg-gray-50">
           Cancel
         </button>
         <button 
           onClick={handleBulkSchedule} 
-          disabled={saving} 
+          disabled={saving || !bulkSelectedAuditDepartment || !bulkData.auditorId || !bulkData.auditeeId || !bulkData.startTime || !bulkData.endTime} 
           className="flex items-center gap-2 px-4 py-2 text-white bg-purple-600 rounded-lg hover:bg-purple-700 disabled:opacity-50"
         >
           {saving ? <div className="w-4 h-4 border-2 border-white rounded-full animate-spin border-t-transparent"></div> : <FiCalendar className="w-4 h-4" />}

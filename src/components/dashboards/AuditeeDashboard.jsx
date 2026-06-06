@@ -1254,8 +1254,8 @@ const AuditeeDashboard = () => {
               </div>
             ) : (
               <ForumThreadView
-                groupId={`8D-NCR-${selected8DNCR.ncrNumber}`}
-                groupName={`${selected8DNCR.ncrNumber}`}
+                groupId={`8D-${selected8DNCR.ncrNumber}`}
+                groupName={`8D-${selected8DNCR.ncrNumber}`}
                 isInDrawer={true}
                 setForumDrawerOpen={setShow8DForumDrawer}
                 username={user?.email || user?.username}
