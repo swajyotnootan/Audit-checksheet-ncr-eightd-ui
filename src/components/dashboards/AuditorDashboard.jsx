@@ -1,5 +1,3 @@
-​// src/components/dashboards/AuditorDashboard.jsx - COMPLETE UPDATED CODE
-
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { motion, AnimatePresence } from 'framer-motion';
