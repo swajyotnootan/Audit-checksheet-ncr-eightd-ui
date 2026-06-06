@@ -588,7 +588,7 @@ const AuditeeDashboard = () => {
     setShow8DForumDrawer(true);
     setLoadingTeamMembers(true);
     try {
-      const eightDEventId = `8D-NCR-${ncr.ncrNumber}`;
+      const eightDEventId = `8D-${ncr.ncrNumber}`;
       const response = await axios.get(
         `https://qsutrarmsclm.hub.swajyot.co.in:8476/api/eightd/data/${eightDEventId}`
       );
