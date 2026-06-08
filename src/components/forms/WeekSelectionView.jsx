@@ -306,7 +306,7 @@ const [availableYears, setAvailableYears] = useState([]);
               <select
                 value={selectedYear}
                 onChange={(e) => setSelectedYear(parseInt(e.target.value))}
-                className="px-3 py-2 border border-slate-200 rounded-xl text-sm bg-white shadow-sm focus:ring-2 focus:ring-indigo-500"
+                className="px-3 py-2 border border-slate-200 rounded-xl text-sm bg-white shadow-sm focus:ring-2 focus:ring-indigo-500" disabled
               >
                 {availableYears.map(year => (
                   <option key={year} value={year}>{year} - {year + 1}</option>
