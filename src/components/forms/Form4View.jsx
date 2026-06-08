@@ -1069,7 +1069,7 @@ const handleDemoPlanned = async () => {
         </div>
       </div>
       <div className="flex gap-3">
-        <button
+        {/* <button
           onClick={handlePlanCurrentQuarter}
           disabled={demoLoading}
           className="flex items-center gap-2 px-4 py-2 text-white transition-all bg-green-600 rounded-lg hover:bg-green-700 disabled:opacity-50"
@@ -1080,8 +1080,8 @@ const handleDemoPlanned = async () => {
             <FiCalendar className="w-4 h-4" />
           )}
           Sync Current Quarter
-        </button>
-        <button
+        </button> */}
+        {/* <button
           onClick={handleQuickPlanned}
           disabled={demoLoading}
           className="flex items-center gap-2 px-4 py-2 text-white transition-all bg-blue-600 rounded-lg hover:bg-blue-700 disabled:opacity-50"
@@ -1092,7 +1092,7 @@ const handleDemoPlanned = async () => {
             <FiClock className="w-4 h-4" />
           )}
           Sync Q1 Only
-        </button>
+        </button> */}
         <button
           onClick={handleDemoPlanned}
           disabled={demoLoading}

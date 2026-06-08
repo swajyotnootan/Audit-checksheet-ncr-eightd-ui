@@ -693,7 +693,7 @@ const handleStatusChange = async (elementIndex, monthName) => {
         </div>
       </div>
       <div className="flex gap-3">
-        <button
+        {/* <button
           onClick={handleQuickPlanned}
           disabled={demoLoading}
           className="flex items-center gap-2 px-4 py-2 text-white transition-all bg-blue-600 rounded-lg hover:bg-blue-700 disabled:opacity-50"
@@ -704,7 +704,7 @@ const handleStatusChange = async (elementIndex, monthName) => {
             <FiClock className="w-4 h-4" />
           )}
           Quick Plan (Q1 Only - IATF & 5S)
-        </button>
+        </button> */}
         <button
           onClick={handleDemoPlanned}
           disabled={demoLoading}
