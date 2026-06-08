@@ -8,7 +8,7 @@ Qsutra - Audit Management System is a web-based audit lifecycle management appli
   <tr>
     <td align="center" width="50%">
       <img width="300" height="300" alt="Qsutra Audit Platform Logo" src="https://auditchecksheetncr.vercel.app/assets/QsutraQMS-Bfia-QQv.png" /><br/>
-      <em>Platform: Qsutra AuditFX</em>
+      <em>Platform: Qsutra QMS</em>
      </td>
     <td width="10%"> </td>
     <td align="center" width="100%">
