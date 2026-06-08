@@ -128,11 +128,13 @@ This system enables nine distinct user roles to collaborate on audit management 
 ## Workflow Overview
 
 ### 1️⃣ Scheduling Workflow (4 Levels)
+```
 Annual Plan → Department Plan → Week Plan → Day Schedule
 ↓ ↓ ↓ ↓
 [Approve/Reject/Change Request by Top Management]
 ↓
 Time Conflict Detection Applied
+```
 
 ### 2️⃣ Audit Execution Workflow
 
@@ -222,6 +224,8 @@ System auto-triggers 2nd NCR form
 ### Lead Auditor Dashboard
 <img width="3202" height="1842" alt="Lead Auditor Dashboard" src="src/screenshots/LeadAuditorDashboard.jpeg" />
 
+*Provides a comprehensive overview of all audit programs, schedules, and team assignments. Enables lead auditors to track audit progress, review non-conformities, and approve audit reports in real-time.*
+
 ---
 
 
@@ -230,10 +234,14 @@ System auto-triggers 2nd NCR form
 #### AuditManager Schedule Dashboard
 <img width="3202" height="1842" alt="Scheduling Dashboard" src="src/screenshots/AuditManagerSchedule.jpeg" />
 
+*Offers high-level visibility into the entire audit lifecycle across departments and locations. Allows managers to allocate resources, monitor compliance status, and generate strategic audit performance reports.*
+
 ---
 
 #### AuditManager NCR Dashboard
 <img width="3202" height="1842" alt="Scheduling Dashboard" src="src/screenshots/AuditManagerNCR.jpeg" />
+
+*Audit manager review ncr data and approves and also send to 8d team if required for further changes*
 
 ---
 
@@ -285,10 +293,14 @@ System auto-triggers 2nd NCR form
 ### Auditor Dashboard
 <img width="3202" height="1842" alt="Auditor Dashboard" src="src/screenshots/AuditorDashboard.png" />
 
+*Displays assigned audit tasks, pending checklists, and upcoming audit schedules. Helps auditors document findings, upload evidence, and submit audit reports efficiently.*
+
 ---
 
 ### Auditee Dashboard
 <img width="3202" height="1842" alt="Auditee Dashboard" src="src/screenshots/AuditeeDashboard.jpeg" />
+
+*Shows upcoming audits, requested evidence items, and past audit results for their department. Enables auditees to prepare documentation, respond to findings, and track corrective action status.*
 
 ---
 
@@ -317,7 +329,7 @@ System auto-triggers 2nd NCR form
 #### NCR Raised (Score > 70%)
 <img width="3202" height="1842" alt="NCR Normal" src="src/screenshots/NCRRaised.jpeg" />
 
-*Standard NCR with information, question, audit number, auditor data, and auditee data.*
+*Standard NCR with information, question, audit number, auditor data, and auditee data. and with score now directly it will proceed to NCR 2 form*
 
 #### NCR with 8D Integration (Score < 70%)
 <img width="3202" height="1842" alt="NCR with 8D" src="src/screenshots/NCRRaisedwithD.jpeg" />
@@ -336,8 +348,12 @@ System auto-triggers 2nd NCR form
 ###### NCR Dashboard
 <img width="3202" height="1842" alt="2nd NCR" src="src/screenshots/NCRDashboard.png" />
 
+*Provides a centralized view of all Non-Conformance Reports (NCRs) raised during audits. Enables tracking of NCR status, severity levels, and assignment to responsible teams.*
+
 ###### NCR Corrective Action Dashboard:
 <img width="3202" height="1842" alt="2nd NCR" src="src/screenshots/NCRSecondDashboard.png" />
+
+*Tracks the status of corrective action plans, implementation progress, and effectiveness verification. Provides visibility into overdue actions and closure rates.*
 
 
 
@@ -351,11 +367,15 @@ System auto-triggers 2nd NCR form
 #### Create New 8D Dashboard 
 <img width="3202" height="1842" alt="8D Dashboard" src="src/screenshots/EightDdashboard.png" />
 
+*Allows initiators to create and manage new 8D problem-solving reports from NCRs. Captures problem description, team formation, and immediate containment actions.*
+
 ---
 
 #### NCR based 8D Dashboard 
 
 <img width="3202" height="1842" alt="8D Dashboard" src="src/screenshots/NCRbasedEightd.png" />
+
+*Displays all 8D reports linked to raised NCRs with status tracking. Provides visibility into root cause analysis, corrective actions, and closure verification across all stages (D1-D8).*
 
 
 *D0 to D8 steps management.*
