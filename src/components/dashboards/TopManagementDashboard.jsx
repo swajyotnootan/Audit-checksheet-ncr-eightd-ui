@@ -324,8 +324,12 @@ const [allUsersList, setAllUsersList] = useState([]);
 const fetchDetailedPlans = useCallback(async () => {
   try {
     const currentYear = new Date().getFullYear();
-    const years = [currentYear - 1, currentYear, currentYear + 1];
-    let allDailySchedules = [];
+    const years = [];    
+      for (let i = currentYear - 5; i <= currentYear + 2; i++) 
+        { 
+           years.push(i);   
+        }
+     let allDailySchedules = [];
     
     for (const year of years) {
       for (const month of ['Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec', 'Jan', 'Feb', 'Mar']) {
