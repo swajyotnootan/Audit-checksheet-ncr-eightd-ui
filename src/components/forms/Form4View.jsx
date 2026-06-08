@@ -1,3 +1,4 @@
+// src/components/forms/Form4View.jsx
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../ToastContext';
@@ -12,7 +13,7 @@ import {
 import { useSearchParams } from 'react-router-dom';
 
 
-const API_BASE = 'https://qsutrarmsclm.hub.swajyot.co.in:8476/api';
+const API_BASE = 'http://localhost:8080/api';
 
 const Form4View = () => {
   const { user, isAuditManager, isTopManagement } = useAuth();
@@ -121,14 +122,14 @@ const getAuditElementsForMonth = (month) => {
 };
 
  // Add this helper function at the top with other helper functions
+// Add this helper function at the top with other helper functions
 const isRelevantForDemo = (auditElement) => {
   // Only IATF16949 and 5S audits are relevant for demo
   return auditElement.includes("IATF16949") || auditElement.includes("5S Audit");
 };
 
-// Replace the handleDemoPlanned function
-const handleDemoPlanned = async () => {
-  // Check if user can edit
+// Replace the handleQuickPlanned function - now uses ACTUAL Form3 data
+const handleQuickPlanned = async () => {
   if (!canEdit) {
     addToast('You cannot modify this plan in its current status', 'warning');
     return;
@@ -136,27 +137,36 @@ const handleDemoPlanned = async () => {
 
   setDemoLoading(true);
   try {
-    // Create a deep copy of the current plan data
     const newPlanData = [...planData];
     
-    // For each department, mark only months with relevant audit elements (IATF & 5S)
+    // Get ACTUAL planned elements from Form3 data
+    const form3PlannedElements = auditElementsFromForm3;
+    
     let totalPlannedCount = 0;
     let totalElementsAdded = 0;
+    const monthsProcessed = new Set();
     
+    // For each department, mark months based on what Form3 has planned
     newPlanData.forEach((dept, deptIndex) => {
       dept.months.forEach((month, monthIndex) => {
-        // Get audit elements for this month from Form3
-        const availableElements = getAuditElementsForMonth(month.month);
+        const monthName = month.month;
         
-        // Filter to only IATF16949 and 5S audits
-        const relevantElements = availableElements.filter(el => isRelevantForDemo(el));
+        // Get elements that are PLANNED in Form3 for this month
+        const form3ElementsForMonth = form3PlannedElements[monthName] || [];
         
-        if (relevantElements.length > 0 && month.status !== 'PLANNED') {
-          // Set status to PLANNED
-          month.status = 'PLANNED';
-          totalPlannedCount++;
+        // Filter to only IATF16949 and 5S (as per demo credentials)
+        const relevantElements = form3ElementsForMonth.filter(el => isRelevantForDemo(el));
+        
+        if (relevantElements.length > 0) {
+          monthsProcessed.add(monthName);
           
-          // Add only relevant audit elements if not already present
+          // Mark as PLANNED if not already
+          if (month.status !== 'PLANNED') {
+            month.status = 'PLANNED';
+            totalPlannedCount++;
+          }
+          
+          // Add the relevant elements from Form3
           const currentElements = month.selectedElements || [];
           const newElements = relevantElements.filter(el => !currentElements.includes(el));
           
@@ -168,96 +178,6 @@ const handleDemoPlanned = async () => {
       });
     });
     
-    // Update state
-    setPlanData(newPlanData);
-    
-    // Automatically save after demo planned
-    const saveData = {
-      planYear: selectedYear,
-      planItems: newPlanData,
-      approvalStatus: 'DRAFT',
-      auditFrequency: auditFrequency,
-      documentRevision: documentRevision,
-      revisionDate: revisionDate,
-      revisionDetails: revisionDetails,
-      preparedBy: planInfo.preparedBy
-    };
-    
-    await axios.post(`${API_BASE}/department-plan/save?userId=${user?.id}`, saveData, {
-      withCredentials: true
-    });
-    
-    addToast(`✅ Demo mode: ${totalPlannedCount} months marked as PLANNED with ${totalElementsAdded} IATF16949 & 5S audit elements added!`, 'success');
-    
-    // Refresh data to ensure sync with backend
-    await fetchPlanData();
-    
-  } catch (error) {
-    console.error('Error in demo planned:', error);
-    addToast('Failed to mark audits as planned', 'error');
-  } finally {
-    setDemoLoading(false);
-  }
-};
-
-// Replace the handleQuickPlanned function
-// Replace the handleQuickPlanned function
-const handleQuickPlanned = async () => {
-  if (!canEdit) {
-    addToast('You cannot modify this plan in its current status', 'warning');
-    return;
-  }
-
-  setDemoLoading(true);
-  try {
-    const newPlanData = [...planData];
-    
-    // Mark only first quarter (Apr, May, Jun) as PLANNED for IATF & 5S audits
-    const firstQuarterMonths = ["Apr", "May", "Jun"];
-    let totalPlannedCount = 0;
-    let totalElementsAdded = 0;
-    let monthsWithIssues = [];
-    
-    newPlanData.forEach((dept, deptIndex) => {
-      dept.months.forEach((month, monthIndex) => {
-        if (firstQuarterMonths.includes(month.month)) {
-          const availableElements = getAuditElementsForMonth(month.month);
-          const relevantElements = availableElements.filter(el => isRelevantForDemo(el));
-          
-          // If no relevant elements found for this month, try to assign default IATF/5S
-          let elementsToAdd = [...relevantElements];
-          
-          if (elementsToAdd.length === 0) {
-            // Assign default IATF16949 or 5S based on month
-            if (month.month === "Apr") {
-              elementsToAdd = ["5S Audit"];
-            } else if (month.month === "May") {
-              elementsToAdd = ["System Audit (IATF16949)"];
-            } else if (month.month === "Jun") {
-              elementsToAdd = ["System Audit (IATF16949)", "5S Audit"];
-            }
-          }
-          
-          if (elementsToAdd.length > 0) {
-            if (month.status !== 'PLANNED') {
-              month.status = 'PLANNED';
-              totalPlannedCount++;
-            }
-            
-            const currentElements = month.selectedElements || [];
-            const newElements = elementsToAdd.filter(el => !currentElements.includes(el));
-            
-            if (newElements.length > 0) {
-              month.selectedElements = [...currentElements, ...newElements];
-              totalElementsAdded += newElements.length;
-            }
-          } else {
-            monthsWithIssues.push(month.month);
-          }
-        }
-      });
-    });
-    
     setPlanData(newPlanData);
     
     const saveData = {
@@ -275,16 +195,16 @@ const handleQuickPlanned = async () => {
       withCredentials: true
     });
     
-    let message = `✅ Quick plan: ${totalPlannedCount} months marked as PLANNED for Q1 (Apr-Jun) with ${totalElementsAdded} IATF16949 & 5S elements added`;
-    if (monthsWithIssues.length > 0) {
-      message += `. Note: ${monthsWithIssues.join(', ')} had no default audit types assigned.`;
+    if (monthsProcessed.size > 0) {
+      addToast(`✅ Demo sync: Updated ${totalPlannedCount} months (${Array.from(monthsProcessed).join(', ')}) with ${totalElementsAdded} elements from Form3 demo`, 'success');
+    } else {
+      addToast('⚠️ No IATF16949 or 5S audits found in Form3 for this year. Please run Form3 demo first.', 'warning');
     }
-    addToast(message, 'success');
     await fetchPlanData();
     
   } catch (error) {
     console.error('Error in quick planned:', error);
-    addToast('Failed to mark audits as planned', 'error');
+    addToast('Failed to sync with Form3 data', 'error');
   } finally {
     setDemoLoading(false);
   }
@@ -317,18 +237,32 @@ const handlePlanCurrentQuarter = async () => {
       currentQuarterMonths = ["Jan", "Feb", "Mar"];
     }
     
+    // Get ACTUAL planned elements from Form3 data
+    const form3PlannedElements = auditElementsFromForm3;
+    
     let totalPlannedCount = 0;
     let totalElementsAdded = 0;
+    const monthsProcessed = new Set();
     
     newPlanData.forEach((dept, deptIndex) => {
       dept.months.forEach((month, monthIndex) => {
-        if (currentQuarterMonths.includes(month.month)) {
-          const availableElements = getAuditElementsForMonth(month.month);
-          const relevantElements = availableElements.filter(el => isRelevantForDemo(el));
+        const monthName = month.month;
+        
+        // Only process months in current quarter
+        if (currentQuarterMonths.includes(monthName)) {
+          // Get elements that are PLANNED in Form3 for this month
+          const form3ElementsForMonth = form3PlannedElements[monthName] || [];
           
-          if (relevantElements.length > 0 && month.status !== 'PLANNED') {
-            month.status = 'PLANNED';
-            totalPlannedCount++;
+          // Filter to only IATF16949 and 5S (as per demo credentials)
+          const relevantElements = form3ElementsForMonth.filter(el => isRelevantForDemo(el));
+          
+          if (relevantElements.length > 0) {
+            monthsProcessed.add(monthName);
+            
+            if (month.status !== 'PLANNED') {
+              month.status = 'PLANNED';
+              totalPlannedCount++;
+            }
             
             const currentElements = month.selectedElements || [];
             const newElements = relevantElements.filter(el => !currentElements.includes(el));
@@ -359,12 +293,95 @@ const handlePlanCurrentQuarter = async () => {
       withCredentials: true
     });
     
-    addToast(`✅ Current quarter plan: ${totalPlannedCount} months marked as PLANNED for ${currentQuarterMonths.join(', ')} with ${totalElementsAdded} IATF16949 & 5S elements added`, 'success');
+    if (monthsProcessed.size > 0) {
+      addToast(`✅ Current quarter sync: Updated ${totalPlannedCount} months (${Array.from(monthsProcessed).join(', ')}) with ${totalElementsAdded} elements from Form3`, 'success');
+    } else {
+      addToast(`⚠️ No IATF16949 or 5S audits found in Form3 for ${currentQuarterMonths.join(', ')}`, 'warning');
+    }
     await fetchPlanData();
     
   } catch (error) {
     console.error('Error in current quarter plan:', error);
-    addToast('Failed to mark audits as planned', 'error');
+    addToast('Failed to sync with Form3 data', 'error');
+  } finally {
+    setDemoLoading(false);
+  }
+};
+
+// Replace the handleDemoPlanned function (Plan All Months)
+const handleDemoPlanned = async () => {
+  if (!canEdit) {
+    addToast('You cannot modify this plan in its current status', 'warning');
+    return;
+  }
+
+  setDemoLoading(true);
+  try {
+    const newPlanData = [...planData];
+    
+    // Get ACTUAL planned elements from Form3 data for ALL months
+    const form3PlannedElements = auditElementsFromForm3;
+    
+    let totalPlannedCount = 0;
+    let totalElementsAdded = 0;
+    const monthsProcessed = new Set();
+    
+    newPlanData.forEach((dept, deptIndex) => {
+      dept.months.forEach((month, monthIndex) => {
+        const monthName = month.month;
+        
+        // Get elements that are PLANNED in Form3 for this month
+        const form3ElementsForMonth = form3PlannedElements[monthName] || [];
+        
+        // Filter to only IATF16949 and 5S (as per demo credentials)
+        const relevantElements = form3ElementsForMonth.filter(el => isRelevantForDemo(el));
+        
+        if (relevantElements.length > 0) {
+          monthsProcessed.add(monthName);
+          
+          if (month.status !== 'PLANNED') {
+            month.status = 'PLANNED';
+            totalPlannedCount++;
+          }
+          
+          const currentElements = month.selectedElements || [];
+          const newElements = relevantElements.filter(el => !currentElements.includes(el));
+          
+          if (newElements.length > 0) {
+            month.selectedElements = [...currentElements, ...newElements];
+            totalElementsAdded += newElements.length;
+          }
+        }
+      });
+    });
+    
+    setPlanData(newPlanData);
+    
+    const saveData = {
+      planYear: selectedYear,
+      planItems: newPlanData,
+      approvalStatus: 'DRAFT',
+      auditFrequency: auditFrequency,
+      documentRevision: documentRevision,
+      revisionDate: revisionDate,
+      revisionDetails: revisionDetails,
+      preparedBy: planInfo.preparedBy
+    };
+    
+    await axios.post(`${API_BASE}/department-plan/save?userId=${user?.id}`, saveData, {
+      withCredentials: true
+    });
+    
+    if (monthsProcessed.size > 0) {
+      addToast(`✅ Demo sync all months: Updated ${totalPlannedCount} months (${Array.from(monthsProcessed).join(', ')}) with ${totalElementsAdded} elements from Form3`, 'success');
+    } else {
+      addToast('⚠️ No IATF16949 or 5S audits found in Form3. Please run Form3 demo first.', 'warning');
+    }
+    await fetchPlanData();
+    
+  } catch (error) {
+    console.error('Error in demo planned:', error);
+    addToast('Failed to sync with Form3 data', 'error');
   } finally {
     setDemoLoading(false);
   }
@@ -1040,15 +1057,15 @@ const handlePlanCurrentQuarter = async () => {
       </div>
 
       {/* Demo Mode Banner - Only show for Audit Manager in Draft/Rejected status */}
-    {/* Demo Mode Banner - Only show for Audit Manager in Draft/Rejected status */}
+{/* Demo Mode Banner - Only show for Audit Manager in Draft/Rejected status */}
 {canEdit && (
   <div className="p-4 mb-6 border border-purple-200 rounded-lg bg-gradient-to-r from-purple-50 to-pink-50">
     <div className="flex flex-wrap items-center justify-between gap-4">
       <div className="flex items-center gap-3">
         <FiStar className="w-6 h-6 text-purple-600" />
         <div>
-          <h3 className="font-semibold text-purple-900">Quick Planning Demo</h3>
-          <p className="text-sm text-purple-700">Auto-plan IATF16949 & 5S audits only (others remain unchanged)</p>
+          <h3 className="font-semibold text-purple-900">Sync with Form3 Demo Data</h3>
+          <p className="text-sm text-purple-700">Auto-populate departments based on Form3 demo selections (IATF16949 & 5S only)</p>
         </div>
       </div>
       <div className="flex gap-3">
@@ -1062,7 +1079,7 @@ const handlePlanCurrentQuarter = async () => {
           ) : (
             <FiCalendar className="w-4 h-4" />
           )}
-          Plan Current Quarter (IATF & 5S)
+          Sync Current Quarter
         </button>
         <button
           onClick={handleQuickPlanned}
@@ -1074,7 +1091,7 @@ const handlePlanCurrentQuarter = async () => {
           ) : (
             <FiClock className="w-4 h-4" />
           )}
-          Quick Plan Q1 (IATF & 5S)
+          Sync Q1 Only
         </button>
         <button
           onClick={handleDemoPlanned}
@@ -1086,7 +1103,7 @@ const handlePlanCurrentQuarter = async () => {
           ) : (
             <FiStar className="w-4 h-4" />
           )}
-          Demo: Plan All Months (IATF & 5S)
+          Sync All Months (From Form3)
         </button>
       </div>
     </div>
