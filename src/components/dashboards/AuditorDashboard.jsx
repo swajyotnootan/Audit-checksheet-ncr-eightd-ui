@@ -1,3 +1,5 @@
+
+
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -16,6 +18,8 @@ import {
 import axios from 'axios';
 // Add this import with your existing imports (around line 20)
 import AuditCheckSheetNCRForumModal from '../modals/AuditCheckSheetNCRForumModal';
+import YearFilter from '../../components/common/YearFilter';
+
 
 const API_BASE = 'https://qsutrarmsclm.hub.swajyot.co.in:8476/api';
 
@@ -128,6 +132,7 @@ const getViewRoute = (audit) => {
   
   return `/fives-view`;  // ← REMOVED '/audit/'
 };
+
 
 const isAuditExpired = (audit) => {
   if (!audit || audit.status === 'COMPLETED') return false;
@@ -684,7 +689,7 @@ const NcrPendingList = ({ pendingNcrAudits, onRaise }) => {
 // ─────────────────────────────────────────────────────────────
 // NCR List Tab Component
 // ─────────────────────────────────────────────────────────────
-const NcrListTab = ({ raisedNCRs, ncrLoading, navigate, onOpenForum }) => {  if (ncrLoading) {
+const NcrListTab = ({ raisedNCRs, ncrLoading, navigate, onOpenForum,selectedYear  }) => {  if (ncrLoading) {
     return (
       <div className="flex items-center justify-center py-16 border backdrop-blur-xl bg-white/80 rounded-2xl border-white/30">
         <RefreshCw className="w-6 h-6 text-purple-500 animate-spin" />
@@ -814,6 +819,16 @@ const [allUsersList, setAllUsersList] = useState([]);
 const [showNCRForumModal, setShowNCRForumModal] = useState(false);
 const [selectedNCRForForum, setSelectedNCRForForum] = useState(null);
 
+
+const [selectedYear, setSelectedYear] = useState(() => {
+  const savedYear = localStorage.getItem('auditorSelectedYear');
+  if (savedYear) {
+    return parseInt(savedYear);
+  }
+  return new Date().getFullYear();
+});const [availableYears, setAvailableYears] = useState([]);
+
+
   // NCR Stats
   const ncrStats = React.useMemo(() => ({
     total: raisedNCRs.length,
@@ -844,20 +859,41 @@ const [selectedNCRForForum, setSelectedNCRForForum] = useState(null);
   });
 };
 
-  const fetchRaisedNCRs = async () => {
-    if (!user?.id) return;
-    try {
-      setNcrLoading(true);
-      const data = await ncrAPI.getByAuditor(user.id);
-      setRaisedNCRs(Array.isArray(data) ? data : []);
-    } catch (error) {
-      console.error('Error fetching raised NCRs:', error);
-      addToast('Failed to load NCR list', 'error');
-      setRaisedNCRs([]);
-    } finally {
-      setNcrLoading(false);
-    }
-  };
+// Get available years for filter
+// Get available years for filter - Matches AuditManagerDashboard
+const getAvailableYears = () => {
+  const years = new Set();
+  const currentYear = new Date().getFullYear();
+  // Show past 5 years and next 5 years (total 11 years)
+  for (let i = currentYear - 5; i <= currentYear + 5; i++) {
+    years.add(i);
+  }
+  return Array.from(years).sort((a, b) => b - a);
+};
+
+ const fetchRaisedNCRs = async (year = selectedYear) => {
+  if (!user?.id) return;
+  try {
+    setNcrLoading(true);
+    const data = await ncrAPI.getByAuditor(user.id);
+    // Filter NCRs by year
+    const filteredNCRs = (Array.isArray(data) ? data : []).filter(ncr => {
+      const ncrDate = ncr.createdAt || ncr.raisedDate || ncr.dueDate;
+      if (ncrDate) {
+        const ncrYear = new Date(ncrDate).getFullYear();
+        return ncrYear === year;
+      }
+      return false;
+    });
+    setRaisedNCRs(filteredNCRs);
+  } catch (error) {
+    console.error('Error fetching raised NCRs:', error);
+    addToast('Failed to load NCR list', 'error');
+    setRaisedNCRs([]);
+  } finally {
+    setNcrLoading(false);
+  }
+};
 
   const fetchAvailableFormsForDepartment = async (department) => {
     if (!department) return [];
@@ -867,9 +903,12 @@ const [selectedNCRForForum, setSelectedNCRForForum] = useState(null);
     } catch { return []; }
   };
 
-   const fetchSchedulesWithStatus = async () => {
+  
+
+  const fetchSchedulesWithStatus = async (year = selectedYear) => {
   try {
-    setLoading(true); setRefreshing(true);
+    setLoading(true); 
+    setRefreshing(true);
  
     const [responsesRes, ncrRes, rescheduleRequestsRes, extensionRequestsRes] = await Promise.all([
       axios.get(`${API_BASE}/templates/responses/all`, { withCredentials: true }),
@@ -912,10 +951,16 @@ const [selectedNCRForForum, setSelectedNCRForForum] = useState(null);
           auditeeId: r.auditeeId || answers.auditeeId,
           auditeeName: r.auditeeName || answers.auditeeName,
           findings: getNcrFindingEntries(answers),
+           createdAt: r.createdAt, 
         };
       })
-      .filter(item => item.findings.length > 0 && !existingNcrAuditIds.has(Number(item.responseId)));
- 
+      .filter(item => {
+    // Filter by year
+    const itemYear = item.createdAt ? new Date(item.createdAt).getFullYear() : null;
+    return item.findings.length > 0 && 
+           !existingNcrAuditIds.has(Number(item.responseId)) &&
+           itemYear === year;
+  });
     setPendingNcrAudits(pendingNcrItems);
  
     const responseMapByScheduleAndSheet = {};
@@ -923,21 +968,45 @@ const [selectedNCRForForum, setSelectedNCRForForum] = useState(null);
       if (r.auditScheduleId) responseMapByScheduleAndSheet[`${r.auditScheduleId}_${r.checkSheet?.id}`] = r;
     });
  
+    // Fetch ALL schedules first (without year filter)
     const schedulesRes = await axios.get(`${API_BASE}/audit-schedule/auditor/${user?.id}/schedules-with-status`, { withCredentials: true });
-    const schedulesData = schedulesRes.data || [];
+    let schedulesData = schedulesRes.data || [];
+    
+    // ✅ CLIENT-SIDE FILTERING BY YEAR
+    if (year) {
+      const filteredData = schedulesData.filter(item => {
+        const schedule = item.schedule;
+        if (!schedule) return false;
+        
+        // Check scheduledDate
+        if (schedule.scheduledDate) {
+          const scheduleYear = new Date(schedule.scheduledDate).getFullYear();
+          if (scheduleYear === year) return true;
+        }
+        
+        // Check fromDate/toDate range
+        if (schedule.fromDate && schedule.toDate) {
+          const fromYear = new Date(schedule.fromDate).getFullYear();
+          const toYear = new Date(schedule.toDate).getFullYear();
+          if (fromYear <= year && toYear >= year) return true;
+        }
+        
+        return false;
+      });
+      
+      console.log(`📋 Client-side filtered: ${filteredData.length} schedules for year ${year} (out of ${schedulesData.length} total)`);
+      schedulesData = filteredData;
+    }
  
-    // ✅ CRITICAL FIX: Filter schedules that are NOT approved
-    // Only show schedules that have been approved by Top Management
+    // ✅ CRITICAL FIX: Filter schedules that are approved
     const approvedSchedulesData = schedulesData.filter(item => {
       const schedule = item.schedule;
       if (!schedule) return false;
      
-      // For week schedules (Form 5 basic - no scheduledDate)
       if (!schedule.scheduledDate) {
         return schedule.approvalStatus === 'APPROVED';
       }
      
-      // For detailed schedules (Form 5 Detailed - has scheduledDate)
       if (schedule.scheduledDate) {
         return schedule.detailedApprovalStatus === 'APPROVED' ||
                schedule.approvalStatus === 'APPROVED';
@@ -1043,7 +1112,6 @@ const [selectedNCRForForum, setSelectedNCRForForum] = useState(null);
   }
 };
  
- 
 
 
    const fetchAllUsers = async () => {
@@ -1137,28 +1205,80 @@ useEffect(() => {
 }, [location.state]);
 
 
-  useEffect(() => {
-    if (user?.id) {
-      fetchSchedulesWithStatus();
-      fetchAllUsers(); // Add this line
-      fetchRaisedNCRs();
-      const interval = setInterval(fetchSchedulesWithStatus, 60000);
-      return () => clearInterval(interval);
-    }
-  }, []);
+ useEffect(() => {
+  if (user?.id) {
+    console.log('Year changed to:', selectedYear);
+    fetchSchedulesWithStatus(selectedYear);
+    fetchAllUsers();
+    fetchRaisedNCRs(selectedYear); // Add this with year parameter
+    const interval = setInterval(() => {
+      fetchSchedulesWithStatus(selectedYear);
+      fetchRaisedNCRs(selectedYear);
+    }, 60000);
+    return () => clearInterval(interval);
+  }
+}, [user?.id, selectedYear]);
+
+// Save selected year to localStorage for persistence
+useEffect(() => {
+  localStorage.setItem('auditorSelectedYear', selectedYear);
+}, [selectedYear]);
+
 
   useEffect(() => {
-    if (activeTab === 'ncr-list') fetchRaisedNCRs();
-  }, [activeTab]);
+  if (activeTab === 'ncr-list') {
+    fetchRaisedNCRs(selectedYear);
+  }
+}, [activeTab, selectedYear]); // Add selectedYear as dependency
+
 
   const handleRefresh = () => {
-    setRefreshing(true);
-    fetchSchedulesWithStatus();
-    fetchRaisedNCRs();
-    addToast('Dashboard refreshed', 'success');
-  };
+  setRefreshing(true);
+  fetchSchedulesWithStatus(selectedYear);
+  fetchRaisedNCRs(selectedYear);
+  addToast('Dashboard refreshed', 'success');
+};
 
- 
+useEffect(() => {
+  // Create a continuous range of years from 2020 to current year + 2
+  const currentYear = new Date().getFullYear();
+  const startYear = 2020;
+  const endYear = currentYear + 8;
+  
+  const allYears = [];
+  for (let i = startYear; i <= endYear; i++) {
+    allYears.push(i);
+  }
+  
+  // Also add years from schedules if they exist outside this range
+  if (schedules.length > 0) {
+    schedules.forEach(item => {
+      const schedule = item.schedule;
+      if (schedule?.scheduledDate) {
+        const year = new Date(schedule.scheduledDate).getFullYear();
+        if (!allYears.includes(year) && year >= 2020) {
+          allYears.push(year);
+        }
+      }
+      if (schedule?.fromDate) {
+        const year = new Date(schedule.fromDate).getFullYear();
+        if (!allYears.includes(year) && year >= 2020) {
+          allYears.push(year);
+        }
+      }
+      if (schedule?.toDate) {
+        const year = new Date(schedule.toDate).getFullYear();
+        if (!allYears.includes(year) && year >= 2020) {
+          allYears.push(year);
+        }
+      }
+    });
+  }
+  
+  // Sort descending (latest first)
+  setAvailableYears(allYears.sort((a, b) => b - a));
+}, [schedules]);
+
 
   const handleViewForm = (audit, form) => {
   // STEP 4.1: First check for pending reschedule request
@@ -1320,24 +1440,36 @@ const handleRequestExtension = async (scheduleId, newDate, newStartTime, newEndT
 
           {/* Header */}
           <div className="flex flex-wrap items-center justify-between gap-3 mb-6">
-            <div className="flex items-center gap-3">
-              <div className="p-2 shadow-lg rounded-xl bg-gradient-to-r from-blue-500 to-blue-600">
-                <FileText className="w-5 h-5 text-white" />
-              </div>
-              <div>
-                <h1 className="text-xl font-bold text-gray-900">Auditor Dashboard</h1>
-                <p className="text-xs text-gray-500">Welcome back, {user?.name || user?.email}</p>
-              </div>
-            </div>
-            <button 
-              onClick={handleRefresh} 
-              disabled={refreshing} 
-              className="flex items-center gap-2 px-3 py-1.5 text-sm font-medium text-gray-700 transition-all border shadow-md backdrop-blur-xl bg-white/50 rounded-xl hover:bg-white/80 disabled:opacity-50 border-white/30"
-            >
-              <RefreshCw className={`w-3 h-3 ${refreshing ? 'animate-spin' : ''}`} /> 
-              Refresh
-            </button>
-          </div>
+  <div className="flex items-center gap-3">
+    <div className="p-2 shadow-lg rounded-xl bg-gradient-to-r from-blue-500 to-blue-600">
+      <FileText className="w-5 h-5 text-white" />
+    </div>
+    <div>
+      <h1 className="text-xl font-bold text-gray-900">Auditor Dashboard</h1>
+      <p className="text-xs text-gray-500">Welcome back, {user?.name || user?.email}</p>
+    </div>
+  </div>
+  
+  <div className="flex items-center gap-3">
+    {/* ADD YEAR FILTER HERE */}
+    <YearFilter 
+      selectedYear={selectedYear}
+      onYearChange={(newYear) => {
+        setSelectedYear(newYear);
+      }}
+      availableYears={availableYears}
+    />
+    
+    <button 
+      onClick={handleRefresh} 
+      disabled={refreshing} 
+      className="flex items-center gap-2 px-3 py-1.5 text-sm font-medium text-gray-700 transition-all border shadow-md backdrop-blur-xl bg-white/50 rounded-xl hover:bg-white/80 disabled:opacity-50 border-white/30"
+    >
+      <RefreshCw className={`w-3 h-3 ${refreshing ? 'animate-spin' : ''}`} /> 
+      Refresh
+    </button>
+  </div>
+</div>
 
           {/* Conditional Stats Cards Based on Active Tab */}
           <AnimatePresence mode="wait">
@@ -1637,6 +1769,7 @@ const handleRequestExtension = async (scheduleId, newDate, newStartTime, newEndT
     ncrLoading={ncrLoading}
     navigate={navigate}
     onOpenForum={openNCRForum}
+    selectedYear={selectedYear}
   />
 )}
             </AnimatePresence>

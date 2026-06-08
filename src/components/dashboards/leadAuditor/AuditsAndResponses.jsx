@@ -104,7 +104,7 @@ const NCRCard = ({ ncr, onView }) => {
         </span>
       </div>
       <h4 className="font-semibold text-gray-800 truncate">{ncr.ncrNumber || `NCR-${ncr.id}`}</h4>
-      <p className="mt-1 text-sm text-gray-600 line-clamp-2">{ncr.title || 'No title'}</p>
+      {/* <p className="mt-1 text-sm text-gray-600 line-clamp-2">{ncr.title || 'No title'}</p> */}
       <div className="grid grid-cols-2 gap-2 mt-3">
         <div className="text-xs text-gray-500"><span className="font-medium">Dept:</span> {ncr.department || 'N/A'}</div>
         <div className="text-xs text-gray-500"><span className="font-medium">Created:</span> {ncr.createdAt ? format(new Date(ncr.createdAt), 'dd-MM-yyyy') : 'N/A'}</div>
@@ -621,9 +621,9 @@ const AuditsAndResponses = ({
                 <thead className="bg-white/30">
                   <tr>
                     <th className="px-5 py-3 text-xs text-left">NCR #</th>
-                    <th className="px-5 py-3 text-xs text-left">Title</th>
+                    {/* <th className="px-5 py-3 text-xs text-left">Title</th> */}
                     <th className="px-5 py-3 text-xs text-left">Department</th>
-                    <th className="px-5 py-3 text-xs text-left">Severity</th>
+                    {/* <th className="px-5 py-3 text-xs text-left">Severity</th> */}
                     <th className="px-5 py-3 text-xs text-left">Status</th>
                     <th className="px-5 py-3 text-xs text-left">Created</th>
                     <th className="px-5 py-3 text-xs text-left">Action</th>
@@ -636,13 +636,13 @@ const AuditsAndResponses = ({
                     filteredNCRs.map(ncr => (
                       <tr key={ncr.id} className="transition-colors cursor-pointer hover:bg-white/20" onClick={() => onViewNCR(ncr)}>
                         <td className="px-5 py-3 font-medium text-gray-800">{ncr.ncrNumber || `NCR-${ncr.id}`}</td>
-                        <td className="max-w-xs px-5 py-3 text-gray-600 truncate">{ncr.title || 'N/A'}</td>
+                        {/* <td className="max-w-xs px-5 py-3 text-gray-600 truncate">{ncr.title || 'N/A'}</td> */}
                         <td className="px-5 py-3 text-gray-600">{ncr.department || 'N/A'}</td>
-                        <td className="px-5 py-3">
+                        {/* <td className="px-5 py-3">
                           <span className={`px-2 py-1 text-xs rounded-full ${getSeverityBadge(ncr.severity)}`}>
                             {ncr.severity || 'N/A'}
                           </span>
-                        </td>
+                        </td> */}
                         <td className="px-5 py-3">
                           <span className={`px-2 py-1 text-xs rounded-full ${getNCRStatusBadge(ncr.status)}`}>
                             {ncr.status || 'OPEN'}

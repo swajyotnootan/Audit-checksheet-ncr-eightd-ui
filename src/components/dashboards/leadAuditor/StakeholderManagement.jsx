@@ -412,14 +412,14 @@ const StakeholderManagement = ({
                         <div key={ncr.id} className="p-3 transition-all duration-300 border rounded-lg hover:shadow-md">
                           <div className="flex items-start justify-between mb-2">
                             <span className={`px-2 py-0.5 text-xs rounded-full ${getSeverityBadge(ncr.severity)}`}>
-                              {ncr.severity || 'N/A'}
+                              {ncr.severity || 'NCR'}
                             </span>
                             <span className={`px-2 py-0.5 text-xs rounded-full ${getNCRStatusBadge(ncr.status)}`}>
                               {ncr.status || 'OPEN'}
                             </span>
                           </div>
                           <h4 className="font-semibold text-gray-800 truncate">{ncr.ncrNumber || `NCR-${ncr.id}`}</h4>
-                          <p className="mt-1 text-sm text-gray-600 line-clamp-2">{ncr.title || 'No title'}</p>
+                          {/* <p className="mt-1 text-sm text-gray-600 line-clamp-2">{ncr.title || 'No title'}</p> */}
                           <div className="flex justify-between mt-2 text-xs">
                             <span className="text-gray-500">Dept: {ncr.department || 'N/A'}</span>
                             <button 
@@ -706,14 +706,14 @@ const StakeholderManagement = ({
                             <div key={ncr.id} className="p-3 transition-all duration-300 border rounded-lg hover:shadow-md">
                               <div className="flex items-start justify-between mb-2">
                                 <span className={`px-2 py-0.5 text-xs rounded-full ${getSeverityBadge(ncr.severity)}`}>
-                                  {ncr.severity || 'N/A'}
+                                  {ncr.severity || 'NCR'}
                                 </span>
                                 <span className={`px-2 py-0.5 text-xs rounded-full ${getNCRStatusBadge(ncr.status)}`}>
                                   {ncr.status || 'OPEN'}
                                 </span>
                               </div>
                               <h4 className="font-semibold text-gray-800 truncate">{ncr.ncrNumber || `NCR-${ncr.id}`}</h4>
-                              <p className="mt-1 text-sm text-gray-600 line-clamp-2">{ncr.title || 'No title'}</p>
+                              {/* <p className="mt-1 text-sm text-gray-600 line-clamp-2">{ncr.title || 'No title'}</p> */}
                               <div className="flex justify-between mt-2 text-xs">
                                 <span className="text-gray-500">Raised by: {auditorName}</span>
                                 <button 

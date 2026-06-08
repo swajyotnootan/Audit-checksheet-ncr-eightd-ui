@@ -17,6 +17,8 @@ import ResponseDetailModal from './ResponseDetailModal';
 import { useNavigate, useLocation } from 'react-router-dom';
 const API_BASE = 'https://qsutrarmsclm.hub.swajyot.co.in:8476/api';
 
+import YearFilter from '../../../components/common/YearFilter';
+
 const PremiumCard = ({ children, className = "", gradient = false, hover = true }) => (
   <div className={`
     backdrop-blur-xl rounded-2xl shadow-xl 
@@ -97,6 +99,15 @@ const LeadAuditorDashboard = () => {
     totalResponses: 0, responsesApproved: 0, responsesRejected: 0, responsesSubmitted: 0,
     ncrApproved: 0, ncrInProgress: 0, ncrOpen: 0
   });
+
+  const [selectedYear, setSelectedYear] = useState(() => {
+  const savedYear = localStorage.getItem('leadAuditorSelectedYear');
+  if (savedYear) {
+    return parseInt(savedYear);
+  }
+  return new Date().getFullYear();
+});
+const [availableYears, setAvailableYears] = useState([]);
 
   // Add this function after your state declarations
 const getCurrentTab = () => {
@@ -329,64 +340,92 @@ const getCurrentTab = () => {
     });
   };
 
-  const fetchAllData = async () => {
-    try {
-      setLoading(true);
-      const currentYear = new Date().getFullYear();
-      
-      const department = await fetchLeadAuditorDepartment();
-      
-      console.log('📅 Fetching data for year:', currentYear);
-      console.log('👤 Lead Auditor Department:', department);
-      
-      const [schedulesRes, ncrRes, auditorsRes, auditeesRes, responsesRes] = await Promise.all([
-        axios.get(`${API_BASE}/audit-schedule/year/${currentYear}`, { withCredentials: true }),
-        axios.get(`${API_BASE}/ncr/all`, { withCredentials: true }).catch(() => ({ data: [] })),
-        axios.get(`${API_BASE}/audit-schedule/auditors`, { withCredentials: true }).catch(() => ({ data: [] })),
-        axios.get(`${API_BASE}/audit-schedule/auditees`, { withCredentials: true }).catch(() => ({ data: [] })),
-        axios.get(`${API_BASE}/templates/responses/all`, { withCredentials: true }).catch(() => ({ data: [] }))
-      ]);
-      
-      const schedules = schedulesRes.data || [];
-      const ncrs = ncrRes.data || [];
-      const auditors = auditorsRes.data || [];
-      const auditees = auditeesRes.data || [];
-      const responses = responsesRes.data || [];
-      
-      console.log('📦 Raw Data Counts:', {
-        schedules: schedules.length,
-        ncrs: ncrs.length,
-        auditors: auditors.length,
-        auditees: auditees.length,
-        responses: responses.length
-      });
-      
-      if (schedules.length > 0) {
-        console.log('📋 Sample Schedule Departments:', schedules.slice(0, 3).map(s => s.department));
+ const fetchAllData = async (year = selectedYear) => {
+  try {
+    setLoading(true);
+    
+    const department = await fetchLeadAuditorDepartment();
+    
+    console.log('📅 Fetching data for year:', year);
+    console.log('👤 Lead Auditor Department:', department);
+    
+    const [schedulesRes, ncrRes, auditorsRes, auditeesRes, responsesRes] = await Promise.all([
+      axios.get(`${API_BASE}/audit-schedule/year/${year}`, { withCredentials: true }),
+      axios.get(`${API_BASE}/ncr/all`, { withCredentials: true }).catch(() => ({ data: [] })),
+      axios.get(`${API_BASE}/audit-schedule/auditors`, { withCredentials: true }).catch(() => ({ data: [] })),
+      axios.get(`${API_BASE}/audit-schedule/auditees`, { withCredentials: true }).catch(() => ({ data: [] })),
+      axios.get(`${API_BASE}/templates/responses/all`, { withCredentials: true }).catch(() => ({ data: [] }))
+    ]);
+    
+    let schedules = schedulesRes.data || [];
+    let ncrs = ncrRes.data || [];
+    const auditors = auditorsRes.data || [];
+    const auditees = auditeesRes.data || [];
+    let responses = responsesRes.data || [];
+    
+    // Filter NCRs by year
+    ncrs = ncrs.filter(ncr => {
+      const ncrDate = ncr.createdAt || ncr.raisedDate || ncr.dueDate;
+      if (ncrDate) {
+        const ncrYear = new Date(ncrDate).getFullYear();
+        return ncrYear === year;
       }
-      if (ncrs.length > 0) {
-        console.log('📋 Sample NCR Departments:', ncrs.slice(0, 3).map(n => n.department));
-      }
-      if (responses.length > 0) {
-        console.log('📋 Sample Response Departments:', responses.slice(0, 3).map(r => r.department));
-      }
-      
-      setAllSchedules(schedules);
-      setAllNCRs(ncrs);
-      setAllAuditors(auditors);
-      setAllAuditees(auditees);
-      setAllResponses(responses);
-      
-      updateFilteredData(department, schedules, ncrs, auditors, auditees, responses);
-      
-    } catch (error) {
-      console.error('Error fetching data:', error);
-      addToast('Failed to load dashboard data', 'error');
-    } finally {
-      setLoading(false);
-      setRefreshing(false);
+      return false;
+    });
+    
+    // Filter responses by year
+    responses = responses.filter(response => {
+      const responseYear = response.createdAt ? new Date(response.createdAt).getFullYear() : null;
+      return responseYear === year;
+    });
+    
+    console.log('📦 Raw Data Counts for year', year, ':', {
+      schedules: schedules.length,
+      ncrs: ncrs.length,
+      auditors: auditors.length,
+      auditees: auditees.length,
+      responses: responses.length
+    });
+    
+    if (schedules.length > 0) {
+      console.log('📋 Sample Schedule Departments:', schedules.slice(0, 3).map(s => s.department));
     }
-  };
+    if (ncrs.length > 0) {
+      console.log('📋 Sample NCR Departments:', ncrs.slice(0, 3).map(n => n.department));
+    }
+    if (responses.length > 0) {
+      console.log('📋 Sample Response Departments:', responses.slice(0, 3).map(r => r.department));
+    }
+    
+    setAllSchedules(schedules);
+    setAllNCRs(ncrs);
+    setAllAuditors(auditors);
+    setAllAuditees(auditees);
+    setAllResponses(responses);
+    
+    updateFilteredData(department, schedules, ncrs, auditors, auditees, responses);
+    
+  } catch (error) {
+    console.error('Error fetching data:', error);
+    addToast('Failed to load dashboard data', 'error');
+  } finally {
+    setLoading(false);
+    setRefreshing(false);
+  }
+};
+
+  // Get available years for filter
+const getAvailableYears = () => {
+  const currentYear = new Date().getFullYear();
+  const startYear = 2020;
+  const endYear = currentYear + 5;
+  const years = [];
+  for (let i = startYear; i <= endYear; i++) {
+    years.push(i);
+  }
+  return years.sort((a, b) => b - a);
+};
+
 
   const getScheduledAuditsCount = () => {
   // Only count audits that have a scheduled date and are not draft
@@ -399,9 +438,10 @@ const getCurrentTab = () => {
 
 
   const handleRefresh = () => {
-    setRefreshing(true);
-    fetchAllData();
-  };
+  setRefreshing(true);
+  fetchAllData(selectedYear);
+};
+
 
  // Replace your existing handleViewResponse function
     const handleViewResponse = (response) => {
@@ -456,9 +496,27 @@ useEffect(() => {
   }
 }, [location.search, location.state]);
 
-  useEffect(() => { 
-    fetchAllData(); 
-  }, []);
+ useEffect(() => { 
+  fetchAllData(selectedYear); 
+}, [selectedYear]);
+
+
+useEffect(() => {
+  const currentYear = new Date().getFullYear();
+  const startYear = 2020;
+  const endYear = currentYear + 5;
+  const years = [];
+  for (let i = startYear; i <= endYear; i++) {
+    years.push(i);
+  }
+  setAvailableYears(years.sort((a, b) => b - a));
+}, []);
+
+
+  // Save selected year to localStorage
+useEffect(() => {
+  localStorage.setItem('leadAuditorSelectedYear', selectedYear);
+}, [selectedYear]);
 
   if (loading) {
     return (
@@ -521,6 +579,25 @@ useEffect(() => {
                 </div>
               </div>
             </div>
+
+            <div className="flex items-center gap-3">
+        <YearFilter 
+          selectedYear={selectedYear}
+          onYearChange={(newYear) => {
+            setSelectedYear(newYear);
+          }}
+          availableYears={availableYears}
+        />
+        
+        <button 
+          onClick={handleRefresh}
+          disabled={refreshing}
+          className="p-2 transition rounded-xl backdrop-blur-sm bg-white/30 hover:bg-white/50 disabled:opacity-50"
+          title="Refresh Data"
+        >
+          <FiRefreshCw className={`w-5 h-5 text-gray-600/90 ${refreshing ? 'animate-spin' : ''}`} />
+        </button>
+      </div>
           </div>
         </div>
         
@@ -538,35 +615,35 @@ useEffect(() => {
               onClick={() => setActiveTab('audits')} 
               icon={FiCalendar} 
               label="Audits" 
-              count={getScheduledAuditsCount()}  // Changed from filteredSchedules.length
+              // count={getScheduledAuditsCount()}  // Changed from filteredSchedules.length
             />
             <NavTab 
               active={activeTab === 'responses'} 
               onClick={() => setActiveTab('responses')} 
               icon={FiFileText} 
               label="CheckSheets" 
-              count={filteredResponses.length}
+              // count={filteredResponses.length}
             />
             <NavTab 
               active={activeTab === 'ncrs'} 
               onClick={() => setActiveTab('ncrs')} 
               icon={FiAlertTriangle} 
               label="NCRs" 
-              count={filteredNCRs.length}
+              // count={filteredNCRs.length}
             />
             <NavTab 
               active={activeTab === 'auditors'} 
               onClick={() => setActiveTab('auditors')} 
               icon={FiUsers} 
               label="Auditors" 
-              count={filteredAuditors.length}
+              // count={filteredAuditors.length}
             />
             <NavTab 
               active={activeTab === 'auditees'} 
               onClick={() => setActiveTab('auditees')} 
               icon={FiUserCheck} 
               label="Auditees" 
-              count={filteredAuditees.length}
+              // count={filteredAuditees.length}
             />
           </div>
         </div>
@@ -609,6 +686,7 @@ useEffect(() => {
             onRefresh={handleRefresh}
             refreshing={refreshing}
             leadAuditorDepartment={leadAuditorDepartment}
+            selectedYear={selectedYear}  
           />
         )}
 
@@ -665,13 +743,13 @@ useEffect(() => {
 
       {/* Review Response Modal with glass morphic effect */}
       {reviewingResponse && (
-        <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/30 backdrop-blur-md animate-fade-in">
-          <PremiumCard className="w-full max-w-md overflow-hidden animate-scale-in">
-            <div className="px-6 py-4 bg-gradient-to-r from-indigo-600/90 to-purple-600/90">
+        <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/50">
+          <PremiumCard className="w-full max-w-md overflow-hidden bg-white">
+            <div className="px-6 py-4 bg-gradient-to-r from-indigo-600 to-purple-600">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                  <FiFileText className="w-5 h-5 text-white/90" />
-                  <h3 className="text-lg font-semibold text-white/95">Review Response</h3>
+                  <FiFileText className="w-5 h-5 text-white" />
+                  <h3 className="text-lg font-semibold text-white">Review Response</h3>
                 </div>
                 <button 
                   onClick={() => setReviewingResponse(null)} 
@@ -681,12 +759,12 @@ useEffect(() => {
                 </button>
               </div>
             </div>
-            <div className="p-6">
-              <div className="p-4 mb-4 border border-white/20 rounded-xl bg-gradient-to-br from-gray-50/60 to-white/60 backdrop-blur-sm">
-                <p className="font-semibold text-gray-800/90">{reviewingResponse.department}</p>
+            <div className="p-6 bg-white">
+              <div className="p-4 mb-4 border border-gray-200 rounded-xl bg-gray-50">
+                <p className="font-semibold text-gray-800">{reviewingResponse.department}</p>
                 <div className="flex items-center justify-between mt-2">
-                  <p className="text-sm text-gray-600/90">Score: <span className="font-bold text-indigo-600/90">{reviewingResponse.totalScore}/{reviewingResponse.maxPossibleScore}</span></p>
-                  <p className="text-sm text-gray-600/90">Auditee: <span className="font-medium">{reviewingResponse.auditeeName}</span></p>
+                  <p className="text-sm text-gray-600">Score: <span className="font-bold text-indigo-600">{reviewingResponse.totalScore}/{reviewingResponse.maxPossibleScore}</span></p>
+                  <p className="text-sm text-gray-600">Auditee: <span className="font-medium">{reviewingResponse.auditeeName}</span></p>
                 </div>
                 <div className="mt-2">
                   <span className={`px-2 py-0.5 text-xs rounded-full ${getResponseStatusBadge(reviewingResponse.status)}`}>
@@ -697,18 +775,18 @@ useEffect(() => {
               
               <div className="flex gap-6 mb-4">
                 <label className="flex items-center gap-2 cursor-pointer group">
-                  <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center transition-all ${reviewApproved ? 'border-emerald-500/80 bg-emerald-500/80' : 'border-gray-300/80 group-hover:border-emerald-300/70'}`}>
-                    {reviewApproved && <FiCheckCircle className="w-3 h-3 text-white/90" />}
+                  <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center transition-all ${reviewApproved ? 'border-emerald-500 bg-emerald-500' : 'border-gray-300 group-hover:border-emerald-300'}`}>
+                    {reviewApproved && <FiCheckCircle className="w-3 h-3 text-white" />}
                   </div>
                   <input type="radio" checked={reviewApproved} onChange={() => setReviewApproved(true)} className="hidden" />
-                  <span className="text-sm font-medium text-gray-700/90">Approve</span>
+                  <span className="text-sm font-medium text-gray-700">Approve</span>
                 </label>
                 <label className="flex items-center gap-2 cursor-pointer group">
-                  <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center transition-all ${!reviewApproved ? 'border-red-500/80 bg-red-500/80' : 'border-gray-300/80 group-hover:border-red-300/70'}`}>
-                    {!reviewApproved && <FiXCircle className="w-3 h-3 text-white/90" />}
+                  <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center transition-all ${!reviewApproved ? 'border-red-500 bg-red-500' : 'border-gray-300 group-hover:border-red-300'}`}>
+                    {!reviewApproved && <FiXCircle className="w-3 h-3 text-white" />}
                   </div>
                   <input type="radio" checked={!reviewApproved} onChange={() => setReviewApproved(false)} className="hidden" />
-                  <span className="text-sm font-medium text-gray-700/90">Reject</span>
+                  <span className="text-sm font-medium text-gray-700">Reject</span>
                 </label>
               </div>
               
@@ -716,14 +794,14 @@ useEffect(() => {
                 value={reviewComment} 
                 onChange={(e) => setReviewComment(e.target.value)} 
                 rows={3} 
-                className="w-full p-3 transition border rounded-xl bg-white/50 backdrop-blur-sm focus:ring-2 focus:ring-indigo-500/50 focus:border-transparent border-white/30"
+                className="w-full p-3 transition bg-white border border-gray-300 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
                 placeholder={reviewApproved ? "Add approval comments (optional)..." : "Please provide reason for rejection..."} 
               />
               
               <div className="flex justify-end gap-3 mt-5">
                 <button 
                   onClick={() => setReviewingResponse(null)} 
-                  className="px-5 py-2 transition border text-gray-600/90 border-gray-300/50 rounded-xl hover:bg-gray-50/80"
+                  className="px-5 py-2 text-gray-600 transition border border-gray-300 rounded-xl hover:bg-gray-50"
                 >
                   Cancel
                 </button>
@@ -732,8 +810,8 @@ useEffect(() => {
                   disabled={submitting} 
                   className={`px-5 py-2 rounded-xl text-white font-medium transition-all shadow-lg ${
                     reviewApproved 
-                      ? 'bg-gradient-to-r from-emerald-500/80 to-emerald-600/80 hover:shadow-emerald-500/20 hover:from-emerald-500/90 hover:to-emerald-600/90' 
-                      : 'bg-gradient-to-r from-red-500/80 to-red-600/80 hover:shadow-red-500/20 hover:from-red-500/90 hover:to-red-600/90'
+                      ? 'bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700' 
+                      : 'bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700'
                   } disabled:opacity-50`}
                 >
                   {submitting ? (

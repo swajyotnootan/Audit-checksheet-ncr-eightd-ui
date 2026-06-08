@@ -18,21 +18,19 @@ import AuditCheckSheetNCRForumModal from '../modals/AuditCheckSheetNCRForumModal
 import ForumThreadView from '../forum/ForumThreadView';
 import Drawer from '../Drawer';
 import { MessageCircle } from 'lucide-react';
-
+import YearFilter from '../../components/common/YearFilter';
 const API_BASE = 'https://qsutrarmsclm.hub.swajyot.co.in:8476/api';
 
 const getViewRoute = (audit) => {
   const auditType = (audit.auditType || '').toLowerCase().trim();
-  
-  if (auditType.includes('5s') || auditType.includes('five_s')) return `/fives-view`;  // ← REMOVED '/audit/'
-  if (auditType.includes('process') || auditType.includes('manufacturing')) return `/manufacturing-view`;  // ← REMOVED '/audit/'
-  if (auditType.includes('iatf') || auditType.includes('system')) return `/iatf-view`;  // ← REMOVED '/audit/'
-  if (auditType.includes('product')) return `/product-view`;  // ← REMOVED '/audit/'
-  if (auditType.includes('iso')) return `/iso-view`;  // ← REMOVED '/audit/'
-  if (auditType.includes('safety') || auditType.includes('safe')) return `/safety-view`;  // ← REMOVED '/audit/'
-  if (auditType.includes('poka') || auditType.includes('yoke')) return `/pokayoke-view`;  // ← REMOVED '/audit/'
-  
-  return `/fives-view`;  // ← REMOVED '/audit/'
+  if (auditType.includes('5s') || auditType.includes('five_s')) return `/fives-view`;
+  if (auditType.includes('process') || auditType.includes('manufacturing')) return `/manufacturing-view`;
+  if (auditType.includes('iatf') || auditType.includes('system')) return `/iatf-view`;
+  // if (auditType.includes('product')) return `/product-view`;
+  // if (auditType.includes('iso')) return `/audit/iso-view`;
+  // if (auditType.includes('safety') || auditType.includes('safe')) return `/audit/safety-view`;
+  // if (auditType.includes('poka') || auditType.includes('yoke')) return `/audit/pokayoke-view`;
+  return `/fives-view`;
 };
 
 const parseResponseAnswers = (response) => {
@@ -510,6 +508,17 @@ const AuditeeDashboard = () => {
   const [eightDTeamMembers, setEightDTeamMembers] = useState([]);
   const [loadingTeamMembers, setLoadingTeamMembers] = useState(false);
 
+
+  const [selectedYear, setSelectedYear] = useState(() => {
+  const savedYear = localStorage.getItem('auditeeSelectedYear');
+  if (savedYear) {
+    return parseInt(savedYear);
+  }
+  return new Date().getFullYear();
+});
+const [availableYears, setAvailableYears] = useState([]);
+
+
   const [stats, setStats] = useState({
     pendingReview: 0,
     approvedAudits: 0,
@@ -679,207 +688,253 @@ const AuditeeDashboard = () => {
     }
   };
 
+
+  // Get available years for filter
+const getAvailableYears = () => {
+  const currentYear = new Date().getFullYear();
+  const startYear = 2020;
+  const endYear = currentYear + 5;
+  const years = [];
+  for (let i = startYear; i <= endYear; i++) {
+    years.push(i);
+  }
+  return years.sort((a, b) => b - a);
+};
+
   // ========== DATA FETCHING ==========
-  const fetchAuditsWithResponses = async () => {
+const fetchAuditsWithResponses = async (year = selectedYear) => {
+  try {
+    // Only fetch schedules for the selected year
+    let allSchedules = [];
+
     try {
-      const currentYear = new Date().getFullYear();
-      const years = [currentYear - 1, currentYear, currentYear + 1];
-      let allSchedules = [];
-
-      for (const year of years) {
-        try {
-          const response = await axios.get(`${API_BASE}/audit-schedule/year/${year}`, { withCredentials: true });
-          const schedules = response.data || [];
-          const mySchedules = schedules.filter(s =>
-            s.scheduledDate && (s.auditeeId === user?.id || s.auditeeName === user?.name)
-          );
-          allSchedules.push(...mySchedules);
-        } catch (err) { console.log(`No schedules for year ${year}`); }
-      }
-
-      const responsesResponse = await axios.get(`${API_BASE}/templates/responses/all`, { withCredentials: true });
-      const allResponses = responsesResponse.data || [];
-      const myResponses = allResponses.filter(r =>
-        r.auditeeId === user?.id || r.auditeeName === user?.name
+      const response = await axios.get(`${API_BASE}/audit-schedule/year/${year}`, { withCredentials: true });
+      const schedules = response.data || [];
+      const mySchedules = schedules.filter(s =>
+        s.scheduledDate && (s.auditeeId === user?.id || s.auditeeName === user?.name)
       );
+      allSchedules.push(...mySchedules);
+    } catch (err) { 
+      console.log(`No schedules for year ${year}`); 
+    }
 
-      const auditMap = new Map();
+    const responsesResponse = await axios.get(`${API_BASE}/templates/responses/all`, { withCredentials: true });
+    const allResponses = responsesResponse.data || [];
+    const myResponses = allResponses.filter(r =>
+      r.auditeeId === user?.id || r.auditeeName === user?.name
+    );
 
-      for (const response of myResponses) {
-        const scheduleId = response.auditScheduleId;
-        if (!scheduleId) continue;
+    // Filter responses by year
+    const myResponsesByYear = myResponses.filter(response => {
+      const responseYear = response.createdAt ? new Date(response.createdAt).getFullYear() : null;
+      return responseYear === year;
+    });
 
-        if (!auditMap.has(scheduleId)) {
-          const schedule = allSchedules.find(s => s.id === scheduleId);
-          if (schedule) {
-            auditMap.set(scheduleId, { ...schedule, formDetails: [], totalForms: 0, completedForms: 0 });
-          } else {
-            try {
-              const scheduleRes = await axios.get(`${API_BASE}/audit-schedule/${scheduleId}`, { withCredentials: true });
-              auditMap.set(scheduleId, { ...scheduleRes.data, formDetails: [], totalForms: 0, completedForms: 0 });
-            } catch (err) {
-              auditMap.set(scheduleId, {
-                id: scheduleId,
-                auditType: response.checkSheet?.auditType || 'Unknown Audit',
-                department: response.department || 'Unknown',
-                auditorName: response.auditorName,
-                scheduledDate: response.createdAt?.split('T')[0] || new Date().toISOString().split('T')[0],
-                startTime: '09:00 AM',
-                endTime: '05:00 PM',
-                formDetails: [], totalForms: 0, completedForms: 0
-              });
-            }
+    const auditMap = new Map();
+
+    for (const response of myResponsesByYear) {
+      const scheduleId = response.auditScheduleId;
+      if (!scheduleId) continue;
+
+      if (!auditMap.has(scheduleId)) {
+        const schedule = allSchedules.find(s => s.id === scheduleId);
+        if (schedule) {
+          auditMap.set(scheduleId, { ...schedule, formDetails: [], totalForms: 0, completedForms: 0 });
+        } else {
+          try {
+            const scheduleRes = await axios.get(`${API_BASE}/audit-schedule/${scheduleId}`, { withCredentials: true });
+            auditMap.set(scheduleId, { ...scheduleRes.data, formDetails: [], totalForms: 0, completedForms: 0 });
+          } catch (err) {
+            auditMap.set(scheduleId, {
+              id: scheduleId,
+              auditType: response.checkSheet?.auditType || 'Unknown Audit',
+              department: response.department || 'Unknown',
+              auditorName: response.auditorName,
+              scheduledDate: response.createdAt?.split('T')[0] || new Date().toISOString().split('T')[0],
+              startTime: '09:00 AM',
+              endTime: '05:00 PM',
+              formDetails: [], totalForms: 0, completedForms: 0
+            });
           }
         }
-
-        const auditData = auditMap.get(scheduleId);
-        auditData.formDetails.push({
-          id: response.checkSheet?.id,
-          name: response.checkSheet?.name || auditData.auditType,
-          processName: response.checkSheet?.name || auditData.auditType || 'Audit Form',
-          responseId: response.id,
-          completed: true,
-          status: response.status || 'COMPLETED',
-          createdAt: response.createdAt,
-          updatedAt: response.updatedAt,
-        });
-        auditData.totalForms = auditData.formDetails.length;
-        auditData.completedForms = auditData.formDetails.filter(f => f.completed).length;
       }
 
-      const auditsArray = Array.from(auditMap.values());
-      let pendingFormsCount = 0, approvedFormsCount = 0, rejectedFormsCount = 0;
-      auditsArray.forEach(audit => {
-        audit.formDetails.forEach(form => {
-          if (form.status === 'APPROVED') approvedFormsCount++;
-          else if (form.status === 'REJECTED') rejectedFormsCount++;
-          else if (['COMPLETED', 'AWAITING_APPROVAL', 'SUBMITTED'].includes(form.status)) pendingFormsCount++;
-        });
+      const auditData = auditMap.get(scheduleId);
+      auditData.formDetails.push({
+        id: response.checkSheet?.id,
+        name: response.checkSheet?.name || auditData.auditType,
+        processName: response.checkSheet?.name || auditData.auditType || 'Audit Form',
+        responseId: response.id,
+        completed: true,
+        status: response.status || 'COMPLETED',
+        createdAt: response.createdAt,
+        updatedAt: response.updatedAt,
       });
-
-      setCompletedAuditsForReview(auditsArray);
-      setStats(prev => ({ ...prev, pendingReview: pendingFormsCount, approvedAudits: approvedFormsCount, rejectedAudits: rejectedFormsCount }));
-      return auditsArray;
-    } catch (error) {
-      console.error('Error fetching audits with responses:', error);
-      return [];
+      auditData.totalForms = auditData.formDetails.length;
+      auditData.completedForms = auditData.formDetails.filter(f => f.completed).length;
     }
-  };
 
-  const fetchNCRData = async () => {
+    const auditsArray = Array.from(auditMap.values());
+    let pendingFormsCount = 0, approvedFormsCount = 0, rejectedFormsCount = 0;
+    auditsArray.forEach(audit => {
+      audit.formDetails.forEach(form => {
+        if (form.status === 'APPROVED') approvedFormsCount++;
+        else if (form.status === 'REJECTED') rejectedFormsCount++;
+        else if (['COMPLETED', 'AWAITING_APPROVAL', 'SUBMITTED'].includes(form.status)) pendingFormsCount++;
+      });
+    });
+
+    setCompletedAuditsForReview(auditsArray);
+    setStats(prev => ({ ...prev, pendingReview: pendingFormsCount, approvedAudits: approvedFormsCount, rejectedAudits: rejectedFormsCount }));
+    return auditsArray;
+  } catch (error) {
+    console.error('Error fetching audits with responses:', error);
+    return [];
+  }
+};
+
+  const fetchNCRData = async (year = selectedYear) => {
+  try {
+    let myNCRs = [];
+
     try {
-      let myNCRs = [];
-
-      try {
-        const response = await axios.get(`${API_BASE}/ncr/all`, { withCredentials: true });
-        const allNCRs = response.data || [];
-        myNCRs = allNCRs.filter(ncr =>
-          String(ncr.assigneeId) === String(user?.id) ||
-          String(ncr.auditeeId) === String(user?.id) ||
-          ncr.assigneeName === user?.name ||
-          ncr.auditeeName === user?.name
-        );
-        myNCRs = myNCRs.map(ncr => ({
-          ...ncr,
-          history: ncr.history || (ncr.statusHistory ? ncr.statusHistory :
-            (ncr.status !== 'AWAITING_AUDITEE' && ncr.reviewedAt ? [{
-              action: ncr.status,
-              comment: ncr.rejectionReason,
-              performedBy: ncr.reviewedBy,
-              timestamp: ncr.reviewedAt
-            }] : []))
-        }));
-      } catch (err) {
-        try {
-          const response = await axios.get(`${API_BASE}/ncr`, { withCredentials: true });
-          myNCRs = (response.data || []).filter(ncr =>
-            String(ncr.assigneeId) === String(user?.id) ||
-            String(ncr.auditeeId) === String(user?.id)
-          );
-        } catch (err2) {
-          console.error('Failed to fetch NCRs:', err2);
+      const response = await axios.get(`${API_BASE}/ncr/all`, { withCredentials: true });
+      const allNCRs = response.data || [];
+      
+      // Filter by year based on createdAt date
+      myNCRs = allNCRs.filter(ncr => {
+        const matchesUser = String(ncr.assigneeId) === String(user?.id) ||
+                           String(ncr.auditeeId) === String(user?.id) ||
+                           ncr.assigneeName === user?.name ||
+                           ncr.auditeeName === user?.name;
+        
+        // Filter by year
+        const ncrDate = ncr.createdAt || ncr.raisedDate || ncr.dueDate;
+        let matchesYear = true;
+        if (year && ncrDate) {
+          const ncrYear = new Date(ncrDate).getFullYear();
+          matchesYear = ncrYear === year;
         }
-      }
-
-      if (myNCRs.length === 0) {
-        try {
-          const responsesRes = await axios.get(`${API_BASE}/templates/responses/all`, { withCredentials: true });
-          const myResponses = (responsesRes.data || []).filter(r =>
-            r.auditeeId === user?.id || r.auditeeName === user?.name
-          );
-          for (const response of myResponses) {
-            const answers = parseResponseAnswers(response);
-            const findings = getNcrFindingEntries(answers);
-            if (findings.length > 0) {
-              myNCRs.push({
-                id: response.id,
-                ncrNumber: `NCR-${response.id}`,
-                status: response.status === 'APPROVED' ? 'APPROVED' : response.status === 'REJECTED' ? 'REJECTED' : 'AWAITING_AUDITEE',
-                department: response.department,
-                severity: findings[0]?.severity || 'Minor NC',
-                clause: findings[0]?.clause,
-                dueDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
-                createdAt: response.createdAt,
-                updatedAt: response.updatedAt,
-                auditeeId: response.auditeeId,
-                auditeeName: response.auditeeName,
-                description: findings.map(f => f.checkpoint).join(', '),
-                history: [{ action: 'CREATED', comment: 'NCR created from audit findings', performedBy: response.auditorName, timestamp: response.createdAt }]
-              });
-            }
-          }
-        } catch (err) {
-          console.error('Error fetching responses:', err);
-        }
-      }
-
-      if (myNCRs.length === 0) {
-        setAssignedNCRs([]);
-        setPendingNcrReviews([]);
-        setStats(prev => ({ ...prev, openNCRs: 0, overdueNCRs: 0, resolvedNCRs: 0 }));
-        return [];
-      }
-
-      const pendingReview = myNCRs.filter(n => n.status === 'AWAITING_AUDITEE');
-      const allNCRsSorted = [...myNCRs].sort((a, b) =>
-        new Date(b.updatedAt || b.createdAt || 0) - new Date(a.updatedAt || a.createdAt || 0)
-      );
-
-      const openNCRs = myNCRs.filter(n => ['OPEN', 'APPROVED', 'READY_FOR_NCR2'].includes(n.status));
-      const inProgressNCRs = myNCRs.filter(n => ['IN_PROGRESS', 'SENT_TO_8D', 'IN_8D_PROCESS', 'NCR2_IN_PROGRESS'].includes(n.status));
-      const closedNCRs = myNCRs.filter(n => ['CLOSED', 'NCR2_COMPLETED'].includes(n.status));
-      const today = new Date();
-      const overdue = openNCRs.filter(n => n.dueDate && new Date(n.dueDate) < today);
-
-      setAssignedNCRs(allNCRsSorted);
-      setPendingNcrReviews(pendingReview);
-      setStats(prev => ({
-        ...prev,
-        openNCRs: openNCRs.length,
-        overdueNCRs: overdue.length,
-        resolvedNCRs: inProgressNCRs.length + closedNCRs.length,
+        
+        return matchesUser && matchesYear;
+      });
+      
+      myNCRs = myNCRs.map(ncr => ({
+        ...ncr,
+        history: ncr.history || (ncr.statusHistory ? ncr.statusHistory :
+          (ncr.status !== 'AWAITING_AUDITEE' && ncr.reviewedAt ? [{
+            action: ncr.status,
+            comment: ncr.rejectionReason,
+            performedBy: ncr.reviewedBy,
+            timestamp: ncr.reviewedAt
+          }] : []))
       }));
-      return myNCRs;
-    } catch (error) {
-      console.error('Error in fetchNCRData:', error);
-      addToast('Failed to load NCR data', 'error');
+    } catch (err) {
+      try {
+        const response = await axios.get(`${API_BASE}/ncr`, { withCredentials: true });
+        const allNCRs = response.data || [];
+        myNCRs = allNCRs.filter(ncr => {
+          const matchesUser = String(ncr.assigneeId) === String(user?.id) ||
+                             String(ncr.auditeeId) === String(user?.id);
+          
+          // Filter by year
+          const ncrDate = ncr.createdAt || ncr.raisedDate || ncr.dueDate;
+          let matchesYear = true;
+          if (year && ncrDate) {
+            const ncrYear = new Date(ncrDate).getFullYear();
+            matchesYear = ncrYear === year;
+          }
+          
+          return matchesUser && matchesYear;
+        });
+      } catch (err2) {
+        console.error('Failed to fetch NCRs:', err2);
+      }
+    }
+
+    if (myNCRs.length === 0) {
+      try {
+        const responsesRes = await axios.get(`${API_BASE}/templates/responses/all`, { withCredentials: true });
+        const myResponses = (responsesRes.data || []).filter(r =>
+          r.auditeeId === user?.id || r.auditeeName === user?.name
+        );
+        for (const response of myResponses) {
+          // Filter response by year
+          const responseYear = response.createdAt ? new Date(response.createdAt).getFullYear() : null;
+          if (year && responseYear !== year) continue;
+          
+          const answers = parseResponseAnswers(response);
+          const findings = getNcrFindingEntries(answers);
+          if (findings.length > 0) {
+            myNCRs.push({
+              id: response.id,
+              ncrNumber: `NCR-${response.id}`,
+              status: response.status === 'APPROVED' ? 'APPROVED' : response.status === 'REJECTED' ? 'REJECTED' : 'AWAITING_AUDITEE',
+              department: response.department,
+              severity: findings[0]?.severity || 'Minor NC',
+              clause: findings[0]?.clause,
+              dueDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
+              createdAt: response.createdAt,
+              updatedAt: response.updatedAt,
+              auditeeId: response.auditeeId,
+              auditeeName: response.auditeeName,
+              description: findings.map(f => f.checkpoint).join(', '),
+              history: [{ action: 'CREATED', comment: 'NCR created from audit findings', performedBy: response.auditorName, timestamp: response.createdAt }]
+            });
+          }
+        }
+      } catch (err) {
+        console.error('Error fetching responses:', err);
+      }
+    }
+
+    if (myNCRs.length === 0) {
+      setAssignedNCRs([]);
+      setPendingNcrReviews([]);
+      setStats(prev => ({ ...prev, openNCRs: 0, overdueNCRs: 0, resolvedNCRs: 0 }));
       return [];
     }
-  };
 
-  const fetchAllData = async () => {
-    try {
-      setLoading(true);
-      setRefreshing(true);
-      await Promise.all([fetchAuditsWithResponses(), fetchNCRData()]);
-    } catch (error) {
-      console.error('Error fetching auditee data:', error);
-      addToast('Failed to load dashboard data', 'error');
-    } finally {
-      setLoading(false);
-      setRefreshing(false);
-    }
-  };
+    const pendingReview = myNCRs.filter(n => n.status === 'AWAITING_AUDITEE');
+    const allNCRsSorted = [...myNCRs].sort((a, b) =>
+      new Date(b.updatedAt || b.createdAt || 0) - new Date(a.updatedAt || a.createdAt || 0)
+    );
+
+    const openNCRs = myNCRs.filter(n => ['OPEN', 'APPROVED', 'READY_FOR_NCR2'].includes(n.status));
+    const inProgressNCRs = myNCRs.filter(n => ['IN_PROGRESS', 'SENT_TO_8D', 'IN_8D_PROCESS', 'NCR2_IN_PROGRESS'].includes(n.status));
+    const closedNCRs = myNCRs.filter(n => ['CLOSED', 'NCR2_COMPLETED'].includes(n.status));
+    const today = new Date();
+    const overdue = openNCRs.filter(n => n.dueDate && new Date(n.dueDate) < today);
+
+    setAssignedNCRs(allNCRsSorted);
+    setPendingNcrReviews(pendingReview);
+    setStats(prev => ({
+      ...prev,
+      openNCRs: openNCRs.length,
+      overdueNCRs: overdue.length,
+      resolvedNCRs: inProgressNCRs.length + closedNCRs.length,
+    }));
+    return myNCRs;
+  } catch (error) {
+    console.error('Error in fetchNCRData:', error);
+    addToast('Failed to load NCR data', 'error');
+    return [];
+  }
+};
+
+  const fetchAllData = async (year = selectedYear) => {
+  try {
+    setLoading(true);
+    setRefreshing(true);
+    await Promise.all([fetchAuditsWithResponses(year), fetchNCRData(year)]);
+  } catch (error) {
+    console.error('Error fetching auditee data:', error);
+    addToast('Failed to load dashboard data', 'error');
+  } finally {
+    setLoading(false);
+    setRefreshing(false);
+  }
+};
 
   useEffect(() => {
   // Check for tab in state (from navigation back from views)
@@ -892,14 +947,32 @@ const AuditeeDashboard = () => {
   }
 }, [location.state]);
 
-  useEffect(() => {
-    if (user?.id) {
-      fetchAllData();
-      fetchAllUsers();
-      const interval = setInterval(fetchAllData, 60000);
-      return () => clearInterval(interval);
-    }
-  }, [user]);
+
+// Save selected year to localStorage
+useEffect(() => {
+  localStorage.setItem('auditeeSelectedYear', selectedYear);
+}, [selectedYear]);
+
+
+useEffect(() => {
+  const currentYear = new Date().getFullYear();
+  const startYear = 2020;
+  const endYear = currentYear + 5;
+  const years = [];
+  for (let i = startYear; i <= endYear; i++) {
+    years.push(i);
+  }
+  setAvailableYears(years.sort((a, b) => b - a));
+}, []);
+
+useEffect(() => {
+  if (user?.id) {
+    fetchAllData(selectedYear);
+    fetchAllUsers();
+    const interval = setInterval(() => fetchAllData(selectedYear), 60000);
+    return () => clearInterval(interval);
+  }
+}, [user, selectedYear]);
 
   const filteredAudits = completedAuditsForReview.filter(audit =>
     !searchQuery ||
@@ -923,22 +996,34 @@ const AuditeeDashboard = () => {
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
       <div className="px-4 py-8 mx-auto max-w-7xl sm:px-6 lg:px-8">
         {/* Header */}
-        <div className="mb-8">
-          <div className="flex flex-wrap items-center justify-between gap-4">
-            <div>
-              <h1 className="text-3xl font-bold text-gray-900">Welcome back, {user?.name?.split(' ')[0] || 'User'}!</h1>
-              <p className="mt-1 text-sm text-gray-500">Review and approve individual audit forms</p>
-            </div>
-            <button
-              onClick={fetchAllData}
-              disabled={refreshing}
-              className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-gray-700 transition-all border shadow-md backdrop-blur-xl bg-white/50 rounded-xl hover:bg-white/80 disabled:opacity-50 border-white/30"
-            >
-              <FiRefreshCw className={`w-4 h-4 ${refreshing ? 'animate-spin' : ''}`} />
-              Refresh Data
-            </button>
-          </div>
-        </div>
+        {/* Header */}
+<div className="mb-8">
+  <div className="flex flex-wrap items-center justify-between gap-4">
+    <div>
+      <h1 className="text-3xl font-bold text-gray-900">Welcome back, {user?.name?.split(' ')[0] || 'User'}!</h1>
+      <p className="mt-1 text-sm text-gray-500">Review and approve individual audit forms</p>
+    </div>
+    <div className="flex items-center gap-3">
+      {/* ADD YEAR FILTER HERE */}
+      <YearFilter 
+        selectedYear={selectedYear}
+        onYearChange={(newYear) => {
+          setSelectedYear(newYear);
+        }}
+        availableYears={availableYears}
+      />
+      
+      <button
+        onClick={() => fetchAllData(selectedYear)}
+        disabled={refreshing}
+        className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-gray-700 transition-all border shadow-md backdrop-blur-xl bg-white/50 rounded-xl hover:bg-white/80 disabled:opacity-50 border-white/30"
+      >
+        <FiRefreshCw className={`w-4 h-4 ${refreshing ? 'animate-spin' : ''}`} />
+        Refresh Data
+      </button>
+    </div>
+  </div>
+</div>
 
         {/* Stats */}
         <div className="grid grid-cols-1 gap-4 mb-8 sm:grid-cols-2 lg:grid-cols-6">
@@ -1074,13 +1159,13 @@ const AuditeeDashboard = () => {
             )}
 
             {activeTab === 'ncr-pending' && (
-              <NcrPendingList
-                key="ncr-pending"
-                pendingNcrAudits={pendingNcrReviews}
-                onRaise={handleNcrReview}
-              />
-            )}
-
+  <NcrPendingList
+    key="ncr-pending"
+    pendingNcrAudits={pendingNcrReviews}
+    onRaise={handleNcrReview}
+    selectedYear={selectedYear}
+  />
+)}
             {activeTab === 'my-ncrs' && (
               <motion.div
                 key="my-ncrs"
@@ -1265,7 +1350,6 @@ const AuditeeDashboard = () => {
                 onBack={() => setShow8DForumDrawer(false)}
               />
             )}
-            
           </div>
         )}
       </Drawer>
