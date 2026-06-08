@@ -412,6 +412,31 @@ System auto-triggers 2nd NCR form
 *Each user sees only their relevant audits, schedules, and tasks.*
 
 ---
+
+## Email Integration
+
+### Annual Plan Triggered Email Notification
+
+The system automatically triggers an email notification when an **Annual Audit Plan** is published or activated. This email serves as an official communication to all stakeholders, providing them with direct access to review and acknowledge the plan.
+
+**Email Components:**
+- Annual audit plan summary (schedule, scope, departments covered)
+- Key milestones and deadlines for the year
+- Assigned lead auditors and auditee departments
+- **Secure login link** to access the complete plan details
+- Action required: Review and acknowledge participation
+
+<img width="3202" height="1842" alt="Calendar" src="src/screenshots/Mail.jpeg" />
+
+### Login Link Integration
+
+The email contains a **dynamic login link** that:
+- Redirects users to the audit system login page
+- Pre-fills email/username for convenience
+- After successful authentication, navigates directly to the Annual Audit Plan dashboard
+- Includes a secure token for seamless redirection
+
+---
 ## System Architecture
 
 ### Frontend
