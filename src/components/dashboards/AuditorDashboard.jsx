@@ -1243,7 +1243,7 @@ useEffect(() => {
   // Create a continuous range of years from 2020 to current year + 2
   const currentYear = new Date().getFullYear();
   const startYear = 2020;
-  const endYear = currentYear + 8;
+  const endYear = currentYear + 5;
   
   const allYears = [];
   for (let i = startYear; i <= endYear; i++) {
