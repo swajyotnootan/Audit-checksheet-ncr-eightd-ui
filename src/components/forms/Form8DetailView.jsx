@@ -129,7 +129,7 @@ const isAuditeeRole = isAuditee || isHOD;
       setLoading8DReport(true);
       const eventId = await resolve8DEventId();
       if (!eventId) {
-        alert(`8D report not found for NCR #${ncr?.ncrNumber || ncr?.id}`);
+        alert(`8D report not found for NCR ${ncr?.ncrNumber || ncr?.id}`);
         return;
       }
       setSelected8DEventId(eventId);

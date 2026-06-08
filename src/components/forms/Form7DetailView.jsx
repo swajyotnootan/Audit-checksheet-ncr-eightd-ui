@@ -164,7 +164,7 @@ const ReviewModal = ({
         <div className="p-5">
           <div className="mb-4 p-3 rounded-lg" style={{ backgroundColor: 'rgba(220, 38, 38, 0.05)', border: '1px solid rgba(220, 38, 38, 0.1)' }}>
             <p className="text-sm" style={{ fontFamily, color: 'rgba(75, 85, 99, 0.9)' }}>
-              <strong style={{ color: 'rgba(220, 38, 38, 0.8)' }}>NCR #{ncr?.ncrNumber}</strong>
+              <strong style={{ color: 'rgba(220, 38, 38, 0.8)' }}>NCR {ncr?.ncrNumber}</strong>
               <br />
               <strong>Department:</strong> {ncr?.department}
             </p>
@@ -452,7 +452,7 @@ const handleReject = () => {
       setLoading8DReport(true);
       const eventId = await resolve8DEventId();
       if (!eventId) {
-        alert(`8D report not found for NCR #${ncr?.ncrNumber || ncr?.id}`);
+        alert(`8D report not found for NCR ${ncr?.ncrNumber || ncr?.id}`);
         return;
       }
       setSelected8DEventId(eventId);
