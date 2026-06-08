@@ -5,7 +5,7 @@ import {
   FiGrid, FiList, FiFileText, FiCheckCircle, FiCalendar,
   FiRefreshCw
 } from 'react-icons/fi';
-import { Calendar, Play, CheckCircle, XCircle, AlertCircle } from 'lucide-react';
+import { Calendar, Play, CheckCircle, XCircle, AlertCircle, Clock } from 'lucide-react';
 import { format } from 'date-fns';
 
 const GlassCard = ({ children, className = "" }) => (
