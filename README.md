@@ -7,12 +7,12 @@ Qsutra - Audit Management System is a web-based audit lifecycle management appli
 <table>
   <tr>
     <td align="center" width="50%">
-      <img width="300" height="300" alt="Qsutra Audit Platform Logo" src="https://auditchecksheetncr.vercel.app/assets/QsutraQMS-Bfia-QQv.png" /><br/>
+      <img width="300" height="300" alt="Qsutra Audit Platform Logo" src="src/screenshots/Renewsys_files/QsutraQMS-Bfia-QQv.png" /><br/>
       <em>Platform: Qsutra QMS</em>
      </td>
     <td width="10%"> </td>
     <td align="center" width="100%">
-      <img width="600" height="300" alt="STRATUM aerospace Client Logo" src="https://github.com/user-attachments/assets/6e1563bc-7026-458c-8f1d-c1f416bfef6f" /><br/>
+      <img width="600" height="300" alt="STRATUM aerospace Client Logo" src="src/screenshots/Renewsys_files/Stratum-DRsGo50j.png" /><br/>
       <em>Client: STRATUM aerospace</em>
      </td>
    </tr>
