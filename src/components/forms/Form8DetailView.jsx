@@ -96,7 +96,7 @@ const isAuditeeRole = isAuditee || isHOD;
       ncr?.eightDEventId,
       ncr?.eightDEventNo,
       ncr?.eventNo,
-      ncr?.ncrNumber ? `8D-NCR-${ncr.ncrNumber}` : null,
+      ncr?.ncrNumber ? `8D-${ncr.ncrNumber}` : null,
     ].filter(Boolean);
 
     for (const candidate of directCandidates) {
@@ -117,7 +117,7 @@ const isAuditeeRole = isAuditee || isHOD;
       return (
         String(d0Data?.sourceNcrId || '') === String(ncr?.id || '') ||
         String(d0Data?.sourceNcrNumber || '') === String(ncr?.ncrNumber || '') ||
-        String(event?.eventNo || '') === `8D-NCR-${ncr?.ncrNumber || ''}`
+        String(event?.eventNo || '') === `8D-${ncr?.ncrNumber || ''}`
       );
     });
 

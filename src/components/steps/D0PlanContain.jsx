@@ -951,7 +951,7 @@ export default function D0PlanContain({ eventId = null, updateParent, initialIsN
     formData.sourceType === "ncr" ||
     formData.sourceNcrId ||
     formData.sourceNcrNumber ||
-    String(eventId || formData.eventNo || "").startsWith("8D-NCR-")
+    String(eventId || formData.eventNo || "").startsWith("8D-")
   );
 
   const API_BASE_URL = "https://qsutrarmsclm.hub.swajyot.co.in:8476";
@@ -1134,7 +1134,7 @@ useEffect(() => {
               backendData.sourceNcrNumber ||
               backendData.isNcrBased ||
               backendData.sourceType === "ncr" ||
-              String(eventId || backendData.eventNo || "").startsWith("8D-NCR-")
+              String(eventId || backendData.eventNo || "").startsWith("8D-")
             );
 
             setFormData({

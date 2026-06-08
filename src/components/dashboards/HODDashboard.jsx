@@ -163,7 +163,7 @@ const isNcrBasedEvent = (event) => {
   return Boolean(
     d0Data?.sourceNcrId ||
     d0Data?.sourceNcrNumber ||
-    String(event?.eventNo || '').startsWith('8D-NCR-')
+    String(event?.eventNo || '').startsWith('8D-')
   );
 };
 

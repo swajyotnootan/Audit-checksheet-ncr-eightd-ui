@@ -39,7 +39,7 @@ export default function EightDLanding() {
   const startedFromNcrFlow = Boolean(
     isNcrBased ||
     type === "ncr" ||
-    String(eventId || "").startsWith("8D-NCR-")
+    String(eventId || "").startsWith("8D-")
   );
 
   const steps = [

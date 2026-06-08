@@ -204,7 +204,7 @@ function isNcrBasedEvent(eventData) {
     d0Data?.sourceType === "ncr" ||
     eventData?.isNcrBased ||
     eventData?.sourceType === "ncr" ||
-    String(eventData?.eventNo || "").startsWith("8D-NCR-")
+    String(eventData?.eventNo || "").startsWith("8D-")
   );
 }
 
