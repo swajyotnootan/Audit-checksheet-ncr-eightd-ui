@@ -295,6 +295,11 @@ System auto-triggers 2nd NCR form
 
 *Displays assigned audit tasks, pending checklists, and upcoming audit schedules. Helps auditors document findings, upload evidence, and submit audit reports efficiently.*
 
+### Reschedule Audit Feature
+<img width="3202" height="1842" alt="Auditor Dashboard" src="src/screenshots/RequestReschedule.jpeg" />
+
+When an audit is assigned to an auditor in the **Auditor Dashboard**, if the auditor becomes unavailable due to any reason and the assigned audit date has already passed, the audit status changes to **Overdue**. In this case, an **Reschedule** button is shown on the overdue audit grid card. Clicking this button opens the reschedule request form, allowing the auditor to propose a new date for the audit.
+
 ---
 
 ### Auditee Dashboard
@@ -334,7 +339,14 @@ System auto-triggers 2nd NCR form
 #### NCR with 8D Integration (Score < 70%)
 <img width="3202" height="1842" alt="NCR with 8D" src="src/screenshots/NCRRaisedwithD.jpeg" />
 
+*NCR raised and based on this score now decision is on Audit Manager Side*
+
+#### Audit Manager Review score and make Decision:
+<img width="3202" height="1842" alt="NCR with 8D" src="src/screenshots/AMReviewScoreEightD.jpeg" />
+
 *NCR raised with 8D team integration. Audit Manager must check checkbox to send to 8D team.*
+
+
 
 #### 2nd NCR (Corrective Action)
 <img width="3202" height="1842" alt="2nd NCR" src="src/screenshots/NCRTwoForm.jpeg" />
@@ -371,6 +383,12 @@ System auto-triggers 2nd NCR form
 
 ---
 
+#### 8D form
+<img width="3202" height="1842" alt="8D Dashboard" src="src/screenshots/EightDForm.jpeg" />
+
+*EightD form according to step wise data.*
+
+
 #### NCR based 8D Dashboard 
 
 <img width="3202" height="1842" alt="8D Dashboard" src="src/screenshots/NCRbasedEightd.png" />
@@ -380,8 +398,13 @@ System auto-triggers 2nd NCR form
 
 *D0 to D8 steps management.*
 
-#### HOD Approval Screen
+#### HOD Dashboard
 <img width="3202" height="1842" alt="HOD Approval" src="src/screenshots/HODDashboard.jpeg" />
+
+*HOD Dashboard he can able to see Pending Requests here.*
+
+#### HOD Approval Screen
+<img width="3202" height="1842" alt="HOD Approval" src="src/screenshots/NCRHOD.jpeg" />
 
 *HOD must approve before proceeding from D0 to D1.*
 
