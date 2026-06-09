@@ -1556,7 +1556,7 @@ const DailyScheduleCard = ({
         {approvedPlans.length > 0 && (
           <div className="px-3 py-2 bg-gray-50">
             <p className="text-xs font-medium text-gray-500">
-              ðŸ“‹ {approvedPlans.length} month(s) with approved/history schedules
+              📋 {approvedPlans.length} month(s) with approved/history schedules
             </p>
           </div>
         )}
