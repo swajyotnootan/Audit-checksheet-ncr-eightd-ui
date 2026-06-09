@@ -474,7 +474,7 @@ const years = [];
   const refreshDetailedSchedulesData = useCallback(async () => {
     try {
       const result = await fetchDetailedPlans();
-      console.log('ðŸ”„ Refreshed detailed plans:', result);
+      console.log('🔄 Refreshed detailed plans:', result);
       
       if (showDetailedDetails && selectedDetailedPlan) {
         const updatedPendingMonths = [...pendingDetailedPlans];
@@ -901,7 +901,7 @@ const navigateToMonth = (direction) => {
     // Continue with local update even if backend fails
   }
   
-  // âœ… IMMEDIATE LOCAL UI UPDATE (works even if backend fails)
+  // ✅ IMMEDIATE LOCAL UI UPDATE (works even if backend fails)
   // Update the schedule in detailedSchedulesList
   setDetailedSchedulesList(prevList => {
     const updatedList = prevList.map(s => 
@@ -1148,7 +1148,7 @@ const navigateToMonth = (direction) => {
     }
   }
   
-  // âœ… CRITICAL: Update the detailedSchedulesList with APPROVED status
+  // ✅ CRITICAL: Update the detailedSchedulesList with APPROVED status
   setDetailedSchedulesList(prevList => {
     // First, mark all approved schedules as APPROVED
     const updatedList = prevList.map(schedule => {
@@ -1178,7 +1178,7 @@ const navigateToMonth = (direction) => {
     return updatedList;
   });
   
-  // âœ… Update master list
+  // ✅ Update master list
   setAllDetailedSchedules(prevList => 
     prevList.map(schedule => 
       approvedIds.has(schedule.id) 
@@ -1193,7 +1193,7 @@ const navigateToMonth = (direction) => {
     )
   );
   
-  // âœ… Update selected plan's schedules
+  // ✅ Update selected plan's schedules
   if (selectedDetailedPlan) {
     const updatedSchedules = selectedDetailedPlan.schedules.map(s =>
       approvedIds.has(s.id)
@@ -1225,7 +1225,7 @@ const navigateToMonth = (direction) => {
   addToast(`${pendingSchedules.length} schedule(s) approved!`, 'success');
   setDetailedApprovalComment('');
   
-  // âœ… Check if no more pending schedules and auto-switch to history
+  // ✅ Check if no more pending schedules and auto-switch to history
   const remainingPendingCount = detailedSchedulesList.filter(s => 
     !approvedIds.has(s.id) && 
     (s.detailedApprovalStatus === 'PENDING_APPROVAL' || s.detailedApprovalStatus === 'CHANGE_REQUESTED')
@@ -1238,7 +1238,7 @@ const navigateToMonth = (direction) => {
     setActiveTab('history');
   }
   
-  // âœ… Force refresh the filtered view
+  // ✅ Force refresh the filtered view
   setTimeout(() => {
     // This will trigger re-render of getFilteredDetailedSchedules
     setDetailedAuditTypeFilter(prev => prev);
@@ -1543,7 +1543,7 @@ const DailyScheduleCard = ({
                     )}
                   </p>
                   <p className="text-xs text-gray-400 mt-0.5 truncate">
-                    Prepared by: {plan.preparedBy || 'N/A'} â€¢ {plan.scheduleCount || 0} schedule(s)
+                    Prepared by: {plan.preparedBy || 'N/A'} • {plan.scheduleCount || 0} schedule(s)
                   </p>
                 </div>
                 <FiChevronRight className="flex-shrink-0 w-4 h-4 mt-1 text-gray-300" />
@@ -1786,7 +1786,7 @@ const DailyScheduleCard = ({
                     <div className="space-y-1 overflow-y-auto max-h-32">
                       {approvedPlans.map(plan => (
                         <p key={plan.year} className="text-xs text-gray-600">
-                          â€¢ {plan.year} - {plan.approvedAt ? new Date(plan.approvedAt).toLocaleDateString() : 'N/A'}
+                          • {plan.year} - {plan.approvedAt ? new Date(plan.approvedAt).toLocaleDateString() : 'N/A'}
                         </p>
                       ))}
                     </div>
@@ -1800,7 +1800,7 @@ const DailyScheduleCard = ({
                     <div className="space-y-1 overflow-y-auto max-h-32">
                       {approvedDeptPlans.map(plan => (
                         <p key={plan.year} className="text-xs text-gray-600">
-                          â€¢ {plan.year} - {plan.approvedAt ? new Date(plan.approvedAt).toLocaleDateString() : 'N/A'}
+                          • {plan.year} - {plan.approvedAt ? new Date(plan.approvedAt).toLocaleDateString() : 'N/A'}
                         </p>
                       ))}
                     </div>
@@ -1814,7 +1814,7 @@ const DailyScheduleCard = ({
                     <div className="space-y-1 overflow-y-auto max-h-32">
                       {approvedForm5Plans.map(plan => (
                         <p key={`${plan.year}-${plan.month}`} className="text-xs text-gray-600">
-                          â€¢ {monthDisplay[plan.month] || plan.month} {plan.year}
+                          • {monthDisplay[plan.month] || plan.month} {plan.year}
                         </p>
                       ))}
                     </div>
@@ -1828,7 +1828,7 @@ const DailyScheduleCard = ({
                     <div className="space-y-1 overflow-y-auto max-h-32">
                       {approvedDetailedPlans.map(plan => (
                         <p key={`${plan.year}-${plan.month}`} className="text-xs text-gray-600">
-                          â€¢ {monthDisplay[plan.month] || plan.month} {plan.year} ({plan.scheduleCount} schedules)
+                          • {monthDisplay[plan.month] || plan.month} {plan.year} ({plan.scheduleCount} schedules)
                         </p>
                       ))}
                     </div>
@@ -1894,7 +1894,7 @@ const DailyScheduleCard = ({
                 </p>
               </div>
               <button onClick={() => setShowForm5Details(false)} className="p-2 rounded-lg hover:bg-gray-100">
-                âœ•
+                ✕
               </button>
             </div>
            
@@ -2084,7 +2084,7 @@ const DailyScheduleCard = ({
                 <p className="text-sm text-gray-500">Prepared by: {selectedDetailedPlan.preparedBy || 'N/A'}</p>
               </div>
               <button onClick={() => setShowDetailedDetails(false)} className="p-2 rounded-lg hover:bg-gray-100">
-                âœ•
+                ✕
               </button>
             </div>
             
@@ -2136,7 +2136,7 @@ const DailyScheduleCard = ({
                         className="flex items-center justify-center w-8 h-8 text-lg font-bold transition-colors bg-white rounded-lg shadow-sm hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed"
                         title="Previous Month"
                       >
-                        â—€
+                        ◀
                       </button>
                       <div className="text-center">
                         <div className="text-sm font-semibold text-gray-700">
@@ -2152,7 +2152,7 @@ const DailyScheduleCard = ({
                         className="flex items-center justify-center w-8 h-8 text-lg font-bold transition-colors bg-white rounded-lg shadow-sm hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed"
                         title="Next Month"
                       >
-                        â–¶
+                        ▶
                       </button>
                     </div>
                   )}
@@ -2250,12 +2250,12 @@ const DailyScheduleCard = ({
                             {schedule.fromDate && schedule.toDate && schedule.fromDate !== schedule.toDate ? (
                               <div className="flex flex-col">
                                 <div className="flex items-center gap-1">
-                                  <span className="text-xs text-purple-600">ðŸ“…</span>
+                                  <span className="text-xs text-purple-600">📅</span>
                                   <span className="text-xs font-semibold text-gray-700">Date Range:</span>
                                   <span className="text-xs bg-purple-100 text-purple-700 px-1.5 py-0.5 rounded-full">Flexible</span>
                                 </div>
                                 <div className="text-xs font-medium text-gray-600 mt-0.5">
-                                  {schedule.fromDate} â†’ {schedule.toDate}
+                                  {schedule.fromDate} → {schedule.toDate}
                                 </div>
                                 <div className="text-[10px] text-gray-400 mt-0.5">
                                   Can be completed any day in this range
