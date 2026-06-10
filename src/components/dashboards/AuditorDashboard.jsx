@@ -896,12 +896,46 @@ const getAvailableYears = () => {
 };
 
   const fetchAvailableFormsForDepartment = async (department) => {
-    if (!department) return [];
+  if (!department) return [];
+  
+  const deptUpper = department.toUpperCase().trim();
+  
+  // Only QA/QC related departments need special handling
+  const isQualityDept = deptUpper.includes('QA') || deptUpper.includes('QC');
+  
+  if (!isQualityDept) {
+    // For non-QA departments, use the original endpoint
     try {
-      const res = await axios.get(`${API_BASE}/templates/iatf/by-department/${encodeURIComponent(department)}`, { withCredentials: true });
+      const res = await axios.get(
+        `${API_BASE}/templates/iatf/by-department/${encodeURIComponent(department)}`,
+        { withCredentials: true }
+      );
       return res.data || [];
-    } catch { return []; }
-  };
+    } catch {
+      return [];
+    }
+  }
+  
+  // For QA/QC, fetch all IATF forms and filter by QA department
+  try {
+    const allFormsRes = await axios.get(
+      `${API_BASE}/templates/type/IATF_16949`,
+      { withCredentials: true }
+    );
+    
+    const allForms = allFormsRes.data || [];
+    
+    // Filter forms where department is 'QA'
+    const qaForms = allForms.filter(form => form.department === 'QA');
+    
+    console.log(`✅ QA/QC → Using ${qaForms.length} QA forms`);
+    return qaForms;
+    
+  } catch (error) {
+    console.error('Error fetching IATF forms:', error);
+    return [];
+  }
+};
 
   
 

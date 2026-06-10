@@ -224,143 +224,138 @@ export default function IATFInternalAuditForm() {
   };
 
   // Fetch available IATF check sheets for the department
-  const fetchSheetsForDepartment = async (department) => {
-    if (!department) {
-      setLoading(false);
-      return;
-    }
-    
-    setLoading(true);
-    
+ const fetchSheetsForDepartment = async (department) => {
+  if (!department) return [];
+  
+  const deptUpper = department.toUpperCase().trim();
+  
+  // For QA/QC, fetch all IATF forms and filter by QA department (same as dashboard)
+  if (deptUpper === 'QA/QC' || deptUpper === 'QC' || deptUpper === 'Q.C') {
     try {
-      const response = await axios.get(
-        `${API_BASE}/templates/iatf/by-department/${encodeURIComponent(department)}`,
+      console.log(`🔍 QA/QC detected, fetching all IATF forms and filtering for QA`);
+      const allFormsRes = await axios.get(
+        `${API_BASE}/templates/type/IATF_16949`,
         { withCredentials: true }
       );
-      
-      const sheets = response.data;
-      setAvailableSheets(sheets);
-      
-      if (!sheets || sheets.length === 0) {
-        addToast(`No IATF forms found for ${department} department`, 'warning');
-        setLoading(false);
-      } 
-      else if (processNameParam) {
-        const specificSheet = sheets.find(sheet => 
-          sheet.processName === processNameParam || sheet.name.includes(processNameParam)
-        );
-        if (specificSheet) {
-          const completed = await checkIfFormCompleted(scheduleId, specificSheet.id);
-          if (completed) {
-            setIsAlreadyCompleted(true);
-            addToast(`This form (${specificSheet.processName}) has already been completed.`, 'warning');
-            setLoading(false);
-            return;
-          }
-          await loadSheetQuestions(specificSheet);
-        } else {
-          addToast(`Form "${processNameParam}" not found for ${department}`, 'error');
-          setLoading(false);
-        }
-        setShowSheetSelector(false);
-      } 
-      else if (sheets.length === 1) {
-        await loadSheetQuestions(sheets[0]);
-      } 
-      else {
-        setShowSheetSelector(true);
-        setLoading(false);
-      }
+      const allForms = allFormsRes.data || [];
+      const qaForms = allForms.filter(form => form.department === 'QA');
+      console.log(`✅ Found ${qaForms.length} QA forms for QA/QC`);
+      return qaForms;
     } catch (error) {
-      console.error('Error fetching sheets:', error);
-      addToast(`Failed to load forms for ${department}`, 'error');
-      setLoading(false);
+      console.error('Error fetching IATF forms:', error);
+      return [];
     }
-  };
+  }
+  
+  // For other departments, use the regular endpoint
+  try {
+    const response = await axios.get(
+      `${API_BASE}/templates/iatf/by-department/${encodeURIComponent(department)}`,
+      { withCredentials: true }
+    );
+    return response.data || [];
+  } catch (error) {
+    console.error(`Error fetching IATF sheets for ${department}:`, error);
+    return [];
+  }
+};
 
-  const loadSheetQuestions = async (sheet) => {
-    setLoading(true);
+const loadSheetQuestions = async (sheet) => {
+  setLoading(true);
+  
+  try {
+    console.log(`📋 Loading sheet ID: ${sheet.id}, Name: ${sheet.name}`);
+    const response = await axios.get(`${API_BASE}/templates/${sheet.id}`, {
+      withCredentials: true
+    });
     
-    try {
-      const response = await axios.get(`${API_BASE}/templates/${sheet.id}`, {
-        withCredentials: true
-      });
-      
-      const fullSheet = response.data;
-      setCurrentCheckSheet(fullSheet);
-      
-      let parsedQuestions = [];
-      
-      if (fullSheet.questions) {
-        try {
-          if (typeof fullSheet.questions === 'object' && fullSheet.questions !== null) {
-            parsedQuestions = fullSheet.questions;
-          } 
-          else if (typeof fullSheet.questions === 'string') {
-            let cleanJson = fullSheet.questions.trim();
-            
-            if (cleanJson.charCodeAt(0) === 0xFEFF) {
-              cleanJson = cleanJson.substring(1);
-            }
+    const fullSheet = response.data;
+    console.log(`✅ Full sheet data received:`, fullSheet);
+    setCurrentCheckSheet(fullSheet);
+    
+    let parsedQuestions = [];
+    
+    if (fullSheet.questions) {
+      try {
+        if (typeof fullSheet.questions === 'object' && fullSheet.questions !== null) {
+          parsedQuestions = fullSheet.questions;
+          console.log(`📋 Questions parsed as object, count: ${parsedQuestions.length}`);
+        } 
+        else if (typeof fullSheet.questions === 'string') {
+          console.log(`📋 Questions is string, length: ${fullSheet.questions.length}`);
+          let cleanJson = fullSheet.questions.trim();
+          
+          // Remove BOM if present
+          if (cleanJson.charCodeAt(0) === 0xFEFF) {
+            cleanJson = cleanJson.substring(1);
+          }
+          
+          try {
+            parsedQuestions = JSON.parse(cleanJson);
+            console.log(`✅ Questions parsed successfully, count: ${parsedQuestions.length}`);
+          } catch (e) {
+            console.error('JSON parse error:', e.message);
+            // Try to fix common JSON issues
+            cleanJson = cleanJson.replace(/\\n/g, '\\\\n');
+            cleanJson = cleanJson.replace(/,(\s*[}\]])/g, '$1');
+            cleanJson = cleanJson.replace(/([{,]\s*)([a-zA-Z_][a-zA-Z0-9_]*)\s*:/g, '$1"$2":');
             
             try {
               parsedQuestions = JSON.parse(cleanJson);
-            } catch (e) {
-              cleanJson = cleanJson.replace(/\\n/g, '\\\\n');
-              cleanJson = cleanJson.replace(/,(\s*[}\]])/g, '$1');
-              cleanJson = cleanJson.replace(/([{,]\s*)([a-zA-Z_][a-zA-Z0-9_]*)\s*:/g, '$1"$2":');
-              
-              try {
-                parsedQuestions = JSON.parse(cleanJson);
-              } catch (e2) {
-                parsedQuestions = manualExtractQuestions(fullSheet.questions);
-              }
+              console.log(`✅ Questions parsed after cleanup, count: ${parsedQuestions.length}`);
+            } catch (e2) {
+              console.error('Still failing after cleanup:', e2);
+              parsedQuestions = manualExtractQuestions(fullSheet.questions);
             }
           }
-        } catch (e) {
-          parsedQuestions = manualExtractQuestions(fullSheet.questions);
         }
+      } catch (e) {
+        console.error('Error in question parsing:', e);
+        parsedQuestions = manualExtractQuestions(fullSheet.questions);
       }
-      
-      if (!Array.isArray(parsedQuestions) || parsedQuestions.length === 0) {
-        parsedQuestions = getFallbackQuestions();
-      }
-      
-      const formattedQuestions = parsedQuestions.map((q, idx) => ({
-        slNo: q?.sNo || q?.slNo || (idx + 1),
-        checkpoint: q?.displayLabel || q?.checkpoint || `Question ${idx + 1}`,
-        clause: q?.clauseNo || q?.clause || '',
-        documentsVerified: q?.documentsVerified || q?.whatToLookFor || q?.consideration || 'Review relevant documentation',
-        whatToLookFor: q?.whatToLookFor || q?.documentsVerified || q?.consideration || 'Review relevant documentation'
-      }));
-      
-      setQuestions(formattedQuestions);
-      
-      const initialResponses = {};
-      const initialObservations = {};
-      formattedQuestions.forEach(q => {
-        initialResponses[q.slNo] = '';
-        initialObservations[q.slNo] = '';
-      });
-      
-      setFormData(prev => ({
-        ...prev,
-        responses: initialResponses,
-        observations: initialObservations
-      }));
-      
-      setShowSheetSelector(false);
-      setCurrentCheckpointIndex(0);
-      
-    } catch (error) {
-      console.error('Error loading questions:', error);
-      addToast('Failed to load audit questions. Please check the form configuration.', 'error');
-      const fallbackQuestions = getFallbackQuestions();
-      setQuestions(fallbackQuestions);
-    } finally {
-      setLoading(false);
     }
-  };
+    
+    if (!Array.isArray(parsedQuestions) || parsedQuestions.length === 0) {
+      console.warn('⚠️ No questions found, using fallback');
+      parsedQuestions = getFallbackQuestions();
+    }
+    
+    const formattedQuestions = parsedQuestions.map((q, idx) => ({
+      slNo: q?.sNo || q?.slNo || (idx + 1),
+      checkpoint: q?.displayLabel || q?.checkpoint || `Question ${idx + 1}`,
+      clause: q?.clauseNo || q?.clause || '',
+      documentsVerified: q?.documentsVerified || q?.whatToLookFor || q?.consideration || 'Review relevant documentation',
+      whatToLookFor: q?.whatToLookFor || q?.documentsVerified || q?.consideration || 'Review relevant documentation'
+    }));
+    
+    console.log(`📝 Formatted ${formattedQuestions.length} questions for display`);
+    setQuestions(formattedQuestions);
+    
+    const initialResponses = {};
+    const initialObservations = {};
+    formattedQuestions.forEach(q => {
+      initialResponses[q.slNo] = '';
+      initialObservations[q.slNo] = '';
+    });
+    
+    setFormData(prev => ({
+      ...prev,
+      responses: initialResponses,
+      observations: initialObservations
+    }));
+    
+    setShowSheetSelector(false);
+    setCurrentCheckpointIndex(0);
+    setLoading(false); // Make sure loading is set to false here
+    
+  } catch (error) {
+    console.error('Error loading questions:', error);
+    addToast('Failed to load audit questions. Please check the form configuration.', 'error');
+    const fallbackQuestions = getFallbackQuestions();
+    setQuestions(fallbackQuestions);
+    setLoading(false);
+  }
+};
 
   const manualExtractQuestions = (jsonString) => {
     const questions = [];
@@ -430,42 +425,85 @@ export default function IATFInternalAuditForm() {
 
   // INITIALIZATION - runs only once
   useEffect(() => {
-    if (initialized.current) return;
-    initialized.current = true;
+  if (initialized.current) return;
+  initialized.current = true;
+  
+  const initialize = async () => {
+    await fetchAuditorSignature();
     
-    const initialize = async () => {
-      await fetchAuditorSignature();
+    let decodedAuditeeName = '';
+    if (urlAuditeeName && urlAuditeeName !== 'undefined' && urlAuditeeName !== 'null') {
+      try {
+        decodedAuditeeName = decodeURIComponent(urlAuditeeName);
+        setFormData(prev => ({ 
+          ...prev, 
+          auditeeName: decodedAuditeeName,
+          auditeeId: urlAuditeeId || ''
+        }));
+      } catch (e) {
+        console.error('Error decoding auditee name:', e);
+      }
+    }
+    
+    let deptToFetch = departmentParam;
+    if (!deptToFetch && scheduleId) {
+      deptToFetch = formData.department;
+    }
+    
+    if (deptToFetch) {
+      setFormData(prev => ({ ...prev, department: deptToFetch }));
+      const forms = await fetchSheetsForDepartment(deptToFetch);
       
-      let decodedAuditeeName = '';
-      if (urlAuditeeName && urlAuditeeName !== 'undefined' && urlAuditeeName !== 'null') {
-        try {
-          decodedAuditeeName = decodeURIComponent(urlAuditeeName);
-          setFormData(prev => ({ 
-            ...prev, 
-            auditeeName: decodedAuditeeName,
-            auditeeId: urlAuditeeId || ''
-          }));
-        } catch (e) {
-          console.error('Error decoding auditee name:', e);
+      // ✅ CRITICAL FIX: If we have a processNameParam or formIdParam, auto-select the matching form
+      if (forms.length > 0 && (processNameParam || formIdParam)) {
+        let targetSheet = null;
+        
+        // Try to find by formId first
+        if (formIdParam) {
+          targetSheet = forms.find(f => f.id === parseInt(formIdParam));
+          console.log(`🔍 Looking for form by ID ${formIdParam}:`, targetSheet);
         }
-      }
-      
-      let deptToFetch = departmentParam;
-      if (!deptToFetch && scheduleId) {
-        deptToFetch = formData.department;
-      }
-      
-      if (deptToFetch) {
-        setFormData(prev => ({ ...prev, department: deptToFetch }));
-        await fetchSheetsForDepartment(deptToFetch);
-      } else {
-        addToast('No department specified', 'error');
+        
+        // If not found by ID, try by processName
+        if (!targetSheet && processNameParam) {
+          targetSheet = forms.find(f => 
+            f.processName === processNameParam || 
+            f.name.includes(processNameParam)
+          );
+          console.log(`🔍 Looking for form by processName "${processNameParam}":`, targetSheet);
+        }
+        
+        // If still not found and only one form exists, use that
+        if (!targetSheet && forms.length === 1) {
+          targetSheet = forms[0];
+          console.log(`🔍 Using the only available form:`, targetSheet);
+        }
+        
+        if (targetSheet && !currentCheckSheet) {
+          console.log(`✅ Loading sheet: ${targetSheet.name}`);
+          await loadSheetQuestions(targetSheet);
+        } else if (!targetSheet && forms.length > 0) {
+          console.warn(`⚠️ No matching form found, showing selector`);
+          setAvailableSheets(forms);
+          setShowSheetSelector(true);
+          setLoading(false);
+        }
+      } else if (forms.length === 1 && !currentCheckSheet) {
+        // Auto-select if only one form
+        await loadSheetQuestions(forms[0]);
+      } else if (forms.length > 1 && !currentCheckSheet) {
+        // Show selector if multiple forms
+        setShowSheetSelector(true);
         setLoading(false);
       }
-    };
-    
-    initialize();
-  }, []);
+    } else {
+      addToast('No department specified', 'error');
+      setLoading(false);
+    }
+  };
+  
+  initialize();
+}, []);
 
   // Load existing audit data in edit mode
   useEffect(() => {
