@@ -7,18 +7,18 @@ Qsutra - Audit Management System is a web-based audit lifecycle management appli
 <table>
   <tr>
     <td align="center" width="50%">
-      <img width="300" height="300" alt="Qsutra Audit Platform Logo" src="https://auditchecksheetncr.vercel.app/assets/QsutraQMS-Bfia-QQv.png" /><br/>
-      <em>Platform: Qsutra AuditFX</em>
+      <img width="300" height="300" alt="Qsutra Audit Platform Logo" src="src/screenshots/Renewsys_files/QsutraQMS-Bfia-QQv.png" /><br/>
+      <em>Platform: Qsutra QMS</em>
      </td>
     <td width="10%"> </td>
     <td align="center" width="100%">
-      <img width="600" height="300" alt="STRATUM aerospace Client Logo" src="https://github.com/user-attachments/assets/6e1563bc-7026-458c-8f1d-c1f416bfef6f" /><br/>
+      <img width="600" height="300" alt="STRATUM aerospace Client Logo" src="src/screenshots/Renewsys_files/Stratum-DRsGo50j.png" /><br/>
       <em>Client: STRATUM aerospace</em>
      </td>
    </tr>
 </table>
 
-**Version**: 1.0.0 (5th June, 2026)  
+**Version**: 2.0.1 (7th April, 2025)  
 **Client**: STRATUM aerospace
 
 ---
@@ -128,11 +128,13 @@ This system enables nine distinct user roles to collaborate on audit management 
 ## Workflow Overview
 
 ### 1️⃣ Scheduling Workflow (4 Levels)
+```
 Annual Plan → Department Plan → Week Plan → Day Schedule
 ↓ ↓ ↓ ↓
 [Approve/Reject/Change Request by Top Management]
 ↓
 Time Conflict Detection Applied
+```
 
 ### 2️⃣ Audit Execution Workflow
 
@@ -222,6 +224,8 @@ System auto-triggers 2nd NCR form
 ### Lead Auditor Dashboard
 <img width="3202" height="1842" alt="Lead Auditor Dashboard" src="src/screenshots/LeadAuditorDashboard.jpeg" />
 
+*Provides a comprehensive overview of all audit programs, schedules, and team assignments. Enables lead auditors to track audit progress, review non-conformities, and approve audit reports in real-time.*
+
 ---
 
 
@@ -230,10 +234,14 @@ System auto-triggers 2nd NCR form
 #### AuditManager Schedule Dashboard
 <img width="3202" height="1842" alt="Scheduling Dashboard" src="src/screenshots/AuditManagerSchedule.jpeg" />
 
+*Offers high-level visibility into the entire audit lifecycle across departments and locations. Allows managers to allocate resources, monitor compliance status, and generate strategic audit performance reports.*
+
 ---
 
 #### AuditManager NCR Dashboard
 <img width="3202" height="1842" alt="Scheduling Dashboard" src="src/screenshots/AuditManagerNCR.jpeg" />
+
+*Audit manager review ncr data and approves and also send to 8d team if required for further changes*
 
 ---
 
@@ -285,10 +293,19 @@ System auto-triggers 2nd NCR form
 ### Auditor Dashboard
 <img width="3202" height="1842" alt="Auditor Dashboard" src="src/screenshots/AuditorDashboard.png" />
 
+*Displays assigned audit tasks, pending checklists, and upcoming audit schedules. Helps auditors document findings, upload evidence, and submit audit reports efficiently.*
+
+### Reschedule Audit Feature
+<img width="3202" height="1842" alt="Auditor Dashboard" src="src/screenshots/RequestReschedule.jpeg" />
+
+When an audit is assigned to an auditor in the **Auditor Dashboard**, if the auditor becomes unavailable due to any reason and the assigned audit date has already passed, the audit status changes to **Overdue**. In this case, an **Reschedule** button is shown on the overdue audit grid card. Clicking this button opens the reschedule request form, allowing the auditor to propose a new date for the audit.
+
 ---
 
 ### Auditee Dashboard
 <img width="3202" height="1842" alt="Auditee Dashboard" src="src/screenshots/AuditeeDashboard.jpeg" />
+
+*Shows upcoming audits, requested evidence items, and past audit results for their department. Enables auditees to prepare documentation, respond to findings, and track corrective action status.*
 
 ---
 
@@ -317,12 +334,19 @@ System auto-triggers 2nd NCR form
 #### NCR Raised (Score > 70%)
 <img width="3202" height="1842" alt="NCR Normal" src="src/screenshots/NCRRaised.jpeg" />
 
-*Standard NCR with information, question, audit number, auditor data, and auditee data.*
+*Standard NCR with information, question, audit number, auditor data, and auditee data. and with score now directly it will proceed to NCR 2 form*
 
 #### NCR with 8D Integration (Score < 70%)
 <img width="3202" height="1842" alt="NCR with 8D" src="src/screenshots/NCRRaisedwithD.jpeg" />
 
+*NCR raised and based on this score now decision is on Audit Manager Side*
+
+#### Audit Manager Review score and make Decision:
+<img width="3202" height="1842" alt="NCR with 8D" src="src/screenshots/AMReviewScoreEightD.jpeg" />
+
 *NCR raised with 8D team integration. Audit Manager must check checkbox to send to 8D team.*
+
+
 
 #### 2nd NCR (Corrective Action)
 <img width="3202" height="1842" alt="2nd NCR" src="src/screenshots/NCRTwoForm.jpeg" />
@@ -336,8 +360,12 @@ System auto-triggers 2nd NCR form
 ###### NCR Dashboard
 <img width="3202" height="1842" alt="2nd NCR" src="src/screenshots/NCRDashboard.png" />
 
+*Provides a centralized view of all Non-Conformance Reports (NCRs) raised during audits. Enables tracking of NCR status, severity levels, and assignment to responsible teams.*
+
 ###### NCR Corrective Action Dashboard:
 <img width="3202" height="1842" alt="2nd NCR" src="src/screenshots/NCRSecondDashboard.png" />
+
+*Tracks the status of corrective action plans, implementation progress, and effectiveness verification. Provides visibility into overdue actions and closure rates.*
 
 
 
@@ -351,17 +379,32 @@ System auto-triggers 2nd NCR form
 #### Create New 8D Dashboard 
 <img width="3202" height="1842" alt="8D Dashboard" src="src/screenshots/EightDdashboard.png" />
 
+*Allows initiators to create and manage new 8D problem-solving reports from NCRs. Captures problem description, team formation, and immediate containment actions.*
+
 ---
+
+#### 8D form
+<img width="3202" height="1842" alt="8D Dashboard" src="src/screenshots/EightDForm.jpeg" />
+
+*EightD form according to step wise data.*
+
 
 #### NCR based 8D Dashboard 
 
 <img width="3202" height="1842" alt="8D Dashboard" src="src/screenshots/NCRbasedEightd.png" />
 
+*Displays all 8D reports linked to raised NCRs with status tracking. Provides visibility into root cause analysis, corrective actions, and closure verification across all stages (D1-D8).*
+
 
 *D0 to D8 steps management.*
 
-#### HOD Approval Screen
+#### HOD Dashboard
 <img width="3202" height="1842" alt="HOD Approval" src="src/screenshots/HODDashboard.jpeg" />
+
+*HOD Dashboard he can able to see Pending Requests here.*
+
+#### HOD Approval Screen
+<img width="3202" height="1842" alt="HOD Approval" src="src/screenshots/NCRHOD.jpeg" />
 
 *HOD must approve before proceeding from D0 to D1.*
 
@@ -380,44 +423,92 @@ System auto-triggers 2nd NCR form
 *For audit and NCR-related discussions.*
 
 #### Forum 3: 8D Team Internal
-<img width="3202" height="1842" alt="Forum 3" src="YOUR_FORUM3_URL" />
+<img width="3202" height="1842" alt="Forum 3" src="src/screenshots/8Dforum.jpeg"/>
 
 *For 8D team internal communications.*
 
 ---
 
 ### Role-Based Calendar View
-<img width="3202" height="1842" alt="Calendar" src="src/screenshots/CalendarViewmodal.jpeg" />
+<img width="3202" height="1842" alt="Calendar" src="src/screenshots/CalensarViewmodal.jpeg" />
 
 *Each user sees only their relevant audits, schedules, and tasks.*
 
 ---
-## System Architecture
-```
-+---------------------------------------------------+
-| Frontend (React) |
-+---------------------------------------------------+
-| Backend APIs (Node.js) |
-+---------------------------------------------------+
-| Database (PostgreSQL) |
-+---------------------------------------------------+
-| Email & Notification Service |
-+---------------------------------------------------+
-| Calendar Integration |
-+---------------------------------------------------+
 
-```
+## Email Integration
+
+### Annual Plan Triggered Email Notification
+
+The system automatically triggers an email notification when an **Annual Audit Plan** is published or activated. This email serves as an official communication to all stakeholders, providing them with direct access to review and acknowledge the plan.
+
+**Email Components:**
+- Annual audit plan summary (schedule, scope, departments covered)
+- Key milestones and deadlines for the year
+- Assigned lead auditors and auditee departments
+- **Secure login link** to access the complete plan details
+- Action required: Review and acknowledge participation
+
+<img width="3202" height="1842" alt="Calendar" src="src/screenshots/Mail.jpeg" />
+
+### Login Link Integration
+
+The email contains a **dynamic login link** that:
+- Redirects users to the audit system login page
+- Pre-fills email/username for convenience
+- After successful authentication, navigates directly to the Annual Audit Plan dashboard
+- Includes a secure token for seamless redirection
+
+---
+## System Architecture
+
+### Frontend
+- **Framework:** React 18 + TypeScript
+- **Bundler:** Vite with @vitejs/plugin-react-swc
+- **Compiler:** SWC — 20x faster than Babel (single-core), 70x faster (4-core)
+- **Styling:** Tailwind CSS
+- **State:** Context API + useReducer (or Redux Toolkit)
+- **Routing:** React Router v6
+
+### Backend (Spring Boot Monolithic)
+- **Framework:** Spring Boot 3.x
+- **Language:** Java 17/21
+- **Build Tool:** Maven or Gradle
+- **Database:** PostgreSQL / MySQL (with JPA/Hibernate)
+- **Security:** Spring Security + JWT for Authentication & RBAC
+- **File Storage:** Local storage / AWS S3 for audit evidence, NCR attachments, 8D documents
+- **Email Service:** Spring Mail (SMTP) for audit notifications
+- **API Documentation:** Swagger/OpenAPI 3.0
+
 ---
 
 ## Core Workflows
 
-| Workflow | Steps | Approvals |
-|----------|-------|-----------|
-| Scheduling | 4 levels (Annual → Day) | Top Management |
-| Audits | Fill → Submit → Acknowledge → Close | N/A |
-| NCR (Score >70%) | Raise → Acknowledge → Approve → 2nd NCR → Close | Audit Manager |
-| NCR (Score <70%) | Raise → 8D → 2nd NCR → Close | Audit Manager, HOD |
-| 8D | D0-D8 → HOD Approve → Trigger 2nd NCR | HOD |
+#### Audit Lifecycle
+- **Planning:** Audit Manager creates audit schedule and assigns auditors
+- **Preparation:** Auditors prepare checklists and gather reference documents
+- **Execution:** Auditors conduct audits, record findings, capture evidence
+- **Reporting:** Lead Auditor reviews and publishes audit reports
+- **NCR Raised:** Non-Conformance Reports created for identified gaps
+- **Corrective Action:** Assignees submit CAPA plans with target dates
+- **Verification:** Auditor verifies effectiveness of corrective actions
+- **Closure:** NCR closed after successful verification
+
+#### 8D Problem Solving Workflow
+- **D1 - Team Formation:** 8D Initiator forms cross-functional team
+- **D2 - Problem Description:** Describe issue with 5W2H approach
+- **D3 - Interim Actions:** Implement immediate containment actions
+- **D4 - Root Cause Analysis:** Identify root causes using Ishikawa, 5 Why
+- **D5 - Permanent Actions:** Develop and implement permanent corrective actions
+- **D6 - Effectiveness Check:** Verify actions resolved the issue
+- **D7 - Preventive Actions:** Implement preventive measures for recurrence
+- **D8 - Team Recognition:** Congratulate team and standardize learnings
+
+#### Alert & Notification Flow
+- On audit assigned → Auditor gets in-app notification + email
+- On NCR raised → Corrective Action assignee gets email with attachments
+- On audit overdue → Lead Auditor & Audit Manager get escalation alert
+- On 8D initiated → Team members get task assignments + deadlines
 
 ---
 
@@ -455,7 +546,7 @@ audit-management-system/
 ## Testing Status
 
 | Module | Status | 
-|--------|--------|-----------|
+|--------|--------|
 | Scheduling (4 levels) | ✅ Passed | 
 | IATF Audit Form | ✅ Passed | 
 | Process Audit Form | ✅ Passed |    
@@ -471,23 +562,90 @@ audit-management-system/
 
 ---
 
+
 ## API Services
 
-| Service | Endpoint | Description |
-|---------|----------|-------------|
-| User Service | `/api/users` | User CRUD operations |
-| Schedule Service | `/api/schedules` | Annual/Dept/Week/Day schedules |
-| Audit Service | `/api/audits` | IATF/Process/Five S forms |
-| NCR Service | `/api/ncr` | NCR creation & management |
-| EightD Service | `/api/8d` | 8D workflow management |
-| Forum Service | `/api/forums` | Discussion forums |
-| Calendar Service | `/api/calendar` | Role-based calendar |
-| Notification Service | `/api/notifications` | Email & in-app alerts |
+The application uses a Spring Boot RESTful backend with role-scoped API endpoints to manage audit operations, NCR tracking, and 8D problem-solving workflows.
+
+#### 🔐 Authentication API
+- User login with role-based validation (Lead Auditor, Auditor, Auditee, Audit Manager, NCR Initiator, 8D Initiator)
+- JWT token issuance and refresh
+- Session timeout and secure logout
+- Endpoint: `POST /api/auth/login`, `POST /api/auth/refresh`
+
+#### 📋 Audit Management API
+- Create/Read/Update audit schedules with scope, criteria, and team assignment
+- Upload audit checklists and reference documents
+- Manage audit status: Planned, In Progress, Completed, Published
+- Fetch audits by auditor, auditee department, or date range
+- Endpoints: `GET/POST/PUT /api/audits`, `GET /api/audits/{id}/download-report`
+
+#### 📝 NCR (Non-Conformance Report) API
+- Create NCR from audit findings with severity levels (Major, Minor, Observation)
+- Assign corrective action owner and target date
+- Track NCR status: Open, In Progress, Closed, Reopened
+- Endpoints: `POST /api/ncr`, `GET /api/ncr/status`, `PUT /api/ncr/{id}/verify`
+
+#### ✅ Corrective Action API
+- Submit CAPA (Corrective Action & Preventive Action) plans
+- Request extension for target dates
+- Verify effectiveness of implemented actions
+- Endpoints: `POST /api/capa`, `PUT /api/capa/{id}/verify`, `POST /api/capa/{id}/extension`
+
+#### 🔄 8D Problem Solving API
+- **8D Initiate:** Create 8D report linked to NCR
+- **D1-D8 Updates:** Update each discipline stage with findings
+- **Team Management:** Assign team members and roles
+- **Root Cause Analysis:** Document RCA methodology and findings
+- **Action Tracking:** Track interim, permanent, and preventive actions
+- **Closure:** Complete 8D with validation and lessons learned
+- Endpoints: `POST /api/8d/initiate`, `PUT /api/8d/{id}/stage`, `GET /api/8d/{id}/progress`
+
+#### 📊 Dashboard APIs
+- **Lead Auditor Dashboard:** Audit completion rates, NCR trends, team performance
+- **Audit Manager Dashboard:** Department-wise compliance, overdue actions, resource utilization
+- **Auditor Dashboard:** Assigned audits, pending NCRs, verification tasks
+- **Auditee Dashboard:** Upcoming audits, raised NCRs, corrective actions due
+- **NCR Dashboard:** Open NCRs by severity, aging analysis, closure rates
+- **Corrective Action Dashboard:** CAPA status, overdue actions, effectiveness rate
+- **8D Initiator Dashboard:** Active 8Ds, pending D3/D4 actions, closure timeline
+- **8D Dashboard:** All 8Ds with raised NCRs, stage-wise progress, team performance
+
+#### 👥 User & Role API
+- Retrieve user profile and assigned audits/NCRs/8Ds
+- List users by role (Audit Manager, Lead Auditor, Auditor, Auditee, NCR Initiator, 8D Initiator)
+- Manage department hierarchy
+- Create and assign users (Admin only)
+- Endpoints: `GET /api/users`, `POST /api/users`, `GET /api/users/profile`
+
+#### 🛡️ Security
+All APIs enforce **Role-Based Access Control (RBAC)** using Spring Security method-level annotations (`@PreAuthorize`). Users can only access data and actions permitted by their role.
+
+## Installation and Setup
+
+### Prerequisites
+- **Node.js** 
+- **npm** 
+- **Java** (JDK 17/21)
+- **Maven**
+- **PostgreSQL** database
+- **Git CLI**
+
+### Backend Setup (Spring Boot)
+
+```bash
+# Clone the repository
+git clone https://github.com/SWAJYOT-TECHNOLOGIES-PVT-LTD/checksheet-ncr-backend
+
+# Configure application.properties
+# Update database credentials, JWT secret, SMTP settings
+
+# Build the application
+./mvnw clean install  
+
+# Run Spring Boot application
+./mvnw spring-boot:run  
 
 ---
 
-## Last Updated
 
-5th June, 2026
-
----
