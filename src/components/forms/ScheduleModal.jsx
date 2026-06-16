@@ -90,7 +90,9 @@ const ScheduleModal = ({
         `${API_BASE}/audit-schedule/auditees/by-department/${encodeURIComponent(enumValue)}`,
         { withCredentials: true }
       );
-      setDepartmentAuditees(auditeesRes.data || []);
+      const filteredAuditees = (auditeesRes.data || []).filter(user => user.role !== 'HOD');
+      setDepartmentAuditees(filteredAuditees);
+ 
       
       console.log(`✅ ${department}: ${leadRes.data?.length} Lead, ${regularRes.data?.length} Team, ${auditeesRes.data?.length} Auditees`);
     } catch (error) {
