@@ -457,78 +457,147 @@ const AuditCard = ({
         )}
         
         {/* Individual Forms */}
-        {isMultiForm && formDetails?.length > 0 && (
-          <div className="mb-3">
-            <button 
-              onClick={() => setExpanded(!expanded)} 
-              className="flex items-center justify-between w-full px-2 py-1.5 text-xs font-medium text-gray-600 transition-all backdrop-blur-sm bg-gray-100/50 rounded-xl hover:bg-gray-100/80"
-            >
-              <span>Forms ({completedForms}/{totalForms})</span>
-              {expanded ? <ChevronUp size={12} /> : <ChevronDown size={12} />}
-            </button>
-            {expanded && (
-              <div className="mt-2 space-y-1.5">
-                {formDetails.map((form, idx) => {
-                  const isFormOverdue = isExpired && !form.completed;
-                  return (
-                    <div key={idx} className={`flex items-center justify-between p-2 text-xs border backdrop-blur-sm rounded-xl ${
-                      hasPendingReschedule || hasPendingExtension ? 'bg-yellow-50/50 border-yellow-200/50' :
-                      isFormOverdue && isOverduePartialWork ? 'bg-orange-50/50 border-orange-200/50' :
-                      isFormOverdue && isOverdueNoWork ? 'bg-red-50/50 border-red-200/50' :
-                      'bg-gray-50/50 border-gray-100/50'
-                    }`}>
-                      <div className="flex items-center min-w-0 gap-2">
-                        <div className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${
-                          form.completed ? 'bg-emerald-500' : 
-                          (hasPendingReschedule || hasPendingExtension) ? 'bg-yellow-500' :
-                          (isFormOverdue && isOverduePartialWork) ? 'bg-orange-500' :
-                          (isFormOverdue && isOverdueNoWork) ? 'bg-red-500' : 
-                          'bg-amber-500'
-                        }`} />
-                        <span className="text-gray-700 truncate">{form.processName || form.name}</span>
-                        {hasPendingExtension && !form.completed && <span className="text-[10px] text-yellow-600 ml-1">(Extension Pending)</span>}
-                        {!hasPendingExtension && !hasPendingReschedule && isFormOverdue && isOverduePartialWork && !form.completed && (
-                          <span className="text-[10px] text-orange-600 ml-1">(Extension Needed)</span>
-                        )}
-                      </div>
-                       {form.completed ? (
-  <button onClick={() => onViewReport(form.responseId, audit, form)} className="flex items-center gap-1 px-2 py-1 text-[10px] font-medium text-blue-700 backdrop-blur-sm bg-blue-100/80 rounded-xl hover:bg-blue-200/80 transition-all">
-    <Eye size={10} /> View
-  </button>
-) : (
-  <div className="flex gap-1">
-    {/* CHECK FOR BOTH RESCHEDULE AND EXTENSION PENDING */}
-    {(hasPendingReschedule || hasPendingExtension) ? (
-      <button 
-        disabled
-        className="flex items-center gap-1 px-2 py-1 text-[10px] font-medium text-gray-400 backdrop-blur-sm bg-gray-100/80 rounded-xl cursor-not-allowed"
-      >
-        <Clock size={10} /> {hasPendingReschedule ? 'Reschedule Pending' : 'Extension Pending'}
-      </button>
-    ) : isOverduePartialWork ? (
-      <button 
-        onClick={() => onRequestExtension(audit, form)} 
-        className="flex items-center gap-1 px-2 py-1 text-[10px] font-medium text-orange-700 backdrop-blur-sm bg-orange-100/80 rounded-xl hover:bg-orange-200/80 transition-all"
-      >
-        <Clock size={10} /> Request Extension
-      </button>
-    ) : (
-      <button 
-        onClick={() => onViewForm(audit, form)} 
-        className="flex items-center gap-1 px-2 py-1 text-[10px] font-medium text-emerald-700 backdrop-blur-sm bg-emerald-100/80 rounded-xl hover:bg-emerald-200/80 transition-all"
-      >
-        <Edit size={10} /> Fill
-      </button>
+        {/* Individual Forms */}
+
+{isMultiForm && formDetails?.length > 0 && (
+<div className="mb-3">
+<button 
+
+      onClick={() => setExpanded(!expanded)} 
+
+      className="flex items-center justify-between w-full px-2 py-1.5 text-xs font-medium text-gray-600 transition-all backdrop-blur-sm bg-gray-100/50 rounded-xl hover:bg-gray-100/80"
+>
+<span>Forms ({completedForms}/{totalForms})</span>
+
+      {expanded ? <ChevronUp size={12} /> : <ChevronDown size={12} />}
+</button>
+
+    {expanded && (
+<div className="mt-2 space-y-1.5">
+
+        {formDetails.map((form, idx) => {
+
+          const isFormOverdue = isExpired && !form.completed;
+
+          const canFill = (timeStatus === 'ACTIVE' || canStart) && !hasPendingReschedule && !hasPendingExtension && !isOverdueNoWork && !isOverduePartialWork;
+
+          return (
+<div key={idx} className={`flex items-center justify-between p-2 text-xs border backdrop-blur-sm rounded-xl ${
+
+              hasPendingReschedule || hasPendingExtension ? 'bg-yellow-50/50 border-yellow-200/50' :
+
+              isFormOverdue && isOverduePartialWork ? 'bg-orange-50/50 border-orange-200/50' :
+
+              isFormOverdue && isOverdueNoWork ? 'bg-red-50/50 border-red-200/50' :
+
+              'bg-gray-50/50 border-gray-100/50'
+
+            }`}>
+<div className="flex items-center min-w-0 gap-2">
+<div className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${
+
+                  form.completed ? 'bg-emerald-500' : 
+
+                  (hasPendingReschedule || hasPendingExtension) ? 'bg-yellow-500' :
+
+                  (isFormOverdue && isOverduePartialWork) ? 'bg-orange-500' :
+
+                  (isFormOverdue && isOverdueNoWork) ? 'bg-red-500' : 
+
+                  'bg-amber-500'
+
+                }`} />
+<span className="text-gray-700 truncate">{form.processName || form.name}</span>
+
+                {hasPendingExtension && !form.completed && <span className="text-[10px] text-yellow-600 ml-1">(Extension Pending)</span>}
+
+                {!hasPendingExtension && !hasPendingReschedule && isFormOverdue && isOverduePartialWork && !form.completed && (
+<span className="text-[10px] text-orange-600 ml-1">(Extension Needed)</span>
+
+                )}
+</div>
+
+              {form.completed ? (
+<button 
+
+                  onClick={() => onViewReport(form.responseId, audit, form)} 
+
+                  className="flex items-center gap-1 px-2 py-1 text-[10px] font-medium text-blue-700 backdrop-blur-sm bg-blue-100/80 rounded-xl hover:bg-blue-200/80 transition-all"
+>
+<Eye size={10} /> View
+</button>
+
+              ) : (
+<div className="flex gap-1">
+
+                  {(hasPendingReschedule || hasPendingExtension) ? (
+<button 
+
+                      disabled 
+
+                      className="flex items-center gap-1 px-2 py-1 text-[10px] font-medium text-gray-400 backdrop-blur-sm bg-gray-100/80 rounded-xl cursor-not-allowed"
+>
+<Clock size={10} /> {hasPendingReschedule ? 'Reschedule Pending' : 'Extension Pending'}
+</button>
+
+                  ) : isOverduePartialWork ? (
+<button 
+
+                      onClick={() => onRequestExtension(audit, form)} 
+
+                      className="flex items-center gap-1 px-2 py-1 text-[10px] font-medium text-orange-700 backdrop-blur-sm bg-orange-100/80 rounded-xl hover:bg-orange-200/80 transition-all"
+>
+<Clock size={10} /> Request Extension
+</button>
+
+                  ) : isOverdueNoWork ? (
+<button 
+
+                      onClick={() => onRequestReschedule(audit)} 
+
+                      className="flex items-center gap-1 px-2 py-1 text-[10px] font-medium text-red-700 backdrop-blur-sm bg-red-100/80 rounded-xl hover:bg-red-200/80 transition-all"
+>
+<Calendar size={10} /> Reschedule
+</button>
+
+                  ) : (
+
+                    /* ✅ FIXED: Added disabled check for upcoming audits */
+<button 
+
+                      onClick={() => onViewForm(audit, form)} 
+
+                      className={`flex items-center gap-1 px-2 py-1 text-[10px] font-medium rounded-xl transition-all ${
+
+                        canFill
+
+                          ? 'text-emerald-700 bg-emerald-100/80 hover:bg-emerald-200/80 cursor-pointer'
+
+                          : 'text-gray-400 bg-gray-100/80 cursor-not-allowed'
+
+                      }`}
+
+                      disabled={!canFill}
+>
+<Edit size={10} /> Fill
+</button>
+
+                  )}
+</div>
+
+              )}
+</div>
+
+          );
+
+        })}
+</div>
+
     )}
-  </div>
+</div>
+
 )}
-                    </div>
-                  );
-                })}
-              </div>
-            )}
-          </div>
-        )}
+ 
         
         <div className="flex justify-end gap-2 pt-2 border-t border-gray-100/50">
   
