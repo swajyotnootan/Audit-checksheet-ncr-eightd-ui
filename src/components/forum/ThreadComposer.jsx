@@ -17,9 +17,6 @@ import {
   Image as ImageIconOutline,
 } from "lucide-react";
 
-const API_BASE_URL = process.env.NODE_ENV === 'development'
-  ? 'https://qsutrarmsclm.hub.swajyot.co.in:8476'
-  : 'https://qsutrarmsclm.hub.swajyot.co.in:8476';
 
 const ThreadComposer = ({
   groupId,
