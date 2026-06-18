@@ -280,7 +280,7 @@ const UserManagement = () => {
                           <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center mr-3">
                             {user.profilePhotoPath ? (
                               <img
-                                src={`https://qsutrarmsclm.hub.swajyot.co.in:8476/api/users/${user.id}/profile-photo`}
+                                src={`https://internalaudit.hub.swajyot.co.in:8090/api/users/${user.id}/profile-photo`}
                                 alt="Profile"
                                 className="w-8 h-8 rounded-full object-cover"
                                 onError={(e) => {

@@ -69,7 +69,7 @@ export default function PokaYokeDashboard() {
   // Fetch all Poka-Yoke check sheet IDs dynamically
   const fetchPokaYokeCheckSheetIds = async () => {
     try {
-      const response = await axios.get('https://qsutrarmsclm.hub.swajyot.co.in:8476/api/templates/type/POKA_YOKE', {
+      const response = await axios.get('https://internalaudit.hub.swajyot.co.in:8090/api/templates/type/POKA_YOKE', {
         withCredentials: true
       });
       
@@ -99,7 +99,7 @@ export default function PokaYokeDashboard() {
       }
       
       // Fetch all audit responses
-      const response = await axios.get('https://qsutrarmsclm.hub.swajyot.co.in:8476/api/templates/responses/all', {
+      const response = await axios.get('https://internalaudit.hub.swajyot.co.in:8090/api/templates/responses/all', {
         withCredentials: true
       });
       

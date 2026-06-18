@@ -19,7 +19,7 @@ import ForumThreadView from '../forum/ForumThreadView';
 import Drawer from '../Drawer';
 import { MessageCircle } from 'lucide-react';
 import YearFilter from '../../components/common/YearFilter';
-const API_BASE = 'https://qsutrarmsclm.hub.swajyot.co.in:8476/api';
+const API_BASE = 'https://internalaudit.hub.swajyot.co.in:8090/api';
 
 const getViewRoute = (audit) => {
   const auditType = (audit.auditType || '').toLowerCase().trim();
@@ -599,7 +599,7 @@ const [availableYears, setAvailableYears] = useState([]);
     try {
       const eightDEventId = `8D-${ncr.ncrNumber}`;
       const response = await axios.get(
-        `https://qsutrarmsclm.hub.swajyot.co.in:8476/api/eightd/data/${eightDEventId}`
+        `https://internalaudit.hub.swajyot.co.in:8090/api/eightd/data/${eightDEventId}`
       );
       if (response.data?.success && response.data.data) {
         const d0Data = response.data.data.content?.d0?.[0] || {};

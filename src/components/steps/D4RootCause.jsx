@@ -15,7 +15,7 @@ import Drawer from "../Drawer";
 import FinalPreview from "./FinalPreview";
 
 export default function D4RootCause({ eventId = null, updateParent }) {
-  const API_URL = "https://qsutrarmsclm.hub.swajyot.co.in:8476/api/eightd/data";
+  const API_URL = "https://internalaudit.hub.swajyot.co.in:8090/api/eightd/data";
   const LOCAL_STORAGE_KEY = eventId ? `d4-event-${eventId}` : "d4-new-event";
   const [formData, setFormData] = useState({
     eventId: eventId || "",

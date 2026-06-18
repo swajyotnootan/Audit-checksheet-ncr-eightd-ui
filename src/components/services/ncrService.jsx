@@ -2,7 +2,7 @@
 
 import axios from 'axios';
 
-const API_BASE_URL = 'https://qsutrarmsclm.hub.swajyot.co.in:8476/api';
+const API_BASE_URL = 'https://internalaudit.hub.swajyot.co.in:8090/api';
 
 const apiClient = axios.create({
   baseURL: API_BASE_URL,
@@ -60,7 +60,7 @@ export const ncrService = {
 async sendTo8D(id, comment, userId) {
     try {
         const token = localStorage.getItem('token');
-        const response = await fetch(`https://qsutrarmsclm.hub.swajyot.co.in:8476/api/ncr/${id}/send-to-8d`, {
+        const response = await fetch(`https://internalaudit.hub.swajyot.co.in:8090/api/ncr/${id}/send-to-8d`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -87,7 +87,7 @@ async sendTo8D(id, comment, userId) {
 submitNCR2: async (ncrId, actionData) => {
     try {
         const token = localStorage.getItem('token');
-        const response = await fetch(`https://qsutrarmsclm.hub.swajyot.co.in:8476/api/ncr/${ncrId}/submit-ncr2`, {
+        const response = await fetch(`https://internalaudit.hub.swajyot.co.in:8090/api/ncr/${ncrId}/submit-ncr2`, {
             method: 'POST',
             headers: {
                 'Authorization': `Bearer ${token}`,
@@ -105,7 +105,7 @@ submitNCR2: async (ncrId, actionData) => {
 getPendingNCR2: async () => {
     try {
         const token = localStorage.getItem('token');
-        const response = await fetch(`https://qsutrarmsclm.hub.swajyot.co.in:8476/api/ncr/ncr2-pending`, {
+        const response = await fetch(`https://internalaudit.hub.swajyot.co.in:8090/api/ncr/ncr2-pending`, {
             headers: {
                 'Authorization': `Bearer ${token}`,
             },
@@ -121,7 +121,7 @@ getPendingNCR2: async () => {
 verifyNCR2: async (ncrId, accepted, comment) => {
   try {
     const token = localStorage.getItem('token');
-    const response = await fetch(`https://qsutrarmsclm.hub.swajyot.co.in:8476/api/ncr/${ncrId}/verify-ncr2`, {
+    const response = await fetch(`https://internalaudit.hub.swajyot.co.in:8090/api/ncr/${ncrId}/verify-ncr2`, {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${token}`,

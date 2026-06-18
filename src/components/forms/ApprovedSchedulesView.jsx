@@ -9,7 +9,7 @@ import {
   FiChevronDown, FiChevronUp, FiGrid, FiList, FiRefreshCw
 } from 'react-icons/fi';
 
-const API_BASE = 'https://qsutrarmsclm.hub.swajyot.co.in:8476/api';
+const API_BASE = 'https://internalaudit.hub.swajyot.co.in:8090/api';
 
 const ApprovedSchedulesView = () => {
   const { user } = useAuth();

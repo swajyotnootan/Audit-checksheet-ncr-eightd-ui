@@ -84,7 +84,7 @@ const NotificationControl = ({ user, isOpen, onClose, onCountUpdate }) => {
 
       try {
         // -------- Fetch D0 Events --------
-        const eightDRes = await axios.get(`https://qsutrarmsclm.hub.swajyot.co.in:8476/api/eightd/data?t=${Date.now()}`);
+        const eightDRes = await axios.get(`https://internalaudit.hub.swajyot.co.in:8090/api/eightd/data?t=${Date.now()}`);
         const eightDEvents = eightDRes.data?.success && Array.isArray(eightDRes.data.data)
           ? eightDRes.data.data
           : [];
