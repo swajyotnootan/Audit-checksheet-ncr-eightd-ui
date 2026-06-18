@@ -104,7 +104,7 @@ export default function Form7View() {
     if (!userId) return null;
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch(`https://internalaudit.hub.swajyot.co.in:8090/api/users/${userId}/signature`, {
+      const response = await fetch(`https://qsutrarmsclm.hub.swajyot.co.in:8476/api/users/${userId}/signature`, {
         headers: {
           'Authorization': token ? `Bearer ${token}` : '',
         },
@@ -347,7 +347,7 @@ export default function Form7View() {
     setPdfDownloading(true);
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch(`https://internalaudit.hub.swajyot.co.in:8090/api/ncr/${id}/form7-pdf`, {
+      const response = await fetch(`https://qsutrarmsclm.hub.swajyot.co.in:8476/api/ncr/${id}/form7-pdf`, {
         headers: { Authorization: token ? `Bearer ${token}` : '' },
       });
       if (!response.ok) throw new Error('Failed to download Form 7 PDF');

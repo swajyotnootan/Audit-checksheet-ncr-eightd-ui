@@ -15,7 +15,7 @@ import {
   FileCheck, Layers, FileText, Image as ImageIcon, AlertTriangle
 } from 'lucide-react';
 
-const API_BASE = 'https://internalaudit.hub.swajyot.co.in:8090/api';
+const API_BASE = 'https://qsutrarmsclm.hub.swajyot.co.in:8476/api';
 
 // STATUS OPTIONS with Ma, Mi, O mapping
 const STATUS_OPTIONS = [

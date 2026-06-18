@@ -46,8 +46,8 @@ const isAuditeeRole = isAuditee || isHOD;
     try {
       const token = localStorage.getItem('token');
       const endpoint = isNCR2Mode 
-        ? `https://internalaudit.hub.swajyot.co.in:8090/api/ncr/${ncr.id}/form8-pdf?type=ncr2`
-        : `https://internalaudit.hub.swajyot.co.in:8090/api/ncr/${ncr.id}/form8-pdf`;
+        ? `https://qsutrarmsclm.hub.swajyot.co.in:8476/api/ncr/${ncr.id}/form8-pdf?type=ncr2`
+        : `https://qsutrarmsclm.hub.swajyot.co.in:8476/api/ncr/${ncr.id}/form8-pdf`;
         
       const response = await fetch(endpoint, {
         headers: {
@@ -101,7 +101,7 @@ const isAuditeeRole = isAuditee || isHOD;
 
     for (const candidate of directCandidates) {
       try {
-        const response = await fetch(`https://internalaudit.hub.swajyot.co.in:8090/api/eightd/data/${encodeURIComponent(candidate)}`);
+        const response = await fetch(`https://qsutrarmsclm.hub.swajyot.co.in:8476/api/eightd/data/${encodeURIComponent(candidate)}`);
         const data = await response.json();
         if (response.ok && data?.success && data?.data) return candidate;
       } catch {
@@ -109,7 +109,7 @@ const isAuditeeRole = isAuditee || isHOD;
       }
     }
 
-    const response = await fetch(`https://internalaudit.hub.swajyot.co.in:8090/api/eightd/data?t=${Date.now()}`);
+    const response = await fetch(`https://qsutrarmsclm.hub.swajyot.co.in:8476/api/eightd/data?t=${Date.now()}`);
     const data = await response.json();
     const events = Array.isArray(data?.data) ? data.data : [];
     const matchedEvent = events.find((event) => {

@@ -4,7 +4,7 @@ import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 
 // ✅ CORRECT: Define your API base URL here.
 // If your backend runs on localhost:8080, use this.
-const API_BASE_URL = 'https://internalaudit.hub.swajyot.co.in:8090/api/logo';
+const API_BASE_URL = 'https://qsutrarmsclm.hub.swajyot.co.in:8476/api/logo';
 
 function LogoManagement() {
   const [logo, setLogo] = useState(null)

@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 // Base URL for API endpoints
-const API_BASE_URL = 'https://internalaudit.hub.swajyot.co.in:8090';
+const API_BASE_URL = 'https://qsutrarmsclm.hub.swajyot.co.in:8476';
 const API_ENDPOINT = `${API_BASE_URL}/api/incoming-quality-reports`;
 
 // Function to handle API errors

@@ -272,7 +272,7 @@ const renderStepData = (stepKey, data) => {
 };
 
 export default function D7LessonsLearned({ eventId = null, updateParent }) {
-  const API_URL = "https://internalaudit.hub.swajyot.co.in:8090/api/eightd/data";
+  const API_URL = "https://qsutrarmsclm.hub.swajyot.co.in:8476/api/eightd/data";
   const LOCAL_STORAGE_KEY = eventId ? `d7-event-${eventId}` : "d7-new-event";
   const [formData, setFormData] = useState({
     eventId: eventId || "",

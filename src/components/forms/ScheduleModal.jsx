@@ -3,7 +3,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { FiSave, FiUserCheck, FiUserPlus, FiInfo, FiAlertCircle, FiSearch, FiCheckCircle } from 'react-icons/fi';
 import axios from 'axios';
 
-const API_BASE = 'https://internalaudit.hub.swajyot.co.in:8090/api';
+const API_BASE = 'https://qsutrarmsclm.hub.swajyot.co.in:8476/api';
 
 // Department display name to enum mapping (for API calls)
 const departmentDisplayToEnum = {

@@ -40,7 +40,7 @@ const [logoLoading, setLogoLoading] = useState(true);
 useEffect(() => {
   const fetchDynamicLogo = async () => {
     try {
-      const response = await fetch('https://internalaudit.hub.swajyot.co.in:8090/api/logo');
+      const response = await fetch('https://qsutrarmsclm.hub.swajyot.co.in:8476/api/logo');
       if (response.ok) {
         const blob = await response.blob();
         const logoUrl = URL.createObjectURL(blob);

@@ -239,7 +239,7 @@ const ensureGroupExists = async () => {
 
     console.log('📦 [FORUM] Creating/verifying 8D group:', requestBody);
 
-    const response = await fetch('https://internalaudit.hub.swajyot.co.in:8090/api/forum/8d/groups', {
+    const response = await fetch('https://qsutrarmsclm.hub.swajyot.co.in:8476/api/forum/8d/groups', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(requestBody)

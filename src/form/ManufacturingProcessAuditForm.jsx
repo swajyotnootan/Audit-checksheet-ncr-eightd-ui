@@ -168,7 +168,7 @@ export default function ManufacturingProcessAuditForm() {
     try {
       console.log('Fetching check sheet with ID:', MANUFACTURING_CHECK_SHEET_ID);
       
-      const response = await axios.get(`https://internalaudit.hub.swajyot.co.in:8090/api/templates/${MANUFACTURING_CHECK_SHEET_ID}`);
+      const response = await axios.get(`https://qsutrarmsclm.hub.swajyot.co.in:8476/api/templates/${MANUFACTURING_CHECK_SHEET_ID}`);
       const checkSheet = response.data;
       console.log('Check sheet data:', checkSheet);
       setSheetConfig(checkSheet);
@@ -231,7 +231,7 @@ export default function ManufacturingProcessAuditForm() {
     if (!scheduleId) return;
     
     try {
-      const response = await axios.get(`https://internalaudit.hub.swajyot.co.in:8090/api/audit-schedule/${scheduleId}`, {
+      const response = await axios.get(`https://qsutrarmsclm.hub.swajyot.co.in:8476/api/audit-schedule/${scheduleId}`, {
         withCredentials: true
       });
       const schedule = response.data;
