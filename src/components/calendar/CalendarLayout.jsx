@@ -66,7 +66,8 @@ const CalendarLayout = ({ user, onLogout, children }) => {
             <div className="w-10 h-10 bg-gray-300 rounded-full flex items-center justify-center overflow-hidden">
               {user?.id ? (
                 <img
-                  src={`https://qsutrarmsclm.hub.swajyot.co.in:8476/api/users/${user.id}/profile-photo`}
+                  src={`https://internalaudit.hub.swajyot.co.in:8090
+/api/users/${user.id}/profile-photo`}
                   alt="User Avatar"
                   className="w-10 h-10 object-cover"
                   onError={e => { e.target.onerror = null; e.target.style.display = 'none'; }}

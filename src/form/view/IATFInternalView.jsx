@@ -141,7 +141,8 @@ export default function IATFInternalView() {
     try {
       let response;
       if (userId) {
-        response = await axios.get(`https://qsutrarmsclm.hub.swajyot.co.in:8476/api/users/${userId}/signature`, {
+        response = await axios.get(`https://internalaudit.hub.swajyot.co.in:8090
+/api/users/${userId}/signature`, {
           responseType: 'blob',
           withCredentials: true
         });
@@ -149,7 +150,8 @@ export default function IATFInternalView() {
         const nameParts = fullName.trim().split(' ', 2);
         const firstName = nameParts[0];
         const lastName = nameParts.length > 1 ? nameParts[1] : '';
-        response = await axios.get('https://qsutrarmsclm.hub.swajyot.co.in:8476/api/users/signature', {
+        response = await axios.get('https://internalaudit.hub.swajyot.co.in:8090
+/api/users/signature', {
           params: { firstName, lastName },
           responseType: 'blob',
           withCredentials: true
@@ -307,7 +309,8 @@ export default function IATFInternalView() {
         try {
           console.log(`✅ Fetching check sheet by ID: ${checkSheetId}`);
           const sheetRes = await axios.get(
-            `https://qsutrarmsclm.hub.swajyot.co.in:8476/api/templates/${checkSheetId}`,
+            `https://internalaudit.hub.swajyot.co.in:8090
+/api/templates/${checkSheetId}`,
             { withCredentials: true }
           );
           
@@ -352,7 +355,8 @@ export default function IATFInternalView() {
     console.log(`✅ Fetching IATF check sheets for department: ${department}`);
     try {
       const checkSheetRes = await axios.get(
-        `https://qsutrarmsclm.hub.swajyot.co.in:8476/api/templates/iatf/by-department/${encodeURIComponent(department)}`,
+        `https://internalaudit.hub.swajyot.co.in:8090
+/api/templates/iatf/by-department/${encodeURIComponent(department)}`,
         { withCredentials: true }
       );
       
@@ -372,7 +376,8 @@ export default function IATFInternalView() {
         console.log('✅ Selected sheet:', selectedSheet);
         
         const sheetDetailsRes = await axios.get(
-          `https://qsutrarmsclm.hub.swajyot.co.in:8476/api/templates/${selectedSheet.id}`,
+          `https://internalaudit.hub.swajyot.co.in:8090
+/api/templates/${selectedSheet.id}`,
           { withCredentials: true }
         );
         
@@ -434,7 +439,8 @@ export default function IATFInternalView() {
 
     setDownloading(true);
     try {
-      const API_URL = import.meta.env.VITE_API_URL || 'https://qsutrarmsclm.hub.swajyot.co.in:8476';
+      const API_URL = import.meta.env.VITE_API_URL || 'https://internalaudit.hub.swajyot.co.in:8090
+';
       const responseId = audit.id;
       
       const endpoint = `${API_URL}/api/iatf-audits/${responseId}/pdf`;
@@ -501,7 +507,8 @@ export default function IATFInternalView() {
     
     setSubmitting(true);
     try {
-      const API_URL = import.meta.env.VITE_API_URL || 'https://qsutrarmsclm.hub.swajyot.co.in:8476';
+      const API_URL = import.meta.env.VITE_API_URL || 'https://internalaudit.hub.swajyot.co.in:8090
+';
       
       const response = await axios.put(
         `${API_URL}/api/templates/responses/${audit.id}/approve`,
@@ -538,7 +545,8 @@ export default function IATFInternalView() {
     
     setSubmitting(true);
     try {
-      const API_URL = import.meta.env.VITE_API_URL || 'https://qsutrarmsclm.hub.swajyot.co.in:8476';
+      const API_URL = import.meta.env.VITE_API_URL || 'https://internalaudit.hub.swajyot.co.in:8090
+';
       
       const response = await axios.put(
         `${API_URL}/api/templates/responses/${audit.id}/reject`,

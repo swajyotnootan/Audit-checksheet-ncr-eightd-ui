@@ -15,7 +15,8 @@ import Drawer from "../Drawer";
 import FinalPreview from "./FinalPreview";
 
 export default function D8TeamReward({ eventId = null, updateParent }) {
-  const API_URL = "https://qsutrarmsclm.hub.swajyot.co.in:8476/api/eightd/data";
+  const API_URL = "https://internalaudit.hub.swajyot.co.in:8090
+/api/eightd/data";
   const LOCAL_STORAGE_KEY = eventId ? `d8-event-${eventId}` : "d8-new-event";
   const [formData, setFormData] = useState({
     eventId: eventId || "",
@@ -57,7 +58,8 @@ export default function D8TeamReward({ eventId = null, updateParent }) {
               if (signatureFiles.length > 0) {
                 setSignatureFile({
                   name: signatureFiles[0].originalname,
-                  url: `https://qsutrarmsclm.hub.swajyot.co.in:8476${signatureFiles[0].path}` // Adjust based on your backend
+                  url: `https://internalaudit.hub.swajyot.co.in:8090
+${signatureFiles[0].path}` // Adjust based on your backend
                 });
               }
               
@@ -65,7 +67,8 @@ export default function D8TeamReward({ eventId = null, updateParent }) {
                 setAttachments(attachmentFiles.map(file => ({
                   name: file.originalname,
                   type: file.mimetype,
-                  url: `https://qsutrarmsclm.hub.swajyot.co.in:8476${file.path}` // Adjust based on your backend
+                  url: `https://internalaudit.hub.swajyot.co.in:8090
+${file.path}` // Adjust based on your backend
                 })));
               }
             }

@@ -84,7 +84,8 @@ export default function EditFormOperator({ onClose, orderId }) {
   useEffect(() => {
     const fetchLogo = async () => {
       try {
-        const response = await fetch('https://qsutrarmsclm.hub.swajyot.co.in:8476/api/logo');
+        const response = await fetch('https://internalaudit.hub.swajyot.co.in:8090
+/api/logo');
         if (response.ok) {
           const blob = await response.blob();
           setDynamicLogo(URL.createObjectURL(blob));
@@ -128,7 +129,8 @@ export default function EditFormOperator({ onClose, orderId }) {
   const loadExistingInspection = async (id) => {
     try {
       setIsLoading(true);
-      const response = await axios.get(`https://qsutrarmsclm.hub.swajyot.co.in:8476/api/public/json-data/${id}`);
+      const response = await axios.get(`https://internalaudit.hub.swajyot.co.in:8090
+/api/public/json-data/${id}`);
       if (response.data.success) {
         const existingData = JSON.parse(response.data.data.jsonContent);
         setOrderData(existingData);
@@ -247,7 +249,8 @@ export default function EditFormOperator({ onClose, orderId }) {
         })
       };
 
-      await axios.put(`https://qsutrarmsclm.hub.swajyot.co.in:8476/api/public/json-data/${orderId}`, {
+      await axios.put(`https://internalaudit.hub.swajyot.co.in:8090
+/api/public/json-data/${orderId}`, {
         jsonContent: JSON.stringify(updatedJsonContent)
       });
 
@@ -429,7 +432,8 @@ export default function EditFormOperator({ onClose, orderId }) {
         lineContributions: updatedContributions
       };
 
-      await axios.put(`https://qsutrarmsclm.hub.swajyot.co.in:8476/api/public/json-data/${orderId}`, {
+      await axios.put(`https://internalaudit.hub.swajyot.co.in:8090
+/api/public/json-data/${orderId}`, {
         jsonContent: JSON.stringify(updatedJsonContent)
       });
 
@@ -552,7 +556,8 @@ export default function EditFormOperator({ onClose, orderId }) {
         lineContributions: updatedContributions
       };
 
-      await axios.put(`https://qsutrarmsclm.hub.swajyot.co.in:8476/api/public/json-data/${orderId}`, {
+      await axios.put(`https://internalaudit.hub.swajyot.co.in:8090
+/api/public/json-data/${orderId}`, {
         jsonContent: JSON.stringify(updatedJsonContent)
       });
 

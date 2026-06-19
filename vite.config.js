@@ -14,7 +14,8 @@ export default defineConfig(({ mode }) => {
     server: {
       proxy: {
         '/api': {
-          target: (env.VITE_API_BASE_URL || 'https://qsutrarmsclm.hub.swajyot.co.in:8476').trim(),
+          target: (env.VITE_API_BASE_URL || 'https://internalaudit.hub.swajyot.co.in:8090
+').trim(),
           changeOrigin: true,
           secure: false,
         }
@@ -25,7 +26,8 @@ export default defineConfig(({ mode }) => {
     preview: {
       proxy: {
         '/api': {
-          target: (env.VITE_API_BASE_URL || 'https://qsutrarmsclm.hub.swajyot.co.in:8476').trim(),
+          target: (env.VITE_API_BASE_URL || 'https://internalaudit.hub.swajyot.co.in:8090
+').trim(),
           changeOrigin: true,
           secure: false,
         }

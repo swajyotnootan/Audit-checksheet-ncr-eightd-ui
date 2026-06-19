@@ -32,7 +32,8 @@ import 'react-big-calendar/lib/css/react-big-calendar.css'
 
 const localizer = momentLocalizer(moment)
 
-const API_BASE = 'https://qsutrarmsclm.hub.swajyot.co.in:8476/api';
+const API_BASE = 'https://internalaudit.hub.swajyot.co.in:8090
+/api';
 
 // ========== ADD THIS USER CACHE CODE ==========
 let userCache = null;
@@ -377,7 +378,8 @@ const UserAvatar = ({ userId, userName, size = 'sm', showName = false }) => {
   const [imageError, setImageError] = useState(false);
   
   // Don't use blob, just use the URL directly like navbar does
-  const photoUrl = userId ? `https://qsutrarmsclm.hub.swajyot.co.in:8476/api/users/${userId}/profile-photo` : null;
+  const photoUrl = userId ? `https://internalaudit.hub.swajyot.co.in:8090
+/api/users/${userId}/profile-photo` : null;
   
   const sizeClasses = {
     'xs': 'w-5 h-5 text-[10px]',

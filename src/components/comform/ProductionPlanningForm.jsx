@@ -254,7 +254,8 @@ const canDeleteJob = () => {
   useEffect(() => {
     const fetchLogo = async () => {
       try {
-        const response = await fetch('https://qsutrarmsclm.hub.swajyot.co.in:8476/api/logo');
+        const response = await fetch('https://internalaudit.hub.swajyot.co.in:8090
+/api/logo');
         if (response.ok) {
           const blob = await response.blob();
           setDynamicLogo(URL.createObjectURL(blob));
@@ -291,7 +292,8 @@ const canDeleteJob = () => {
   const loadExistingInspection = async (id) => {
     try {
       setIsLoading(true);
-      const response = await axios.get(`https://qsutrarmsclm.hub.swajyot.co.in:8476/api/public/json-data/${id}`);
+      const response = await axios.get(`https://internalaudit.hub.swajyot.co.in:8090
+/api/public/json-data/${id}`);
       if (response.data.success) {
         const existingData = JSON.parse(response.data.data.jsonContent);
         setExistingData(existingData);
@@ -474,7 +476,8 @@ const canDeleteJob = () => {
 
     try {
       setIsLoading(true);
-      const res = await axios.post("https://qsutrarmsclm.hub.swajyot.co.in:8476/api/public/json-data", payload);
+      const res = await axios.post("https://internalaudit.hub.swajyot.co.in:8090
+/api/public/json-data", payload);
       if (res.data.success) {
         const id = res.data.data.id;
         setInspectionId(id);
@@ -550,7 +553,8 @@ const canDeleteJob = () => {
           totalPlannedQty: totalPlannedQty
         };
 
-        await axios.put(`https://qsutrarmsclm.hub.swajyot.co.in:8476/api/public/json-data/${inspectionId}`, payload);
+        await axios.put(`https://internalaudit.hub.swajyot.co.in:8090
+/api/public/json-data/${inspectionId}`, payload);
         setLineContributions(updatedContributions);
       }
       alert("✅ All fields and distribution saved!");
@@ -595,7 +599,8 @@ const canDeleteJob = () => {
       
       // Delete production plan data
       console.log("Deleting production plan:", inspectionId);
-      await axios.delete(`https://qsutrarmsclm.hub.swajyot.co.in:8476/api/public/json-data/${inspectionId}`);
+      await axios.delete(`https://internalaudit.hub.swajyot.co.in:8090
+/api/public/json-data/${inspectionId}`);
       
       alert("✅ Job assignment deleted successfully!");
       
@@ -724,7 +729,8 @@ const canDeleteJob = () => {
       if (inspectionId) {
         try {
           console.log("Updating production plan status for ID:", inspectionId);
-          const response = await axios.get(`https://qsutrarmsclm.hub.swajyot.co.in:8476/api/public/json-data/${inspectionId}`);
+          const response = await axios.get(`https://internalaudit.hub.swajyot.co.in:8090
+/api/public/json-data/${inspectionId}`);
           if (response.data.success) {
             const existingData = JSON.parse(response.data.data.jsonContent);
             
@@ -737,7 +743,8 @@ const canDeleteJob = () => {
               }
             };
             
-            await axios.put(`https://qsutrarmsclm.hub.swajyot.co.in:8476/api/public/json-data/${inspectionId}`, {
+            await axios.put(`https://internalaudit.hub.swajyot.co.in:8090
+/api/public/json-data/${inspectionId}`, {
               jsonContent: JSON.stringify(updatedData)
             });
             console.log("✅ Production plan status updated to SUBMITTED");

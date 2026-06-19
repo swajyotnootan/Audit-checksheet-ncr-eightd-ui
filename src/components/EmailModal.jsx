@@ -33,7 +33,8 @@ const EmailModal = ({ isOpen, onClose, formId, onSuccess }) => {
       const userName = user?.name;
 
       const response = await axios.post(
-        `https://qsutrarmsclm.hub.swajyot.co.in:8476/api/inspection-forms/${formId}/email-pdf/${userName}`,
+        `https://internalaudit.hub.swajyot.co.in:8090
+/api/inspection-forms/${formId}/email-pdf/${userName}`,
         emailData,
         {
           headers: {

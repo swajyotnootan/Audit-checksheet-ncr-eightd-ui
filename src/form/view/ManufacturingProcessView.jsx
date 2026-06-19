@@ -60,7 +60,8 @@ export default function ManufacturingProcessView() {
     try {
       let response;
       if (userId) {
-        response = await axios.get(`https://qsutrarmsclm.hub.swajyot.co.in:8476/api/users/${userId}/signature`, {
+        response = await axios.get(`https://internalaudit.hub.swajyot.co.in:8090
+/api/users/${userId}/signature`, {
           responseType: 'blob',
           withCredentials: true
         });
@@ -68,7 +69,8 @@ export default function ManufacturingProcessView() {
         const nameParts = fullName.trim().split(' ', 2);
         const firstName = nameParts[0];
         const lastName = nameParts.length > 1 ? nameParts[1] : '';
-        response = await axios.get('https://qsutrarmsclm.hub.swajyot.co.in:8476/api/users/signature', {
+        response = await axios.get('https://internalaudit.hub.swajyot.co.in:8090
+/api/users/signature', {
           params: { firstName, lastName },
           responseType: 'blob',
           withCredentials: true
@@ -204,7 +206,8 @@ export default function ManufacturingProcessView() {
       } else {
         // Fallback: Fetch questions from check sheet
         try {
-          const checkSheetRes = await axios.get(`https://qsutrarmsclm.hub.swajyot.co.in:8476/api/templates/${MANUFACTURING_CHECK_SHEET_ID}`);
+          const checkSheetRes = await axios.get(`https://internalaudit.hub.swajyot.co.in:8090
+/api/templates/${MANUFACTURING_CHECK_SHEET_ID}`);
           const sheet = checkSheetRes.data;
           
           if (sheet.questions) {
@@ -266,7 +269,8 @@ export default function ManufacturingProcessView() {
       console.log('=== DOWNLOADING MANUFACTURING PROCESS AUDIT PDF ===');
       console.log('Audit ID:', audit.id);
       
-      const API_URL = import.meta.env.VITE_API_URL || 'https://qsutrarmsclm.hub.swajyot.co.in:8476';
+      const API_URL = import.meta.env.VITE_API_URL || 'https://internalaudit.hub.swajyot.co.in:8090
+';
       const responseId = audit.id;
       
       const pdfUrl = `${API_URL}/api/manufacturing-audits/${responseId}/pdf`;
@@ -344,7 +348,8 @@ export default function ManufacturingProcessView() {
     
     setSubmitting(true);
     try {
-      const API_URL = import.meta.env.VITE_API_URL || 'https://qsutrarmsclm.hub.swajyot.co.in:8476';
+      const API_URL = import.meta.env.VITE_API_URL || 'https://internalaudit.hub.swajyot.co.in:8090
+';
       
       const response = await axios.put(
         `${API_URL}/api/templates/responses/${audit.id}/approve`,
@@ -381,7 +386,8 @@ export default function ManufacturingProcessView() {
     
     setSubmitting(true);
     try {
-      const API_URL = import.meta.env.VITE_API_URL || 'https://qsutrarmsclm.hub.swajyot.co.in:8476';
+      const API_URL = import.meta.env.VITE_API_URL || 'https://internalaudit.hub.swajyot.co.in:8090
+';
       
       const response = await axios.put(
         `${API_URL}/api/templates/responses/${audit.id}/reject`,

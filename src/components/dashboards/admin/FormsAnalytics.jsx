@@ -30,7 +30,8 @@ import {
 } from 'recharts';
 
 // Updated API service for coating inspection reports
-const API_BASE_URL = 'https://qsutrarmsclm.hub.swajyot.co.in:8476';
+const API_BASE_URL = 'https://internalaudit.hub.swajyot.co.in:8090
+';
 
 const coatingInspectionAPI = {
   // Get comprehensive analytics
