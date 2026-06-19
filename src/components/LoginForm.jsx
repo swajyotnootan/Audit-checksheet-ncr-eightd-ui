@@ -106,7 +106,7 @@ const RoleSelect = ({ value, onChange, isSubmitting }) => {
         type="button"
         onClick={() => setIsOpen(!isOpen)}
         disabled={isSubmitting}
-        className="w-full flex items-center justify-between px-4 py-2.5 border rounded-xl focus:outline-none focus:ring-2 focus:border-transparent transition-all duration-200 hover:bg-white"
+        className="w-full flex items-center justify-between px-4 py-3 border rounded-xl focus:outline-none focus:ring-2 focus:border-transparent transition-all duration-200 hover:bg-white"
         style={{ background: '#faf7fd', borderColor: '#e0d5ee' }}
       >
         <div className="flex items-center gap-3">
@@ -154,7 +154,7 @@ const RoleSelect = ({ value, onChange, isSubmitting }) => {
                     key={role.label}
                     type="button"
                     onClick={() => handleSelect(role)}
-                    className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg transition-all duration-150 ${
+                    className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-150 ${
                       isSelected ? 'text-purple-700' : 'hover:bg-gray-50 text-gray-700'
                     }`}
                     style={isSelected ? { background: '#f3eef8' } : {}}
@@ -296,116 +296,83 @@ const LoginForm = ({ onLogin }) => {
     <>
       <div className="flex min-h-screen overflow-hidden bg-gray-50">
 
-        {/* LEFT PANEL - FIXED HEIGHT */}
-        <div
-          className="relative hidden lg:flex lg:w-1/2 overflow-hidden"
-          style={{ background: 'linear-gradient(160deg, #7e6a8a 0%, #5c5491 50%, #3d4080 100%)' }}
-        >
-          {/* Decorative Background Elements */}
-          <div className="absolute inset-0">
-            <div
-              className="absolute inset-0 opacity-30"
-              style={{
-                backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='60' height='60' viewBox='0 0 60 60'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.03'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`,
-              }}
-            />
+        {/* LEFT PANEL - MATCHING YOUR DESIRED FORMAT */}
+        <div className="relative flex-col justify-center hidden overflow-hidden md:flex md:w-1/2 bg-gradient-to-br from-purple-700 via-violet-600 to-purple-500">
+          {/* Decorative Orbs */}
+          <div className="absolute w-56 h-56 rounded-full -top-30 -left-35 bg-pink-300/20 blur-3xl"></div>
+          <div className="absolute w-64 h-64 rounded-full -bottom-24 -right-24 bg-orange-300/15 blur-3xl"></div>
 
-            <div
-              className="absolute top-[-20%] right-[-10%] w-[400px] h-[400px] rounded-full blur-3xl"
-              style={{ background: 'rgba(236,180,210,0.13)' }}
-            ></div>
-            <div
-              className="absolute bottom-[-20%] left-[-10%] w-[400px] h-[400px] rounded-full blur-3xl"
-              style={{ background: 'rgba(130,120,200,0.15)' }}
-            ></div>
+          {/* Content */}
+          <div className="relative z-10 w-full max-w-xl mx-0 my-auto px-12 py-8 mt-[80px]">
+            <div className="w-full max-w-md">
+              {/* Logo - Larger size as requested */}
+              <img src={logo} alt="Qsutra Logo" className="w-[200px] h-auto mb-6" />
 
-            <div className="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-transparent"></div>
-          </div>
-
-          {/* Content - Reduced padding for better fit */}
-          <div className="relative z-10 flex flex-col justify-between w-full p-10 lg:p-12">
-            <div>
-              <div className="flex items-center gap-3 mb-6">
-                <div className="w-9 h-9 backdrop-blur-sm rounded-xl flex items-center justify-center" style={{ background: 'rgba(255,255,255,0.1)', border: '0.5px solid rgba(255,255,255,0.12)' }}>
-                  <Shield className="w-4 h-4" style={{ color: 'rgba(255,255,255,0.7)' }} />
-                </div>
-                <span className="text-[10px] font-medium tracking-wider uppercase" style={{ color: 'rgba(255,255,255,0.45)' }}>Secure Platform</span>
-              </div>
-
-              <img src={logo} alt="Qsutra Logo" className="w-[150px] h-auto mb-6" />
-
-              <h1 className="text-3xl font-bold text-white leading-tight mb-2">
-                Quality Management<br />
-                <span style={{ color: '#e8c4d8' }}>System</span>
+              {/* Title */}
+              <h1 className="text-white leading-tight text-[1rem] font-medium">
+                Qsutra - Quality Management System
               </h1>
 
-              <p className="text-[10px] mb-6" style={{ color: 'rgba(255,255,255,0.35)' }}>Version 2.0.1 • 7th April, 2025</p>
+              {/* Version */}
+              <h3 className="text-white/70 text-[0.8rem] mt-1">
+                Ver 2.0.1 (7th April, 2025)
+              </h3>
 
-              <div className="flex flex-wrap gap-2 mb-6">
-                <div className="flex items-center gap-2 px-3 py-1 backdrop-blur-sm rounded-full" style={{ background: 'rgba(255,255,255,0.07)', border: '0.5px solid rgba(255,255,255,0.1)' }}>
-                  <Sparkles className="w-3 h-3" style={{ color: '#e8c4d8' }} />
-                  <span className="text-[10px]" style={{ color: 'rgba(255,255,255,0.45)' }}>ISO 9001:2015</span>
-                </div>
-                <div className="flex items-center gap-2 px-3 py-1 backdrop-blur-sm rounded-full" style={{ background: 'rgba(255,255,255,0.07)', border: '0.5px solid rgba(255,255,255,0.1)' }}>
-                  <Shield className="w-3 h-3" style={{ color: '#e8c4d8' }} />
-                  <span className="text-[10px]" style={{ color: 'rgba(255,255,255,0.45)' }}>SOC 2</span>
-                </div>
-              </div>
+              <br />
 
-              <div className="max-w-md p-3 backdrop-blur-sm rounded-xl" style={{ background: 'rgba(255,255,255,0.05)', border: '0.5px solid rgba(255,255,255,0.09)' }}>
-                <p className="text-[10px] leading-relaxed" style={{ color: 'rgba(255,255,255,0.3)' }}>
-                  International copyright laws protect this program. Unauthorized reproduction will attract prosecution.
-                </p>
-              </div>
+              {/* Legal Text */}
+              <p className="text-white/60 text-[0.7rem] leading-relaxed">
+                International copyright laws and treaties for Intellectual Property, govern & protect this computer program.
+                Any form of unauthorised reproduction, copying or distribution of this program in whole or part,
+                will attract severe civil & criminal prosecution for maximum extent implications possible under law.
+              </p>
             </div>
 
-            <div className="flex items-center justify-between mt-6">
-              <div className="flex items-center gap-2 px-3 py-1.5 backdrop-blur-sm rounded-lg" style={{ background: 'rgba(255,255,255,0.05)', border: '0.5px solid rgba(255,255,255,0.07)' }}>
-                <div className="w-1.5 h-1.5 bg-emerald-400 rounded-full"></div>
-                <span className="text-[10px]" style={{ color: 'rgba(255,255,255,0.35)' }}>All systems operational</span>
-              </div>
-
-              <div className="flex items-center gap-2 text-[10px]" style={{ color: 'rgba(255,255,255,0.2)' }}>
-                <Globe className="w-3 h-3" />
-                <span>Secure</span>
+            {/* Secure Access Badge */}
+            <div className="flex justify-start mt-8">
+              <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-white/10 backdrop-blur-sm border border-white/5">
+                <svg className="w-3.5 h-3.5 text-white/80" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                </svg>
+                <span className="text-xs font-medium text-white/80">Secure Access Only</span>
               </div>
             </div>
           </div>
         </div>
 
-        {/* RIGHT PANEL - LOGIN FORM (FIXED WIDTH) */}
-        <div className="flex items-center justify-center w-full lg:w-1/2 p-6 lg:p-8 bg-white">
-          <div className="w-full max-w-sm">
+        {/* RIGHT PANEL - LOGIN FORM (LARGER TEXT) */}
+        <div className="flex items-center justify-center w-full lg:w-1/2 p-8 lg:p-12 bg-white">
+          <div className="w-full max-w-md">
             {/* Mobile Branding */}
-            <div className="flex flex-col items-center mb-6 lg:hidden">
-              <img src={logo2} alt="Stratum Logo" className="h-12 w-auto mb-3" />
-              <img src={logo} alt="Qsutra Logo" className="h-6 w-auto opacity-60" />
+            <div className="flex flex-col items-center mb-8 lg:hidden">
+              <img src={logo2} alt="Stratum Logo" className="h-14 w-auto mb-3" />
+              <img src={logo} alt="Qsutra Logo" className="h-8 w-auto opacity-60" />
             </div>
 
             {/* Desktop Branding */}
-            <div className="hidden lg:flex items-center justify-center mb-6">
-              <img src={logo2} alt="Stratum Logo" className="h-10 w-auto opacity-80" />
+            <div className="hidden lg:flex items-center justify-center mb-8">
+              <img src={logo2} alt="Stratum Logo" className="h-14 w-auto opacity-80" />
             </div>
 
-            {/* Header */}
-            <div className="mb-6 text-center">
-              <h2 className="text-xl font-bold" style={{ color: '#2d2540' }}>Internal Audits</h2>
-              <p className="text-xs mt-1" style={{ color: '#9b8fa8' }}>Sign in to access your dashboard</p>
+            {/* Header - LARGER TEXT */}
+            <div className="mb-8 text-center lg:text-left">
+              <h2 className="text-3xl font-bold" style={{ color: '#2d2540' }}>Internal Audits</h2>
+              <p className="text-base mt-1.5" style={{ color: '#9b8fa8' }}>Sign in to access your internal audit dashboard</p>
             </div>
 
             {/* Error Message */}
             {error && (
-              <div className="mb-4 p-3 rounded-xl" style={{ background: '#fef2f2', border: '0.5px solid #fecaca' }}>
+              <div className="mb-6 p-4 rounded-xl" style={{ background: '#fef2f2', border: '0.5px solid #fecaca' }}>
                 <p className="text-sm text-red-500">{error}</p>
               </div>
             )}
 
             {/* Login Form */}
-            <form onSubmit={onSubmit} className="space-y-4">
+            <form onSubmit={onSubmit} className="space-y-5">
 
               {/* Role Selection */}
               <div>
-                <label className="block text-xs font-medium mb-1" style={{ color: '#7a6895' }}>
+                <label className="block text-sm font-medium mb-1.5" style={{ color: '#7a6895' }}>
                   Select Role
                 </label>
                 <RoleSelect
@@ -417,7 +384,7 @@ const LoginForm = ({ onLogin }) => {
 
               {/* Username */}
               <div>
-                <label className="block text-xs font-medium mb-1" style={{ color: '#7a6895' }}>
+                <label className="block text-sm font-medium mb-1.5" style={{ color: '#7a6895' }}>
                   Username
                 </label>
                 <div className="relative">
@@ -427,18 +394,18 @@ const LoginForm = ({ onLogin }) => {
                     onChange={(e) => handleInputChange('username', e.target.value)}
                     placeholder="Enter your username"
                     disabled={isSubmitting}
-                    className="w-full pl-10 pr-4 py-2.5 border rounded-xl focus:outline-none focus:ring-2 transition-all text-sm"
+                    className="w-full pl-12 pr-4 py-3.5 border rounded-xl focus:outline-none focus:ring-2 transition-all text-base"
                     style={{ background: '#faf7fd', borderColor: '#e0d5ee', color: '#2d2540' }}
                   />
-                  <div className="absolute inset-y-0 left-0 flex items-center pl-3">
-                    <User className="w-4 h-4" style={{ color: '#c5b8d8' }} />
+                  <div className="absolute inset-y-0 left-0 flex items-center pl-4">
+                    <User className="w-5 h-5" style={{ color: '#c5b8d8' }} />
                   </div>
                 </div>
               </div>
 
               {/* Password */}
               <div>
-                <label className="block text-xs font-medium mb-1" style={{ color: '#7a6895' }}>
+                <label className="block text-sm font-medium mb-1.5" style={{ color: '#7a6895' }}>
                   Password
                 </label>
                 <div className="relative">
@@ -448,26 +415,26 @@ const LoginForm = ({ onLogin }) => {
                     onChange={(e) => handleInputChange('password', e.target.value)}
                     placeholder="Enter your password"
                     disabled={isSubmitting}
-                    className="w-full pl-10 pr-11 py-2.5 border rounded-xl focus:outline-none focus:ring-2 transition-all text-sm"
+                    className="w-full pl-12 pr-14 py-3.5 border rounded-xl focus:outline-none focus:ring-2 transition-all text-base"
                     style={{ background: '#faf7fd', borderColor: '#e0d5ee', color: '#2d2540' }}
                   />
-                  <div className="absolute inset-y-0 left-0 flex items-center pl-3">
-                    <Lock className="w-4 h-4" style={{ color: '#c5b8d8' }} />
+                  <div className="absolute inset-y-0 left-0 flex items-center pl-4">
+                    <Lock className="w-5 h-5" style={{ color: '#c5b8d8' }} />
                   </div>
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
-                    className="absolute inset-y-0 right-0 flex items-center pr-3 transition-colors"
+                    className="absolute inset-y-0 right-0 flex items-center pr-4 transition-colors"
                     style={{ color: '#c5b8d8' }}
                   >
-                    {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                    {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
                   </button>
                 </div>
               </div>
 
-              {/* Options */}
-              <div className="flex items-center justify-between text-sm">
-                <label className="flex items-center gap-2 cursor-pointer group">
+              {/* Options - LARGER TEXT */}
+              <div className="flex items-center justify-between text-base">
+                <label className="flex items-center gap-2.5 cursor-pointer group">
                   <input
                     type="checkbox"
                     checked={rememberMe}
@@ -475,29 +442,29 @@ const LoginForm = ({ onLogin }) => {
                     className="w-4 h-4 border-gray-300 rounded focus:ring-2"
                     style={{ accentColor: '#5c5491' }}
                   />
-                  <span className="text-xs" style={{ color: '#9b8fa8' }}>
+                  <span className="text-sm" style={{ color: '#9b8fa8' }}>
                     Remember me
                   </span>
                 </label>
                 <button
                   type="button"
-                  className="text-xs font-medium transition-colors"
+                  className="text-sm font-medium transition-colors"
                   style={{ color: '#7e6a8a' }}
                 >
                   Forgot password?
                 </button>
               </div>
 
-              {/* Submit Button */}
+              {/* Submit Button - LARGER */}
               <button
                 type="submit"
                 disabled={isSubmitting}
-                className="w-full py-3 text-white font-medium rounded-xl transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 shadow-sm hover:shadow-md hover:opacity-90 text-sm"
+                className="w-full py-4 text-base font-medium text-white rounded-xl transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2.5 shadow-sm hover:shadow-md hover:opacity-90"
                 style={{ background: 'linear-gradient(135deg, #7e6a8a 0%, #5c5491 100%)' }}
               >
                 {isSubmitting ? (
                   <>
-                    <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24">
+                    <svg className="animate-spin h-5 w-5" viewBox="0 0 24 24">
                       <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
                       <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
                     </svg>
@@ -505,7 +472,7 @@ const LoginForm = ({ onLogin }) => {
                   </>
                 ) : (
                   <>
-                    <LogIn className="w-4 h-4" />
+                    <LogIn className="w-5 h-5" />
                     Sign in
                   </>
                 )}
@@ -513,8 +480,8 @@ const LoginForm = ({ onLogin }) => {
             </form>
 
             {/* Footer */}
-            <div className="mt-6 pt-4" style={{ borderTop: '0.5px solid #f0eaf5' }}>
-              <p className="text-center text-[10px]" style={{ color: '#c5b8d8' }}>
+            <div className="mt-8 pt-6" style={{ borderTop: '0.5px solid #f0eaf5' }}>
+              <p className="text-center text-sm" style={{ color: '#c5b8d8' }}>
                 © 2025 Swajyot Technologies. All rights reserved.
               </p>
             </div>
