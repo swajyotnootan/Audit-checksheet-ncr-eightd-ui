@@ -100,11 +100,9 @@ export default function EightDLanding() {
 
       let response;
       if (eventNo) {
-        response = await axios.put(`https://internalaudit.hub.swajyot.co.in:8090
-/api/eightd/data/${eventNo}`, formDataToSend);
+        response = await axios.put(`https://internalaudit.hub.swajyot.co.in:8090/api/eightd/data/${eventNo}`, formDataToSend);
       } else {
-        response = await axios.post("https://internalaudit.hub.swajyot.co.in:8090
-/api/eightd/data", formDataToSend);
+        response = await axios.post("https://internalaudit.hub.swajyot.co.in:8090/api/eightd/data", formDataToSend);
       }
 
       if (response?.data?.success) {

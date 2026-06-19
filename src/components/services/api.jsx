@@ -51,15 +51,13 @@ export const authAPI = {
       form.append('password', password);
 
       try {
-        const response = await apiClient.post('https://internalaudit.hub.swajyot.co.in:8090
-/api/users/login', form, {
+        const response = await apiClient.post('https://internalaudit.hub.swajyot.co.in:8090/api/users/login', form, {
           headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
         });
         return response.data;
       } catch (err) {
         // Fallback to alternate auth path using JSON body
-        const response = await apiClient.post('https://internalaudit.hub.swajyot.co.in:8090
-/api/auth/login', { username, password });
+        const response = await apiClient.post('https://internalaudit.hub.swajyot.co.in:8090/api/auth/login', { username, password });
         return response.data;
       }
     } catch (error) {
@@ -69,8 +67,7 @@ export const authAPI = {
 
   getCurrentUser: async () => {
     try {
-      const response = await apiClient.get('https://internalaudit.hub.swajyot.co.in:8090
-/api/users/me');
+      const response = await apiClient.get('https://internalaudit.hub.swajyot.co.in:8090/api/users/me');
       return response.data;
     } catch (error) {
       throw error;
@@ -82,8 +79,7 @@ export const authAPI = {
 export const inspectionFormAPI = {
   getAllForms: async () => {
     try {
-      const response = await apiClient.get('https://internalaudit.hub.swajyot.co.in:8090
-/api/inspection-forms');
+      const response = await apiClient.get('https://internalaudit.hub.swajyot.co.in:8090/api/inspection-forms');
       return response.data;
     } catch (error) {
       throw error;
@@ -92,8 +88,7 @@ export const inspectionFormAPI = {
 
   getFormById: async (id) => {
     try {
-      const response = await apiClient.get(`https://internalaudit.hub.swajyot.co.in:8090
-/api/inspection-forms/${id}`);
+      const response = await apiClient.get(`https://internalaudit.hub.swajyot.co.in:8090/api/inspection-forms/${id}`);
       return response.data;
     } catch (error) {
       throw error;
@@ -102,8 +97,7 @@ export const inspectionFormAPI = {
 
   getFormsByStatus: async (status) => {
     try {
-      const response = await apiClient.get(`https://internalaudit.hub.swajyot.co.in:8090
-/api/inspection-forms/status/${status}`);
+      const response = await apiClient.get(`https://internalaudit.hub.swajyot.co.in:8090/api/inspection-forms/status/${status}`);
       return response.data;
     } catch (error) {
       throw error;
@@ -112,8 +106,7 @@ export const inspectionFormAPI = {
 
   getFormsBySubmitter: async (submitter) => {
     try {
-      const response = await apiClient.get(`https://internalaudit.hub.swajyot.co.in:8090
-/api/inspection-forms/submitter/${submitter}`);
+      const response = await apiClient.get(`https://internalaudit.hub.swajyot.co.in:8090/api/inspection-forms/submitter/${submitter}`);
       return response.data;
     } catch (error) {
       throw error;
@@ -122,8 +115,7 @@ export const inspectionFormAPI = {
 
   createForm: async (formData) => {
     try {
-      const response = await apiClient.post('https://internalaudit.hub.swajyot.co.in:8090
-/api/inspection-forms', formData);
+      const response = await apiClient.post('https://internalaudit.hub.swajyot.co.in:8090/api/inspection-forms', formData);
       return response.data;
     } catch (error) {
       throw error;
@@ -132,8 +124,7 @@ export const inspectionFormAPI = {
 
   updateForm: async (id, formData) => {
     try {
-      const response = await apiClient.put(`https://internalaudit.hub.swajyot.co.in:8090
-/api/inspection-forms/${id}`, formData);
+      const response = await apiClient.put(`https://internalaudit.hub.swajyot.co.in:8090/api/inspection-forms/${id}`, formData);
       return response.data;
     } catch (error) {
       throw error;
@@ -142,8 +133,7 @@ export const inspectionFormAPI = {
 
   submitForm: async (id, submittedBy) => {
     try {
-      const response = await apiClient.post(`https://internalaudit.hub.swajyot.co.in:8090
-/api/inspection-forms/${id}/submit`, null, {
+      const response = await apiClient.post(`https://internalaudit.hub.swajyot.co.in:8090/api/inspection-forms/${id}/submit`, null, {
         params: { submittedBy },
       });
       return response.data;
@@ -154,8 +144,7 @@ export const inspectionFormAPI = {
 
   approveForm: async (id, reviewedBy, comments = '') => {
     try {
-      const response = await apiClient.post(`https://internalaudit.hub.swajyot.co.in:8090
-/api/inspection-forms/${id}/approve`, null, {
+      const response = await apiClient.post(`https://internalaudit.hub.swajyot.co.in:8090/api/inspection-forms/${id}/approve`, null, {
         params: { reviewedBy, comments },
       });
       return response.data;
@@ -166,8 +155,7 @@ export const inspectionFormAPI = {
 
   rejectForm: async (id, reviewedBy, comments) => {
     try {
-      const response = await apiClient.post(`https://internalaudit.hub.swajyot.co.in:8090
-/api/inspection-forms/${id}/reject`, null, {
+      const response = await apiClient.post(`https://internalaudit.hub.swajyot.co.in:8090/api/inspection-forms/${id}/reject`, null, {
         params: { reviewedBy, comments },
       });
       return response.data;
@@ -178,8 +166,7 @@ export const inspectionFormAPI = {
 
   downloadPdf: async (id, username) => {
     try {
-      const response = await apiClient.get(`https://internalaudit.hub.swajyot.co.in:8090
-/api/inspection-forms/${id}/pdf/${username}`, {
+      const response = await apiClient.get(`https://internalaudit.hub.swajyot.co.in:8090/api/inspection-forms/${id}/pdf/${username}`, {
         responseType: 'blob',
         headers: { 'Accept': 'application/pdf' },
       });
@@ -202,8 +189,7 @@ export const inspectionFormAPI = {
 
   sendEmailWithPdf: async (id, emailData) => {
     try {
-      const response = await apiClient.post(`https://internalaudit.hub.swajyot.co.in:8090
-/api/inspection-forms/${id}/email-pdf`, emailData);
+      const response = await apiClient.post(`https://internalaudit.hub.swajyot.co.in:8090/api/inspection-forms/${id}/email-pdf`, emailData);
       return response.data;
     } catch (error) {
       console.error('Error sending email:', error);
@@ -217,8 +203,7 @@ export const inspectionFormAPI = {
 export const printingInspectionAPI = {
   getAllReports: async () => {
     try {
-      const response = await apiClient.get('https://internalaudit.hub.swajyot.co.in:8090
-/api/printing-inspection');
+      const response = await apiClient.get('https://internalaudit.hub.swajyot.co.in:8090/api/printing-inspection');
       return response.data;
     } catch (error) {
       throw error;
@@ -227,8 +212,7 @@ export const printingInspectionAPI = {
 
   getReportById: async (id) => {
     try {
-      const response = await apiClient.get(`https://internalaudit.hub.swajyot.co.in:8090
-/api/printing-inspection/${id}`);
+      const response = await apiClient.get(`https://internalaudit.hub.swajyot.co.in:8090/api/printing-inspection/${id}`);
       return response.data;
     } catch (error) {
       throw error;
@@ -249,8 +233,7 @@ export const printingInspectionAPI = {
 
   createReport: async (reportData) => {
     try {
-      const response = await apiClient.post('https://internalaudit.hub.swajyot.co.in:8090
-/api/printing-inspection', reportData);
+      const response = await apiClient.post('https://internalaudit.hub.swajyot.co.in:8090/api/printing-inspection', reportData);
       return response.data;
     } catch (error) {
       throw error;
@@ -337,8 +320,7 @@ export const printingInspectionAPI = {
 
   getReportSummary: async () => {
     try {
-      const response = await apiClient.get('https://internalaudit.hub.swajyot.co.in:8090
-/api/printing-inspection/summary');
+      const response = await apiClient.get('https://internalaudit.hub.swajyot.co.in:8090/api/printing-inspection/summary');
       return response.data;
     } catch (error) {
       throw error;
@@ -350,8 +332,7 @@ export const printingInspectionAPI = {
 export const lineClearanceAPI = {
   getAllForms: async () => {
     try {
-      const response = await apiClient.get('https://internalaudit.hub.swajyot.co.in:8090
-/api/line-clearance');
+      const response = await apiClient.get('https://internalaudit.hub.swajyot.co.in:8090/api/line-clearance');
       return response.data;
     } catch (error) {
       throw error;
@@ -360,8 +341,7 @@ export const lineClearanceAPI = {
 
   getFormById: async (id) => {
     try {
-      const response = await apiClient.get(`https://internalaudit.hub.swajyot.co.in:8090
-/api/line-clearance/${id}`);
+      const response = await apiClient.get(`https://internalaudit.hub.swajyot.co.in:8090/api/line-clearance/${id}`);
       return response.data;
     } catch (error) {
       throw error;
@@ -370,8 +350,7 @@ export const lineClearanceAPI = {
 
   getFormsByStatus: async (status) => {
     try {
-      const response = await apiClient.get(`https://internalaudit.hub.swajyot.co.in:8090
-/api/line-clearance/status/${status}`);
+      const response = await apiClient.get(`https://internalaudit.hub.swajyot.co.in:8090/api/line-clearance/status/${status}`);
       return response.data;
     } catch (error) {
       throw error;
@@ -390,8 +369,7 @@ export const lineClearanceAPI = {
 
   createForm: async (formData) => {
     try {
-      const response = await apiClient.post('https://internalaudit.hub.swajyot.co.in:8090
-/api/line-clearance', formData);
+      const response = await apiClient.post('https://internalaudit.hub.swajyot.co.in:8090/api/line-clearance', formData);
       return response.data;
     } catch (error) {
       throw error;
@@ -400,8 +378,7 @@ export const lineClearanceAPI = {
 
   updateForm: async (id, formData) => {
     try {
-      const response = await apiClient.put(`https://internalaudit.hub.swajyot.co.in:8090
-/api/line-clearance/${id}`, formData);
+      const response = await apiClient.put(`https://internalaudit.hub.swajyot.co.in:8090/api/line-clearance/${id}`, formData);
       return response.data;
     } catch (error) {
       throw error;
@@ -484,90 +461,76 @@ export const lineClearanceAPI = {
 export const userAPI = {
   // Single unified create method
   create: async (userData) => {
-    const response = await apiClient.post('https://internalaudit.hub.swajyot.co.in:8090
-/api/users', userData);
+    const response = await apiClient.post('https://internalaudit.hub.swajyot.co.in:8090/api/users', userData);
     return response.data;
   },
 
   // Single unified update method
   update: async (id, userData) => {
-    const response = await apiClient.put(`https://internalaudit.hub.swajyot.co.in:8090
-/api/users/${id}`, userData);
+    const response = await apiClient.put(`https://internalaudit.hub.swajyot.co.in:8090/api/users/${id}`, userData);
     return response.data;
   },
 
   // Single unified getAll method (returns all users)
   getAll: async () => {
-    const response = await apiClient.get('https://internalaudit.hub.swajyot.co.in:8090
-/api/users');
+    const response = await apiClient.get('https://internalaudit.hub.swajyot.co.in:8090/api/users');
     return response.data;
   },
 
   // Keep as alias for backward compatibility (calls getAll)
   getAllUsers: async () => {
-    const response = await apiClient.get('https://internalaudit.hub.swajyot.co.in:8090
-/api/users');
+    const response = await apiClient.get('https://internalaudit.hub.swajyot.co.in:8090/api/users');
     return response.data;
   },
 
   getHODs: async () => {
-    const response = await apiClient.get('https://internalaudit.hub.swajyot.co.in:8090
-/api/users/hods');
+    const response = await apiClient.get('https://internalaudit.hub.swajyot.co.in:8090/api/users/hods');
     return response.data;
   },
 
   getAllAuditors: async () => {
-    const response = await apiClient.get('https://internalaudit.hub.swajyot.co.in:8090
-/api/users/all-auditors');
+    const response = await apiClient.get('https://internalaudit.hub.swajyot.co.in:8090/api/users/all-auditors');
     return response.data;
   },
 
   getUsersByRole: async (role) => {
-    const response = await apiClient.get(`https://internalaudit.hub.swajyot.co.in:8090
-/api/users/role/${role}`);
+    const response = await apiClient.get(`https://internalaudit.hub.swajyot.co.in:8090/api/users/role/${role}`);
     return response.data;
   },
 
   // Alias for create (backward compatibility)
   createUser: async (userData) => {
-    const response = await apiClient.post('https://internalaudit.hub.swajyot.co.in:8090
-/api/users', userData);
+    const response = await apiClient.post('https://internalaudit.hub.swajyot.co.in:8090/api/users', userData);
     return response.data;
   },
 
   getUserById: async (id) => {
-    const response = await apiClient.get(`https://internalaudit.hub.swajyot.co.in:8090
-/api/users/${id}`);
+    const response = await apiClient.get(`https://internalaudit.hub.swajyot.co.in:8090/api/users/${id}`);
     return response.data;
   },
 
   getUserByEmail: async (email) => {
-    const response = await apiClient.get(`https://internalaudit.hub.swajyot.co.in:8090
-/api/users/email/${email}`);
+    const response = await apiClient.get(`https://internalaudit.hub.swajyot.co.in:8090/api/users/email/${email}`);
     return response.data;
   },
 
   getAuditorsForHod: async (hodId) => {
-    const response = await apiClient.get(`https://internalaudit.hub.swajyot.co.in:8090
-/api/users/hod/${hodId}/auditors`);
+    const response = await apiClient.get(`https://internalaudit.hub.swajyot.co.in:8090/api/users/hod/${hodId}/auditors`);
     return response.data;
   },
 
   getAuditeesForHod: async (hodId) => {
-    const response = await apiClient.get(`https://internalaudit.hub.swajyot.co.in:8090
-/api/users/hod/${hodId}/auditees`);
+    const response = await apiClient.get(`https://internalaudit.hub.swajyot.co.in:8090/api/users/hod/${hodId}/auditees`);
     return response.data;
   },
 
   getDefaultsForHod: async (hodId) => {
-    const response = await apiClient.get(`https://internalaudit.hub.swajyot.co.in:8090
-/api/users/hod/${hodId}/defaults`);
+    const response = await apiClient.get(`https://internalaudit.hub.swajyot.co.in:8090/api/users/hod/${hodId}/defaults`);
     return response.data;
   },
 
   updateDefaults: async (hodId, defaults) => {
-    const response = await apiClient.put(`https://internalaudit.hub.swajyot.co.in:8090
-/api/users/hod/${hodId}/defaults`, defaults);
+    const response = await apiClient.put(`https://internalaudit.hub.swajyot.co.in:8090/api/users/hod/${hodId}/defaults`, defaults);
     return response.data;
   },
 };
@@ -576,23 +539,18 @@ export const userAPI = {
 // --------------------------
 
 export const authApi = {
-  login: async (username, password) => (await apiClient.post('https://internalaudit.hub.swajyot.co.in:8090
-/api/auth/login', { username, password })).data,
+  login: async (username, password) => (await apiClient.post('https://internalaudit.hub.swajyot.co.in:8090/api/auth/login', { username, password })).data,
 };
 
 export const jsonDataApi = {
   list: async () => {
-    const { data } = await apiClient.get('https://internalaudit.hub.swajyot.co.in:8090
-/api/public/json-data');
+    const { data } = await apiClient.get('https://internalaudit.hub.swajyot.co.in:8090/api/public/json-data');
     if (data && typeof data === 'object' && 'success' in data) return data;
     return { success: true, data };
   },
-  getById: async (id) => (await apiClient.get(`https://internalaudit.hub.swajyot.co.in:8090
-/api/public/json-data/${id}`)).data,
-  save: async (payload) => (await apiClient.post('https://internalaudit.hub.swajyot.co.in:8090
-/api/public/json-data', payload)).data,
-  update: async (id, jsonContent) => (await apiClient.put(`https://internalaudit.hub.swajyot.co.in:8090
-/api/public/json-data/${id}`, { jsonContent })).data,
+  getById: async (id) => (await apiClient.get(`https://internalaudit.hub.swajyot.co.in:8090/api/public/json-data/${id}`)).data,
+  save: async (payload) => (await apiClient.post('https://internalaudit.hub.swajyot.co.in:8090/api/public/json-data', payload)).data,
+  update: async (id, jsonContent) => (await apiClient.put(`https://internalaudit.hub.swajyot.co.in:8090/api/public/json-data/${id}`, { jsonContent })).data,
   upsert: async (id, jsonContent) => {
     let body;
     try {
@@ -601,8 +559,7 @@ export const jsonDataApi = {
     } catch (e) {
       body = { id, jsonContent };
     }
-    return (await apiClient.post('https://internalaudit.hub.swajyot.co.in:8090
-/api/public/json-data', body)).data;
+    return (await apiClient.post('https://internalaudit.hub.swajyot.co.in:8090/api/public/json-data', body)).data;
   },
   remove: async (id) => (await apiClient.delete(`https://internalaudit.hub.swajyot.co.in:8090
 /api/public/json-data/${id}`)).data,
@@ -822,21 +779,18 @@ export const getActiveNotificationReminders = () => {
 export const scheduleAPI = {
   // Single getAll method (remove the duplicate)
   getAll: async () => {
-    const response = await apiClient.get('https://internalaudit.hub.swajyot.co.in:8090
-/api/schedules/all');
+    const response = await apiClient.get('https://internalaudit.hub.swajyot.co.in:8090/api/schedules/all');
     return response.data;
   },
   
   getById: async (id) => {
-    const response = await apiClient.get(`https://internalaudit.hub.swajyot.co.in:8090
-/api/schedules/${id}`);
+    const response = await apiClient.get(`https://internalaudit.hub.swajyot.co.in:8090/api/schedules/${id}`);
     return response.data;
   },
   
   // Simple create method
   createSimple: async (scheduleData) => {
-    const response = await apiClient.post('https://internalaudit.hub.swajyot.co.in:8090
-/api/schedules', scheduleData);
+    const response = await apiClient.post('https://internalaudit.hub.swajyot.co.in:8090/api/schedules', scheduleData);
     return response.data;
   },
   
@@ -878,13 +832,11 @@ export const scheduleAPI = {
         endDate: schedule.endDate
       };
       
-      console.log('Request URL:', 'https://internalaudit.hub.swajyot.co.in:8090
-/api/schedules');
+      console.log('Request URL:', 'https://internalaudit.hub.swajyot.co.in:8090/api/schedules');
       console.log('Request Params:', params.toString());
       console.log('Request Body:', scheduleData);
       
-      const response = await apiClient.post('https://internalaudit.hub.swajyot.co.in:8090
-/api/schedules', scheduleData, { params });
+      const response = await apiClient.post('https://internalaudit.hub.swajyot.co.in:8090/api/schedules', scheduleData, { params });
       console.log('Schedule created successfully:', response.data);
       return response.data;
       
@@ -896,32 +848,27 @@ export const scheduleAPI = {
   },
 
   submitToDgm: async (id, deputyEmail) => {
-    const response = await apiClient.post(`https://internalaudit.hub.swajyot.co.in:8090
-/api/schedules/${id}/submit-to-dgm?deputyEmail=${deputyEmail}`);
+    const response = await apiClient.post(`https://internalaudit.hub.swajyot.co.in:8090/api/schedules/${id}/submit-to-dgm?deputyEmail=${deputyEmail}`);
     return response.data;
   },
   
   approve: async (id, dgmEmail) => {
-    const response = await apiClient.post(`https://internalaudit.hub.swajyot.co.in:8090
-/api/schedules/${id}/approve?dgmEmail=${dgmEmail}`);
+    const response = await apiClient.post(`https://internalaudit.hub.swajyot.co.in:8090/api/schedules/${id}/approve?dgmEmail=${dgmEmail}`);
     return response.data;
   },
   
   release: async (id, dgmEmail, externalEmails) => {
-    const response = await apiClient.post(`https://internalaudit.hub.swajyot.co.in:8090
-/api/schedules/${id}/release?dgmEmail=${dgmEmail}&externalEmails=${externalEmails || ''}`);
+    const response = await apiClient.post(`https://internalaudit.hub.swajyot.co.in:8090/api/schedules/${id}/release?dgmEmail=${dgmEmail}&externalEmails=${externalEmails || ''}`);
     return response.data;
   },
   
   getPendingForDgm: async () => {
-    const response = await apiClient.get('https://internalaudit.hub.swajyot.co.in:8090
-/api/schedules/pending-dgm');
+    const response = await apiClient.get('https://internalaudit.hub.swajyot.co.in:8090/api/schedules/pending-dgm');
     return response.data;
   },
   
   getApproved: async () => {
-    const response = await apiClient.get('https://internalaudit.hub.swajyot.co.in:8090
-/api/schedules/approved');
+    const response = await apiClient.get('https://internalaudit.hub.swajyot.co.in:8090/api/schedules/approved');
     return response.data;
   },
 };
@@ -929,15 +876,13 @@ export const scheduleAPI = {
 export const auditAPI = {
   // Get audits for specific auditor
   getForAuditor: async (auditorId) => {
-    const response = await apiClient.get(`https://internalaudit.hub.swajyot.co.in:8090
-/api/audits/auditor/${auditorId}`);
+    const response = await apiClient.get(`https://internalaudit.hub.swajyot.co.in:8090/api/audits/auditor/${auditorId}`);
     return response.data;
   },
 
   // Get audits for specific auditee
   getForAuditee: async (auditeeId) => {
-    const response = await apiClient.get(`https://internalaudit.hub.swajyot.co.in:8090
-/api/audits/auditee/${auditeeId}`);
+    const response = await apiClient.get(`https://internalaudit.hub.swajyot.co.in:8090/api/audits/auditee/${auditeeId}`);
     return response.data;
   },
 
@@ -945,14 +890,12 @@ export const auditAPI = {
   save: async (auditOrId, auditData) => {
     // If first param is object and no second param → create mode
     if (typeof auditOrId === 'object' && !auditData) {
-      const response = await apiClient.post('https://internalaudit.hub.swajyot.co.in:8090
-/api/audits/save', auditOrId);
+      const response = await apiClient.post('https://internalaudit.hub.swajyot.co.in:8090/api/audits/save', auditOrId);
       return response.data;
     }
     // If first param is id and second is data → update mode
     if (typeof auditOrId === 'number' || typeof auditOrId === 'string') {
-      const response = await apiClient.put(`https://internalaudit.hub.swajyot.co.in:8090
-/api/audits/${auditOrId}/save`, auditData);
+      const response = await apiClient.put(`https://internalaudit.hub.swajyot.co.in:8090/api/audits/${auditOrId}/save`, auditData);
       return response.data;
     }
     throw new Error('Invalid parameters for auditAPI.save');
@@ -960,30 +903,26 @@ export const auditAPI = {
 
   // Unified start method
   start: async (id) => {
-    const response = await apiClient.post(`https://internalaudit.hub.swajyot.co.in:8090
-/api/audits/${id}/start`);
+    const response = await apiClient.post(`https://internalaudit.hub.swajyot.co.in:8090/api/audits/${id}/start`);
     return response.data;
   },
 
   // Unified submit method (handles with or without findings)
   submit: async (id, findings = null) => {
     const payload = findings ? findings : {};
-    const response = await apiClient.post(`https://internalaudit.hub.swajyot.co.in:8090
-/api/audits/${id}/submit`, payload);
+    const response = await apiClient.post(`https://internalaudit.hub.swajyot.co.in:8090/api/audits/${id}/submit`, payload);
     return response.data;
   },
 
   approve: async (id, comments = '') => {
-    const response = await apiClient.post(`https://internalaudit.hub.swajyot.co.in:8090
-/api/audits/${id}/approve`, null, {
+    const response = await apiClient.post(`https://internalaudit.hub.swajyot.co.in:8090/api/audits/${id}/approve`, null, {
       params: { comments }
     });
     return response.data;
   },
 
   reject: async (id, comments) => {
-    const response = await apiClient.post(`https://internalaudit.hub.swajyot.co.in:8090
-/api/audits/${id}/reject`, null, {
+    const response = await apiClient.post(`https://internalaudit.hub.swajyot.co.in:8090/api/audits/${id}/reject`, null, {
       params: { comments }
     });
     return response.data;
@@ -991,57 +930,48 @@ export const auditAPI = {
 
   // Unified getAll method
   getAll: async () => {
-    const response = await apiClient.get('https://internalaudit.hub.swajyot.co.in:8090
-/api/audits/all');
+    const response = await apiClient.get('https://internalaudit.hub.swajyot.co.in:8090/api/audits/all');
     return Array.isArray(response.data) ? response.data : (response.data?.data || []);
   },
 
   getForDeputy: async (deputyEmail) => {
-    const response = await apiClient.get(`https://internalaudit.hub.swajyot.co.in:8090
-/api/audits/deputy/${deputyEmail}`);
+    const response = await apiClient.get(`https://internalaudit.hub.swajyot.co.in:8090/api/audits/deputy/${deputyEmail}`);
     return Array.isArray(response.data) ? response.data : (response.data?.data || []);
   },
 
   getForHod: async (hodEmail) => {
-    const response = await apiClient.get(`https://internalaudit.hub.swajyot.co.in:8090
-/api/audits/hod/${hodEmail}`);
+    const response = await apiClient.get(`https://internalaudit.hub.swajyot.co.in:8090/api/audits/hod/${hodEmail}`);
     return Array.isArray(response.data) ? response.data : (response.data?.data || []);
   },
 
   getCompleted: async () => {
-    const response = await apiClient.get('https://internalaudit.hub.swajyot.co.in:8090
-/api/audits/completed');
+    const response = await apiClient.get('https://internalaudit.hub.swajyot.co.in:8090/api/audits/completed');
     return response.data;
   },
 
   close: async (id) => {
-    const response = await apiClient.post(`https://internalaudit.hub.swajyot.co.in:8090
-/api/audits/${id}/close`);
+    const response = await apiClient.post(`https://internalaudit.hub.swajyot.co.in:8090/api/audits/${id}/close`);
     return response.data;
   },
 
   getById: async (id) => {
-    const response = await apiClient.get(`https://internalaudit.hub.swajyot.co.in:8090
-/api/audits/${id}`);
+    const response = await apiClient.get(`https://internalaudit.hub.swajyot.co.in:8090/api/audits/${id}`);
     return response.data;
   },
 
   reassignAudit: async (auditId, data, hodEmail) => {
-    const response = await apiClient.post(`https://internalaudit.hub.swajyot.co.in:8090
-/api/audits/${auditId}/reassign?hodEmail=${hodEmail}`, data);
+    const response = await apiClient.post(`https://internalaudit.hub.swajyot.co.in:8090/api/audits/${auditId}/reassign?hodEmail=${hodEmail}`, data);
     return response.data;
   },
 
   signOff: async (id, data) => {
-    const response = await apiClient.post(`https://internalaudit.hub.swajyot.co.in:8090
-/api/audits/${id}/sign-off`, data);
+    const response = await apiClient.post(`https://internalaudit.hub.swajyot.co.in:8090/api/audits/${id}/sign-off`, data);
     return response.data;
   },
 
   downloadPdf: async (id, userName = '') => {
     try {
-      const response = await apiClient.get(`https://internalaudit.hub.swajyot.co.in:8090
-/api/audits/${id}/pdf`, {
+      const response = await apiClient.get(`https://internalaudit.hub.swajyot.co.in:8090/api/audits/${id}/pdf`, {
         params: userName ? { userName } : {},
         responseType: 'blob',
         headers: { Accept: 'application/pdf' },
@@ -1097,8 +1027,7 @@ export const auditAPI = {
 
   fetchSignatureByName: async (firstName, lastName) => {
     try {
-      const response = await apiClient.get('https://internalaudit.hub.swajyot.co.in:8090
-/api/users/signature', {
+      const response = await apiClient.get('https://internalaudit.hub.swajyot.co.in:8090/api/users/signature', {
         params: { firstName, lastName },
         responseType: 'blob'
       });
@@ -1117,8 +1046,7 @@ export const auditAPI = {
 
   fetchUserByName: async (firstName, lastName) => {
     try {
-      const response = await apiClient.get('https://internalaudit.hub.swajyot.co.in:8090
-/api/users/by-name', {
+      const response = await apiClient.get('https://internalaudit.hub.swajyot.co.in:8090/api/users/by-name', {
         params: { firstName, lastName }
       });
       return response.data;
@@ -1130,8 +1058,7 @@ export const auditAPI = {
 
   fetchSignatureById: async (userId) => {
     try {
-      const response = await apiClient.get(`https://internalaudit.hub.swajyot.co.in:8090
-/api/users/${userId}/signature`, {
+      const response = await apiClient.get(`https://internalaudit.hub.swajyot.co.in:8090/api/users/${userId}/signature`, {
         responseType: 'blob'
       });
      
@@ -1158,48 +1085,39 @@ export const signatureAPI = {
 
 export const ncrAPI = {
   getAll: async () => {
-    const response = await apiClient.get('https://internalaudit.hub.swajyot.co.in:8090
-/api/ncr/all');
+    const response = await apiClient.get('https://internalaudit.hub.swajyot.co.in:8090/api/ncr/all');
     return response.data;
   },
   getByAuditId: async (auditId) => {
-    const response = await apiClient.get(`https://internalaudit.hub.swajyot.co.in:8090
-/api/ncr/audit/${auditId}`);
+    const response = await apiClient.get(`https://internalaudit.hub.swajyot.co.in:8090/api/ncr/audit/${auditId}`);
     return response.data;
   },
   getByAssignee: async (assigneeId) => {
-    const response = await apiClient.get(`https://internalaudit.hub.swajyot.co.in:8090
-/api/ncr/auditee/${assigneeId}`);
+    const response = await apiClient.get(`https://internalaudit.hub.swajyot.co.in:8090/api/ncr/auditee/${assigneeId}`);
     return response.data;
   },
   getByAuditor: async (auditorId) => {
-    const response = await apiClient.get(`https://internalaudit.hub.swajyot.co.in:8090
-/api/ncr/auditor/${auditorId}`);
+    const response = await apiClient.get(`https://internalaudit.hub.swajyot.co.in:8090/api/ncr/auditor/${auditorId}`);
     return response.data;
   },
   getPendingReview: async () => {
-    const response = await apiClient.get('https://internalaudit.hub.swajyot.co.in:8090
-/api/ncr/pending-review');
+    const response = await apiClient.get('https://internalaudit.hub.swajyot.co.in:8090/api/ncr/pending-review');
     return response.data;
   },
   getPendingVerification: async () => {
-    const response = await apiClient.get('https://internalaudit.hub.swajyot.co.in:8090
-/api/ncr/pending-verification');
+    const response = await apiClient.get('https://internalaudit.hub.swajyot.co.in:8090/api/ncr/pending-verification');
     return response.data;
   },
   create: async (ncrData) => {
-    const response = await apiClient.post('https://internalaudit.hub.swajyot.co.in:8090
-/api/ncr/create', ncrData);
+    const response = await apiClient.post('https://internalaudit.hub.swajyot.co.in:8090/api/ncr/create', ncrData);
     return response.data;
   },
   submitCorrectiveAction: async (id, actionData) => {
-    const response = await apiClient.put(`https://internalaudit.hub.swajyot.co.in:8090
-/api/ncr/${id}/corrective-action`, actionData);
+    const response = await apiClient.put(`https://internalaudit.hub.swajyot.co.in:8090/api/ncr/${id}/corrective-action`, actionData);
     return response.data;
   },
   verifyAndClose: async (id, verificationData) => {
-    const response = await apiClient.put(`https://internalaudit.hub.swajyot.co.in:8090
-/api/ncr/${id}/verify`, verificationData);
+    const response = await apiClient.put(`https://internalaudit.hub.swajyot.co.in:8090/api/ncr/${id}/verify`, verificationData);
     return response.data;
   },
   sendTo8D: async (ncrId, comment, auditManagerId) => {
@@ -1285,8 +1203,7 @@ export const notificationAPI = {
   // Send notification to specific user
   sendToUser: async (userId, title, message, type, navigateTo, location) => {
     try {
-      const response = await apiClient.post('https://internalaudit.hub.swajyot.co.in:8090
-/api/notifications/send-to-user', {
+      const response = await apiClient.post('https://internalaudit.hub.swajyot.co.in:8090/api/notifications/send-to-user', {
         userId,
         title,
         message,
@@ -1304,8 +1221,7 @@ export const notificationAPI = {
   // Send notification to all users with a role
   sendToRole: async (role, title, message, type, navigateTo, location) => {
     try {
-      const response = await apiClient.post('https://internalaudit.hub.swajyot.co.in:8090
-/api/notifications/send-to-role', {
+      const response = await apiClient.post('https://internalaudit.hub.swajyot.co.in:8090/api/notifications/send-to-role', {
         role,
         title,
         message,

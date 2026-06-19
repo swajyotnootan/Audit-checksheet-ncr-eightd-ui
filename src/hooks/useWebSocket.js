@@ -12,8 +12,7 @@ export const useWebSocket = (groupId, onMessageReceived) => {
   const connect = useCallback(() => {
     if (stompClient?.connected) return;
     try {
-      const socket = new SockJS('https://internalaudit.hub.swajyot.co.in:8090
-/ws');
+      const socket = new SockJS('https://internalaudit.hub.swajyot.co.in:8090/ws');
       stompClient = new Client({
         webSocketFactory: () => socket,
         reconnectDelay: 5000,
