@@ -294,7 +294,7 @@ const LoginForm = ({ onLogin }) => {
     <>
       <div className="flex min-h-screen overflow-hidden bg-gray-50">
         {/* LEFT PANEL - BRANDING (Reduced Colors) */}
-        <div className="relative hidden lg:flex lg:w-1/2 bg-gradient-to-br from-blue-800 to-indigo-900 overflow-hidden">
+        <div className="relative hidden lg:flex lg:w-1/2 bg-gradient-to-br from-blue-500 to-indigo-600 overflow-hidden">
           {/* Decorative Background Elements */}
           <div className="absolute inset-0">
             {/* Pattern Overlay */}
