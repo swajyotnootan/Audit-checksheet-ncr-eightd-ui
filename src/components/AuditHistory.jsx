@@ -11,8 +11,7 @@ import {
 import { useAuth } from '../components/context/AuthContext';
 import { useToast } from '../components/ToastContext';
 
-const API_BASE = import.meta.env.VITE_API_URL || 'https://internalaudit.hub.swajyot.co.in:8090
-/api';
+const API_BASE = import.meta.env.VITE_API_URL || 'https://internalaudit.hub.swajyot.co.in:8090/api';
 
 const AuditHistory = () => {
   const { user } = useAuth();
