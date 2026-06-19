@@ -296,16 +296,35 @@ const LoginForm = ({ onLogin }) => {
     <>
       <div className="flex min-h-screen overflow-hidden bg-gray-50">
 
-        {/* LEFT PANEL - MATCHING YOUR DESIRED FORMAT */}
-        <div className="relative flex-col justify-center hidden overflow-hidden md:flex md:w-1/2 bg-gradient-to-br from-purple-700 via-violet-600 to-purple-500">
-          {/* Decorative Orbs */}
-          <div className="absolute w-56 h-56 rounded-full -top-30 -left-35 bg-pink-300/20 blur-3xl"></div>
-          <div className="absolute w-64 h-64 rounded-full -bottom-24 -right-24 bg-orange-300/15 blur-3xl"></div>
+        {/* LEFT PANEL - PREVIOUS PURPLE COLORS */}
+        <div className="relative hidden lg:flex lg:w-1/2 overflow-hidden" style={{ background: 'linear-gradient(160deg, #7e6a8a 0%, #5c5491 50%, #3d4080 100%)' }}>
+          {/* Decorative Elements */}
+          <div className="absolute inset-0">
+            {/* Pattern Overlay */}
+            <div
+              className="absolute inset-0 opacity-30"
+              style={{
+                backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='60' height='60' viewBox='0 0 60 60'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.03'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`,
+              }}
+            />
 
-          {/* Content */}
-          <div className="relative z-10 w-full max-w-xl mx-0 my-auto px-12 py-8 mt-[80px]">
-            <div className="w-full max-w-md">
-              {/* Logo - Larger size as requested */}
+            {/* Orbs - Original Colors */}
+            <div
+              className="absolute top-[-20%] right-[-10%] w-[400px] h-[400px] rounded-full blur-3xl"
+              style={{ background: 'rgba(236,180,210,0.13)' }}
+            ></div>
+            <div
+              className="absolute bottom-[-20%] left-[-10%] w-[400px] h-[400px] rounded-full blur-3xl"
+              style={{ background: 'rgba(130,120,200,0.15)' }}
+            ></div>
+
+            <div className="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-transparent"></div>
+          </div>
+
+          {/* Content - Matching Your Desired Format */}
+          <div className="relative z-10 flex flex-col justify-center w-full px-12 py-8">
+            <div className="max-w-md">
+              {/* Logo - Larger */}
               <img src={logo} alt="Qsutra Logo" className="w-[200px] h-auto mb-6" />
 
               {/* Title */}
@@ -326,15 +345,15 @@ const LoginForm = ({ onLogin }) => {
                 Any form of unauthorised reproduction, copying or distribution of this program in whole or part,
                 will attract severe civil & criminal prosecution for maximum extent implications possible under law.
               </p>
-            </div>
 
-            {/* Secure Access Badge */}
-            <div className="flex justify-start mt-8">
-              <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-white/10 backdrop-blur-sm border border-white/5">
-                <svg className="w-3.5 h-3.5 text-white/80" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
-                </svg>
-                <span className="text-xs font-medium text-white/80">Secure Access Only</span>
+              {/* Secure Access Badge */}
+              <div className="flex justify-start mt-8">
+                <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-white/10 backdrop-blur-sm border border-white/5">
+                  <svg className="w-3.5 h-3.5 text-white/80" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                  </svg>
+                  <span className="text-xs font-medium text-white/80">Secure Access Only</span>
+                </div>
               </div>
             </div>
           </div>
