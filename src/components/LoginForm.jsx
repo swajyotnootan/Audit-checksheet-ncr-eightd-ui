@@ -313,7 +313,7 @@ const LoginForm = ({ onLogin }) => {
   
   {/* Gradient Overlay */}
   <div className="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-transparent"></div>
-</div>
+
           </div>
 
           {/* Content */}
@@ -509,7 +509,7 @@ const LoginForm = ({ onLogin }) => {
             </div>
           </div>
         </div>
-      
+      </div>
 
       {/* Welcome Popup */}
       <WelcomePopup
