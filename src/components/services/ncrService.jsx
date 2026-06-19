@@ -2,8 +2,7 @@
 
 import axios from 'axios';
 
-const API_BASE_URL = 'https://internalaudit.hub.swajyot.co.in:8090
-/api';
+const API_BASE_URL = 'https://internalaudit.hub.swajyot.co.in:8090/api';
 
 const apiClient = axios.create({
   baseURL: API_BASE_URL,
