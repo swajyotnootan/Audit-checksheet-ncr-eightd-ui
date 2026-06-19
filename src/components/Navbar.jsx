@@ -6,16 +6,12 @@ import {
   LogOut, 
   User, 
   Mail, 
-  Users, 
-  Briefcase, 
   Building, 
   Bell,
   ChevronDown,
-  Home,
-  Settings,
+  LayoutDashboard,
   UserCircle,
-  ShieldCheck,
-  LayoutDashboard
+  ShieldCheck
 } from 'lucide-react';
 import { getDashboardPath, getRoleDisplayName } from './utils/roleUtils';
 import logo from '../assets/QsutraQMSWhiteLogo.png';
@@ -36,7 +32,6 @@ const Navbar = ({ onLogout, children }) => {
 
   const userRole = user?.role?.toLowerCase?.() || '';
   const isAuditorOrAuditee = userRole === 'auditor' || userRole === 'auditee';
-  const calendarButtonText = isAuditorOrAuditee ? 'My Calendar' : 'Calendar';
 
   const shouldHideCalendar = () => {
     const role = user?.role?.toUpperCase?.() || '';
@@ -59,7 +54,7 @@ const Navbar = ({ onLogout, children }) => {
       <header className="shadow fixed top-0 w-full bg-background z-50">
         <div className="max-w-full mx-auto py-2 px-3 sm:px-5 lg:px-6 flex justify-between items-center">
           
-          {/* Left Side - Qsutra Logo */}
+          {/* Left Side - Qsutra Logo (KEPT AS PREVIOUS) */}
           <div className="flex items-center">
             <Link to="/" className="flex justify-center">
               <img alt="qsutra logo" className="w-18 h-6 mr-6" src={logo} />
@@ -78,13 +73,24 @@ const Navbar = ({ onLogout, children }) => {
 
           {/* Right Side */}
           <div className="flex items-center gap-2 relative">
-            {/* API Logo */}
+            {/* API Logo (KEPT AS PREVIOUS) */}
             <div className="flex items-center justify-center bg-white rounded-lg px-1">
               <img src={logoUrl} alt="API Logo" className="h-9 max-w-[130px] rounded object-contain" />
             </div>
 
             {/* Notification Bell */}
             {user && <NotificationBell />}
+
+            {/* Calendar Icon - Only Icon (Like Notification Bell) */}
+            {!shouldHideCalendar() && (
+              <button
+                onClick={() => navigate('/calendar')}
+                className="relative p-1.5 rounded-lg hover:bg-white/10 transition-all duration-200"
+                title="Calendar"
+              >
+                <Calendar className="w-5 h-5 text-white/80 hover:text-white transition-colors" />
+              </button>
+            )}
 
             {/* Avatar Icon */}
             <div
@@ -171,18 +177,7 @@ const Navbar = ({ onLogout, children }) => {
               </div>
             )}
 
-            {/* Calendar Button - Elegant */}
-            {!shouldHideCalendar() && (
-              <button
-                onClick={() => navigate('/calendar')}
-                className="px-3 py-1.5 text-xs text-white bg-emerald-600 hover:bg-emerald-700 rounded-lg transition-all duration-200 flex items-center gap-1.5 shadow-sm hover:shadow-md"
-              >
-                <Calendar className="w-4 h-4" />
-                {calendarButtonText}
-              </button>
-            )}
-
-            {/* Logout Button - Elegant */}
+            {/* Logout Button */}
             <button
               onClick={onLogout}
               className="bg-red-600 hover:bg-red-700 text-white text-xs py-1.5 px-3 rounded-lg transition-all duration-200 flex items-center gap-1.5 shadow-sm hover:shadow-md"
