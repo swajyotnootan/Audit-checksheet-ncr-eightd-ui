@@ -254,8 +254,7 @@ const canDeleteJob = () => {
   useEffect(() => {
     const fetchLogo = async () => {
       try {
-        const response = await fetch('https://internalaudit.hub.swajyot.co.in:8090
-/api/logo');
+        const response = await fetch('https://internalaudit.hub.swajyot.co.in:8090/api/logo');
         if (response.ok) {
           const blob = await response.blob();
           setDynamicLogo(URL.createObjectURL(blob));

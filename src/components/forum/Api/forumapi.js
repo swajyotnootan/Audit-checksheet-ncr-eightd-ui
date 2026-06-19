@@ -2,8 +2,7 @@
 import axios from "axios";
 
 const forumApi = axios.create({
-  baseURL: "https://internalaudit.hub.swajyot.co.in:8090
-/api",
+  baseURL: "https://internalaudit.hub.swajyot.co.in:8090/api",
   headers: { "Content-Type": "application/json" },
 });
 
@@ -55,8 +54,7 @@ export const uploadForumAttachment = (groupId, file) => {
 
 // ===== EXISTING MAIN FORUM APIS (UNCHANGED) =====
 export const sendCallNotification = async (groupId, action, caller, callerName, targetUser = null) => {
-  const response = await fetch('https://internalaudit.hub.swajyot.co.in:8090
-/api/forum/call-notification', {
+  const response = await fetch('https://internalaudit.hub.swajyot.co.in:8090/api/forum/call-notification', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ groupId, action, caller, callerName, targetUser, timestamp: new Date().toISOString() }),
