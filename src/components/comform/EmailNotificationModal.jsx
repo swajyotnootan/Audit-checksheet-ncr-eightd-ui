@@ -74,8 +74,7 @@ const EmailNotificationModal = ({
 
     const fetchUsers = async () => {
       try {
-        const res = await axios.get("https://internalaudit.hub.swajyot.co.in:8090
-/api/users/active");
+        const res = await axios.get("https://internalaudit.hub.swajyot.co.in:8090/api/users/active");
         const allUsers = res.data;
 
         const storedUser = localStorage.getItem("user");
@@ -209,8 +208,7 @@ ${name} (${role})
 
       try {
         setIsSending(true);
-        const response = await axios.post("https://internalaudit.hub.swajyot.co.in:8090
-/api/email/send", payload);
+        const response = await axios.post("https://internalaudit.hub.swajyot.co.in:8090/api/email/send", payload);
         if (response.data?.success === true) {
           alert("✅ Email sent successfully!");
         } else {

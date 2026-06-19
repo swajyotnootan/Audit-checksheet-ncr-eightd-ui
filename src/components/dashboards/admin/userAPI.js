@@ -3,8 +3,7 @@ import axios from 'axios';
 
 // Axios instance configuration
 const api = axios.create({
-  baseURL: 'https://internalaudit.hub.swajyot.co.in:8090
-/api',
+  baseURL: 'https://internalaudit.hub.swajyot.co.in:8090/api',
   headers: {
     'Content-Type': 'application/json'
   }

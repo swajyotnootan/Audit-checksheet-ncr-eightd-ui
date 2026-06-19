@@ -91,15 +91,13 @@ department: safeDefaultValues.department || '',
 
   const [signaturePreview, setSignaturePreview] = useState(
     safeDefaultValues.signaturePath
-      ? `https://internalaudit.hub.swajyot.co.in:8090
-/api/users/${safeDefaultValues.id}/signature`
+      ? `https://internalaudit.hub.swajyot.co.in:8090/api/users/${safeDefaultValues.id}/signature`
       : safeDefaultValues.signature || null
   );
 
   const [profilePhotoPreview, setProfilePhotoPreview] = useState(
     safeDefaultValues.profilePhotoPath
-      ? `https://internalaudit.hub.swajyot.co.in:8090
-/api/users/${safeDefaultValues.id}/profile-photo`
+      ? `https://internalaudit.hub.swajyot.co.in:8090/api/users/${safeDefaultValues.id}/profile-photo`
       : safeDefaultValues.profilePhoto || null
   );
 

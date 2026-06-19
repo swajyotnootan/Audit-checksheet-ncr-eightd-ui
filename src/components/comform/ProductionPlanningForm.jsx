@@ -475,8 +475,7 @@ const canDeleteJob = () => {
 
     try {
       setIsLoading(true);
-      const res = await axios.post("https://internalaudit.hub.swajyot.co.in:8090
-/api/public/json-data", payload);
+      const res = await axios.post("https://internalaudit.hub.swajyot.co.in:8090/api/public/json-data", payload);
       if (res.data.success) {
         const id = res.data.data.id;
         setInspectionId(id);
