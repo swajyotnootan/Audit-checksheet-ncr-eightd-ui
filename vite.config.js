@@ -7,6 +7,9 @@ export default defineConfig(({ mode }) => {
   const envDir = path.resolve(__dirname, 'env');
   const env = loadEnv(mode, envDir, 'VITE_');
 
+  // Clean the URL (remove any trailing whitespace/newlines)
+  const apiTarget = (env.VITE_API_BASE_URL || 'https://internalaudit.hub.swajyot.co.in:8090').trim();
+
   return {
     plugins: [react()],
     envDir,
@@ -14,22 +17,22 @@ export default defineConfig(({ mode }) => {
     server: {
       proxy: {
         '/api': {
-          target: (env.VITE_API_BASE_URL || 'https://internalaudit.hub.swajyot.co.in:8090
-').trim(),
+          target: apiTarget,
           changeOrigin: true,
           secure: false,
+          rewrite: (path) => path.replace(/^\/api/, ''), // Optional: removes /api prefix if your backend doesn't expect it
         }
       }
     },
     
-    // ✅ ADD THIS: Proxy for preview (production build testing)
+    // ✅ FIXED: preview proxy (Vite 4+ supports this)
     preview: {
       proxy: {
         '/api': {
-          target: (env.VITE_API_BASE_URL || 'https://internalaudit.hub.swajyot.co.in:8090
-').trim(),
+          target: apiTarget,
           changeOrigin: true,
           secure: false,
+          rewrite: (path) => path.replace(/^\/api/, ''),
         }
       }
     },
@@ -42,7 +45,18 @@ export default defineConfig(({ mode }) => {
           entryFileNames: 'assets/js/[name]-[hash].js',
         }
       },
-      chunkSizeWarningLimit: 1000
+      chunkSizeWarningLimit: 1000,
+      // Optional: Add sourcemap for debugging
+      sourcemap: mode === 'development',
+    },
+    
+    // Optional: Resolve aliases for cleaner imports
+    resolve: {
+      alias: {
+        '@': path.resolve(__dirname, './src'),
+        '@components': path.resolve(__dirname, './src/components'),
+        '@utils': path.resolve(__dirname, './src/utils'),
+      }
     }
   };
 });
