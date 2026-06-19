@@ -86,15 +86,15 @@ const Navbar = ({ onLogout, children }) => {
             {user && <NotificationBell />}
 
             {/* Calendar Icon */}
-            {!shouldHideCalendar() && (
-              <button
-                onClick={() => navigate('/calendar')}
-                className="relative p-1.5 rounded-lg hover:bg-white/10 transition-all duration-200"
-                title="Calendar"
-              >
-                <Calendar className="w-5 h-5 text-white/80 hover:text-white transition-colors" />
-              </button>
-            )}
+{!shouldHideCalendar() && (
+  <button
+    onClick={() => navigate('/calendar')}
+    className="relative p-1.5 rounded-lg hover:bg-white/10 transition-all duration-200"
+    title="Calendar"
+  >
+    <Calendar className="w-6 h-6 text-white/80 hover:text-white transition-colors" />
+  </button>
+)}
 
             {/* Avatar Icon */}
             <div
