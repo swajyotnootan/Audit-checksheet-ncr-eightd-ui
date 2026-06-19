@@ -293,27 +293,24 @@ const LoginForm = ({ onLogin }) => {
   return (
     <>
       <div className="flex min-h-screen overflow-hidden bg-gray-50">
-        {/* LEFT PANEL - BRANDING */}
-        <div className="relative hidden lg:flex lg:w-1/2 bg-gradient-to-br from-blue-700 via-indigo-700 to-indigo-900 overflow-hidden">
+        {/* LEFT PANEL - BRANDING (Reduced Colors) */}
+        <div className="relative hidden lg:flex lg:w-1/2 bg-gradient-to-br from-blue-800 to-indigo-900 overflow-hidden">
           {/* Decorative Background Elements */}
-          {/* Decorative Background Elements */}
-<div className="absolute inset-0">
-  {/* Pattern Overlay - FIXED */}
-  <div 
-    className="absolute inset-0 opacity-50"
-    style={{
-      backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='60' height='60' viewBox='0 0 60 60'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.03'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`,
-    }}
-  />
-  
-  {/* Animated Orbs */}
-  <div className="absolute top-[-20%] right-[-10%] w-[500px] h-[500px] bg-blue-400/20 rounded-full blur-3xl"></div>
-  <div className="absolute bottom-[-20%] left-[-10%] w-[500px] h-[500px] bg-purple-400/20 rounded-full blur-3xl"></div>
-  <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[400px] h-[400px] bg-indigo-400/10 rounded-full blur-3xl"></div>
-  
-  {/* Gradient Overlay */}
-  <div className="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-transparent"></div>
-
+          <div className="absolute inset-0">
+            {/* Pattern Overlay */}
+            <div 
+              className="absolute inset-0 opacity-30"
+              style={{
+                backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='60' height='60' viewBox='0 0 60 60'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.03'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`,
+              }}
+            />
+            
+            {/* Reduced Orbs - Only 2 instead of 3 */}
+            <div className="absolute top-[-20%] right-[-10%] w-[400px] h-[400px] bg-blue-400/15 rounded-full blur-3xl"></div>
+            <div className="absolute bottom-[-20%] left-[-10%] w-[400px] h-[400px] bg-indigo-400/15 rounded-full blur-3xl"></div>
+            
+            {/* Gradient Overlay */}
+            <div className="absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-transparent"></div>
           </div>
 
           {/* Content */}
@@ -383,9 +380,9 @@ const LoginForm = ({ onLogin }) => {
               <img src={logo2} alt="Stratum Logo" className="h-12 w-auto opacity-80" />
             </div>
 
-            {/* Header */}
+            {/* Header - Changed to "Internal Audits" */}
             <div className="mb-8 text-center lg:text-left">
-              <h2 className="text-2xl font-bold text-gray-800">Welcome back</h2>
+              <h2 className="text-2xl font-bold text-gray-800">Internal Audits</h2>
               <p className="text-sm text-gray-500 mt-1">Sign in to access your internal audit dashboard</p>
             </div>
 
