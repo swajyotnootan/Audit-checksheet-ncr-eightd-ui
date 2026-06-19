@@ -54,10 +54,11 @@ const Navbar = ({ onLogout, children }) => {
       <header className="shadow fixed top-0 w-full bg-background z-50">
         <div className="max-w-full mx-auto py-2 px-3 sm:px-5 lg:px-6 flex justify-between items-center">
           
-          {/* Left Side - Qsutra Logo (KEPT AS PREVIOUS) */}
+          {/* Left Side - Qsutra Logo (PREVIOUS SIZE) */}
           <div className="flex items-center">
             <Link to="/" className="flex justify-center">
-              <img alt="qsutra logo" className="w-18 h-6 mr-6" src={logo} />
+              {/* Previous size: w-23 h-8 - RESTORED */}
+              <img alt="qsutra logo" className="w-23 h-8 mr-6" src={logo} />
             </Link>
             {showBackButton && (
               <button
@@ -73,9 +74,10 @@ const Navbar = ({ onLogout, children }) => {
 
           {/* Right Side */}
           <div className="flex items-center gap-2 relative">
-            {/* API Logo (KEPT AS PREVIOUS) */}
+            {/* API Logo (PREVIOUS SIZE) */}
             <div className="flex items-center justify-center bg-white rounded-lg px-1">
-              <img src={logoUrl} alt="API Logo" className="h-9 max-w-[130px] rounded object-contain" />
+              {/* Previous size: h-12 - RESTORED */}
+              <img src={logoUrl} alt="API Logo" className="h-12 max-w-[130px] rounded object-contain" />
             </div>
 
             {/* Notification Bell */}
@@ -92,7 +94,7 @@ const Navbar = ({ onLogout, children }) => {
               </button>
             )}
 
-            {/* Avatar Icon */}
+            {/* Avatar Icon - PREVIOUS SIZE */}
             <div
               className="w-8 h-8 bg-white/10 backdrop-blur-sm rounded-full flex items-center justify-center overflow-hidden cursor-pointer border border-white/10 hover:border-white/30 transition-all duration-200"
               onClick={() => setProfileOpen(v => !v)}
@@ -110,8 +112,8 @@ const Navbar = ({ onLogout, children }) => {
               )}
             </div>
 
-            {/* User Info */}
-            <div className="flex flex-col text-white mr-1 cursor-pointer" onClick={() => setProfileOpen(v => !v)}>
+            {/* User Info - PREVIOUS SPACING */}
+            <div className="flex flex-col text-white mr-2 cursor-pointer" onClick={() => setProfileOpen(v => !v)}>
               <p className="text-white font-medium text-sm flex items-center gap-1">
                 {(user?.name || 'Unknown User').replace(/^(Mr\.|Mrs\.|Ms\.|Dr\.|Miss|Shri|Smt)\s+/i, '')}
                 <ChevronDown className={`w-3.5 h-3.5 text-white/60 transition-transform duration-200 ${profileOpen ? 'rotate-180' : ''}`} />
@@ -177,10 +179,10 @@ const Navbar = ({ onLogout, children }) => {
               </div>
             )}
 
-            {/* Logout Button */}
+            {/* Logout Button - PREVIOUS SIZE */}
             <button
               onClick={onLogout}
-              className="bg-red-600 hover:bg-red-700 text-white text-xs py-1.5 px-3 rounded-lg transition-all duration-200 flex items-center gap-1.5 shadow-sm hover:shadow-md"
+              className="bg-red-600 hover:bg-red-700 text-white text-xs py-1 px-2 rounded transition-all duration-200 flex items-center gap-1"
             >
               <LogOut className="w-3.5 h-3.5" />
               Logout
