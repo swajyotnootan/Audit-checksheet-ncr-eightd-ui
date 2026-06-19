@@ -77,7 +77,7 @@ const Navbar = ({ onLogout, children }) => {
               <img 
                 src={logoUrl} 
                 alt="Stratum Logo" 
-                className="h-12 max-w-[130px] rounded object-contain" 
+                className="h-9 max-w-[130px] rounded object-contain" 
                 style={{ background: 'transparent' }}
               />
             </div>
