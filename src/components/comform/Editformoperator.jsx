@@ -128,8 +128,7 @@ export default function EditFormOperator({ onClose, orderId }) {
   const loadExistingInspection = async (id) => {
     try {
       setIsLoading(true);
-      const response = await axios.get(`https://internalaudit.hub.swajyot.co.in:8090
-/api/public/json-data/${id}`);
+      const response = await axios.get(`https://internalaudit.hub.swajyot.co.in:8090/api/public/json-data/${id}`);
       if (response.data.success) {
         const existingData = JSON.parse(response.data.data.jsonContent);
         setOrderData(existingData);
@@ -248,8 +247,7 @@ export default function EditFormOperator({ onClose, orderId }) {
         })
       };
 
-      await axios.put(`https://internalaudit.hub.swajyot.co.in:8090
-/api/public/json-data/${orderId}`, {
+      await axios.put(`https://internalaudit.hub.swajyot.co.in:8090/api/public/json-data/${orderId}`, {
         jsonContent: JSON.stringify(updatedJsonContent)
       });
 
@@ -431,8 +429,7 @@ export default function EditFormOperator({ onClose, orderId }) {
         lineContributions: updatedContributions
       };
 
-      await axios.put(`https://internalaudit.hub.swajyot.co.in:8090
-/api/public/json-data/${orderId}`, {
+      await axios.put(`https://internalaudit.hub.swajyot.co.in:8090/api/public/json-data/${orderId}`, {
         jsonContent: JSON.stringify(updatedJsonContent)
       });
 
@@ -555,8 +552,7 @@ export default function EditFormOperator({ onClose, orderId }) {
         lineContributions: updatedContributions
       };
 
-      await axios.put(`https://internalaudit.hub.swajyot.co.in:8090
-/api/public/json-data/${orderId}`, {
+      await axios.put(`https://internalaudit.hub.swajyot.co.in:8090/api/public/json-data/${orderId}`, {
         jsonContent: JSON.stringify(updatedJsonContent)
       });
 
