@@ -64,8 +64,7 @@ export const sendCallNotification = async (groupId, action, caller, callerName, 
 };
 
 export const checkActiveCalls = async (groupId) => {
-  const response = await fetch(`https://internalaudit.hub.swajyot.co.in:8090
-/api/forum/active-calls?groupId=${groupId}`);
+  const response = await fetch(`https://internalaudit.hub.swajyot.co.in:8090/api/forum/active-calls?groupId=${groupId}`);
   if (!response.ok) throw new Error('Failed to check active calls');
   return await response.json();
 };
