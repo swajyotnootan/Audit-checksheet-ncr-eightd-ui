@@ -25,8 +25,7 @@ import ForumThreadView from '../forum/ForumThreadView';
 import Drawer from '../Drawer';
 import axios from 'axios';
 
-const API_BASE = 'https://internalaudit.hub.swajyot.co.in:8090
-/api';
+const API_BASE = 'https://internalaudit.hub.swajyot.co.in:8090/api';
 
 const hasNcr2Data = (ncr) => Boolean(
   ncr?.ncr2RootCause ||

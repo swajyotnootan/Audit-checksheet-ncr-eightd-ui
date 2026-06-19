@@ -18,8 +18,7 @@ import {
   FileCheck
 } from 'lucide-react';
 
-const API_BASE = 'https://internalaudit.hub.swajyot.co.in:8090
-/api';
+const API_BASE = 'https://internalaudit.hub.swajyot.co.in:8090/api';
 
 // 5S Score options (0-4 scale)
 const SCORE_OPTIONS = [

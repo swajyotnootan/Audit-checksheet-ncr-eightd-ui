@@ -20,8 +20,7 @@ import DocumentControlSection from './DocumentControlSection';
 import StatisticsCard from './StatisticsCard';
 import axios from 'axios';
 
-const API_BASE = 'https://internalaudit.hub.swajyot.co.in:8090
-/api';
+const API_BASE = 'https://internalaudit.hub.swajyot.co.in:8090/api';
 
 const Form5View = () => {
   const { user, isAuditManager, isTopManagement } = useAuth();

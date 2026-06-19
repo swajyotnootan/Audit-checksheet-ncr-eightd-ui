@@ -11,8 +11,7 @@ import {
   FiChevronDown, FiChevronUp
 } from 'react-icons/fi';
 
-const API_BASE = 'https://internalaudit.hub.swajyot.co.in:8090
-/api';
+const API_BASE = 'https://internalaudit.hub.swajyot.co.in:8090/api';
 
 const ScheduleDetailsView = () => {
   const navigate = useNavigate();

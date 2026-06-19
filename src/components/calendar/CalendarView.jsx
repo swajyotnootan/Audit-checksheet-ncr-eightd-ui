@@ -32,8 +32,7 @@ import 'react-big-calendar/lib/css/react-big-calendar.css'
 
 const localizer = momentLocalizer(moment)
 
-const API_BASE = 'https://internalaudit.hub.swajyot.co.in:8090
-/api';
+const API_BASE = 'https://internalaudit.hub.swajyot.co.in:8090/api';
 
 // ========== ADD THIS USER CACHE CODE ==========
 let userCache = null;

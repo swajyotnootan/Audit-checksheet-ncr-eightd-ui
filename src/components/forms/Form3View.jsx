@@ -10,8 +10,7 @@ import {
 import { useSearchParams } from 'react-router-dom';
 
 
-const API_BASE = 'https://internalaudit.hub.swajyot.co.in:8090
-/api';
+const API_BASE = 'https://internalaudit.hub.swajyot.co.in:8090/api';
 
 const Form3View = () => {
   

@@ -18,8 +18,7 @@ import DeptPlanDetailsModal from '../modals/DeptPlanDetailsModal';
 import RejectModal from '../modals/RejectModal';
 import { auditScheduleApi } from '../../services/auditScheduleApi';
 
-const API_BASE = 'https://internalaudit.hub.swajyot.co.in:8090
-/api';
+const API_BASE = 'https://internalaudit.hub.swajyot.co.in:8090/api';
 
 const TopManagementDashboard = () => {
   const { user } = useAuth();

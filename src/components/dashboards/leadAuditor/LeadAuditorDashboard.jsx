@@ -15,8 +15,7 @@ import AuditsAndResponses from './AuditsAndResponses';
 import StakeholderManagement from './StakeholderManagement';
 import ResponseDetailModal from './ResponseDetailModal';
 import { useNavigate, useLocation } from 'react-router-dom';
-const API_BASE = 'https://internalaudit.hub.swajyot.co.in:8090
-/api';
+const API_BASE = 'https://internalaudit.hub.swajyot.co.in:8090/api';
 
 import YearFilter from '../../../components/common/YearFilter';
 

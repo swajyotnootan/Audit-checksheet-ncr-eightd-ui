@@ -10,8 +10,7 @@ import { useAuth } from '../context/AuthContext';
 import { useToast } from '../ToastContext';
 import axios from 'axios';
 
-const API_BASE = 'https://internalaudit.hub.swajyot.co.in:8090
-/api';
+const API_BASE = 'https://internalaudit.hub.swajyot.co.in:8090/api';
 
 const LeadAuditorDashboard = () => {
   const { user } = useAuth();

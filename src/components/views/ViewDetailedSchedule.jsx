@@ -11,8 +11,7 @@ import {
   FiUserCheck, FiUserPlus, FiFileText
 } from 'react-icons/fi';
 
-const API_BASE = 'https://internalaudit.hub.swajyot.co.in:8090
-/api';
+const API_BASE = 'https://internalaudit.hub.swajyot.co.in:8090/api';
 
 const ViewDetailedSchedule = () => {
   const navigate = useNavigate();

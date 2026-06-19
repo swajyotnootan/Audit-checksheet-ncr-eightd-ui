@@ -38,8 +38,7 @@ import axios from 'axios';
 import { auditScheduleApi } from '../../services/auditScheduleApi';
 
 
-const API_BASE = 'https://internalaudit.hub.swajyot.co.in:8090
-/api';
+const API_BASE = 'https://internalaudit.hub.swajyot.co.in:8090/api';
 
 // ============================================================
 // Helper Functions

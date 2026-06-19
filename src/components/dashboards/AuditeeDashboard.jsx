@@ -19,8 +19,7 @@ import ForumThreadView from '../forum/ForumThreadView';
 import Drawer from '../Drawer';
 import { MessageCircle } from 'lucide-react';
 import YearFilter from '../../components/common/YearFilter';
-const API_BASE = 'https://internalaudit.hub.swajyot.co.in:8090
-/api';
+const API_BASE = 'https://internalaudit.hub.swajyot.co.in:8090/api';
 
 const getViewRoute = (audit) => {
   const auditType = (audit.auditType || '').toLowerCase().trim();
