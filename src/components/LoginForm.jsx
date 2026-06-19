@@ -374,7 +374,7 @@ const LoginForm = ({ onLogin }) => {
             </div>
 
             {/* Header - LARGER TEXT */}
-            <div className="mb-8 text-center lg:text-left">
+            <div className="mb-8 text-center">
               <h2 className="text-3xl font-bold" style={{ color: '#2d2540' }}>Internal Audits</h2>
               <p className="text-base mt-1.5" style={{ color: '#9b8fa8' }}>Sign in to access your internal audit dashboard</p>
             </div>
