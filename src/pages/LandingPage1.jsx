@@ -106,8 +106,7 @@ const getTeamMembersForEvent = async (eventId) => {
   
   try {
     console.log('👥 [LandingPage] Fetching team members for event:', eventId);
-    const response = await axios.get(`https://internalaudit.hub.swajyot.co.in:8090
-/api/eightd/data/${eventId}`);
+    const response = await axios.get(`https://internalaudit.hub.swajyot.co.in:8090/api/eightd/data/${eventId}`);
     
     if (response.data?.success && response.data.data) {
       const eventData = response.data.data;
@@ -362,8 +361,7 @@ export default function LandingPage1() {
 
   const fetchFullRecordData = async (eventNo) => {
     try {
-      const response = await axios.get(`https://internalaudit.hub.swajyot.co.in:8090
-/api/eightd/data/${eventNo}`);
+      const response = await axios.get(`https://internalaudit.hub.swajyot.co.in:8090/api/eightd/data/${eventNo}`);
       return response.data?.success ? response.data.data || {} : null;
     } catch (err) {
       console.error("Failed to fetch full record ", eventNo, err);
@@ -422,8 +420,7 @@ export default function LandingPage1() {
   const fetchEvents = async () => {
   setLoading(true);
   try {
-    const res = await axios.get("https://internalaudit.hub.swajyot.co.in:8090
-/api/eightd/data?t=" + Date.now());
+    const res = await axios.get("https://internalaudit.hub.swajyot.co.in:8090/api/eightd/data?t=" + Date.now());
     console.log("🚨🚨🚨 RAW API RESPONSE 🚨🚨🚨", JSON.parse(JSON.stringify(res.data)));
     
     if (res.data?.success && Array.isArray(res.data.data)) {
@@ -577,8 +574,7 @@ export default function LandingPage1() {
   const handleDelete = async () => {
     if (!eventToDelete) return;
     try {
-      await axios.delete(`https://internalaudit.hub.swajyot.co.in:8090
-/api/eightd/data/${eventToDelete.eventNo}`);
+      await axios.delete(`https://internalaudit.hub.swajyot.co.in:8090/api/eightd/data/${eventToDelete.eventNo}`);
       fetchEvents();
       setShowDeleteConfirm(false);
       setEventToDelete(null);
