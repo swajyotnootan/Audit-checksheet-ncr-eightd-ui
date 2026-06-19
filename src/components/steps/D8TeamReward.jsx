@@ -15,8 +15,7 @@ import Drawer from "../Drawer";
 import FinalPreview from "./FinalPreview";
 
 export default function D8TeamReward({ eventId = null, updateParent }) {
-  const API_URL = "https://internalaudit.hub.swajyot.co.in:8090
-/api/eightd/data";
+  const API_URL = "https://internalaudit.hub.swajyot.co.in:8090/api/eightd/data";
   const LOCAL_STORAGE_KEY = eventId ? `d8-event-${eventId}` : "d8-new-event";
   const [formData, setFormData] = useState({
     eventId: eventId || "",

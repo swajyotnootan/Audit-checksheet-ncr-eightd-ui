@@ -2,8 +2,7 @@
 import { useState } from "react";
 import axios from "axios";
 
-const API_URL = "https://internalaudit.hub.swajyot.co.in:8090
-/api/public/json-data";
+const API_URL = "https://internalaudit.hub.swajyot.co.in:8090/api/public/json-data";
 
 export const useDFormSubmit = (step, recordId, setRecordId, currentFormData) => {
   const [submitted, setSubmitted] = useState(false);

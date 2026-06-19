@@ -191,8 +191,7 @@ export default function EightDLanding() {
       if (!eventNo) return;
 
       try {
-        const response = await axios.get(`https://internalaudit.hub.swajyot.co.in:8090
-/api/eightd/data/${eventNo}`);
+        const response = await axios.get(`https://internalaudit.hub.swajyot.co.in:8090/api/eightd/data/${eventNo}`);
         if (response.data?.success && response.data.data?.content) {
           const content = response.data.data.content;
           const loadedData = {};

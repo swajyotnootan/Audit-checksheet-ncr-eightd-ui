@@ -310,8 +310,7 @@ export default function D1FormTeam({ eventId, updateParent }) {
         });
         alert("D1 form updated successfully!");
       } else {
-        const res = await axios.post("https://internalaudit.hub.swajyot.co.in:8090
-/api/eightd/data", formData, {
+        const res = await axios.post("https://internalaudit.hub.swajyot.co.in:8090/api/eightd/data", formData, {
           headers: { 'Content-Type': 'multipart/form-data' }
         });
         if (res.data?.data?.id) {
