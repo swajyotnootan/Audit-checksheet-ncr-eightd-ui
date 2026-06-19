@@ -68,8 +68,7 @@ export default function PokaYokeAuditForm() {
   // Fetch all Poka-Yoke check sheet IDs dynamically
   const fetchPokaYokeCheckSheetIds = async () => {
     try {
-      const response = await axios.get('https://internalaudit.hub.swajyot.co.in:8090
-/api/templates/type/POKA_YOKE', {
+      const response = await axios.get('https://internalaudit.hub.swajyot.co.in:8090/api/templates/type/POKA_YOKE', {
         withCredentials: true
       });
       

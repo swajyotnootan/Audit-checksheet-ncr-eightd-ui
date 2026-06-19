@@ -76,8 +76,7 @@ export default function SafetyAuditDashboard() {
   // Fetch all Safety check sheet IDs dynamically
   const fetchSafetyCheckSheetIds = async () => {
     try {
-      const response = await axios.get('https://internalaudit.hub.swajyot.co.in:8090
-/api/templates/type/DAILY_SAFETY', {
+      const response = await axios.get('https://internalaudit.hub.swajyot.co.in:8090/api/templates/type/DAILY_SAFETY', {
         withCredentials: true
       });
       
@@ -106,8 +105,7 @@ export default function SafetyAuditDashboard() {
       }
       
       // Fetch all audit responses
-      const response = await axios.get('https://internalaudit.hub.swajyot.co.in:8090
-/api/templates/responses/all', {
+      const response = await axios.get('https://internalaudit.hub.swajyot.co.in:8090/api/templates/responses/all', {
         withCredentials: true
       });
       
