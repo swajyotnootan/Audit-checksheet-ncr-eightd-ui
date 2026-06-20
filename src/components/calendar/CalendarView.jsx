@@ -53,7 +53,7 @@ const fetchAllUsers = async () => {
       const response = await fetch(`${API_BASE}/users`, {
         headers: {
           'Content-Type': 'application/json',
-          'User-Email': userEmail,
+          // 'User-Email': userEmail,
           'User-ID': userId
         }
       });

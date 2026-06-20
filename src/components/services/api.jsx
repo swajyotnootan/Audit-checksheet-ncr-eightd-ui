@@ -887,15 +887,15 @@ export const auditAPI = {
   },
 
   // Unified save method (handles both create and update)
-  save: async (auditOrId, auditData) => {
+  save: async (auditorId, auditData) => {
     // If first param is object and no second param → create mode
-    if (typeof auditOrId === 'object' && !auditData) {
-      const response = await apiClient.post('https://internalaudit.hub.swajyot.co.in:8090/api/audits/save', auditOrId);
+    if (typeof auditorId === 'object' && !auditData) {
+      const response = await apiClient.post('https://internalaudit.hub.swajyot.co.in:8090/api/audits/save', auditorId);
       return response.data;
     }
     // If first param is id and second is data → update mode
-    if (typeof auditOrId === 'number' || typeof auditOrId === 'string') {
-      const response = await apiClient.put(`https://internalaudit.hub.swajyot.co.in:8090/api/audits/${auditOrId}/save`, auditData);
+    if (typeof auditorId === 'number' || typeof auditorId === 'string') {
+      const response = await apiClient.put(`https://internalaudit.hub.swajyot.co.in:8090/api/audits/${auditorId}/save`, auditData);
       return response.data;
     }
     throw new Error('Invalid parameters for auditAPI.save');
