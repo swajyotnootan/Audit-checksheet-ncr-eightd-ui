@@ -620,7 +620,9 @@ const AuditDetailsPopup = ({ audit, onClose }) => {
             <div className="flex items-center gap-2 mt-2 text-sm">
               <Clock className="w-4 h-4 text-gray-400" />
               <span className="text-gray-600">Time:</span>
-              <span className="text-gray-700">{formatTime(audit.startTime)} - {formatTime(audit.endTime)}</span>
+              <span className="text-gray-700">{audit.startTime && audit.endTime 
+      ? `${audit.startTime} - ${audit.endTime}`
+      : audit.timeSlot || 'N/A'}</span>
             </div>
 
             {/* Date Range Progress Bar */}
