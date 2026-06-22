@@ -46,21 +46,23 @@ const fetchAllUsers = async () => {
   
   userCachePromise = (async () => {
     try {
-      const userEmail = localStorage.getItem('userEmail') || '';
       const userId = localStorage.getItem('userId') || '';
       
       console.log('📡 Fetching all users from backend...');
-      const response = await fetch(`${API_BASE}/users`, {
+      
+      // ✅ Pass userId as query parameter
+      const url = new URL(`${API_BASE}/users`);
+      url.searchParams.append('userId', userId);
+      
+      const response = await fetch(url, {
         headers: {
-          'Content-Type': 'application/json',
-          // 'User-Email': userEmail,
-          'User-ID': userId
+          'Content-Type': 'application/json'
+          // ❌ 'User-ID' header REMOVED
         }
       });
       
       if (response.ok) {
         const users = await response.json();
-        // Create maps for quick lookup
         userCache = {
           byId: new Map(),
           byName: new Map(),
@@ -69,19 +71,13 @@ const fetchAllUsers = async () => {
         
         users.forEach(user => {
           userCache.byId.set(user.id, user);
-          
-          // Store by full name
           if (user.name) {
             userCache.byName.set(user.name, user.id);
           }
-          
-          // Store by first + last name
           if (user.firstName && user.lastName) {
             const fullName = `${user.firstName} ${user.lastName}`;
             userCache.byName.set(fullName, user.id);
           }
-          
-          // Store by email
           if (user.email) {
             userCache.byEmail.set(user.email, user.id);
           }
@@ -978,7 +974,7 @@ const [userDepartment, setUserDepartment] = useState(null);
 
   ///UPDATED
  ///UPDATED
- const loadEvents = useCallback(async () => {
+const loadEvents = useCallback(async () => {
   try {
     setIsLoading(true);
     setError(null);
@@ -993,7 +989,7 @@ const [userDepartment, setUserDepartment] = useState(null);
     else if (userRole === 'LEAD_AUDITOR') userRoleForAPI = 'LEAD_AUDITOR'
     else if (userRole === 'AUDITEE') userRoleForAPI = 'AUDITEE'
 
-    // ✅ FIX: Build URL with query parameters for calendar-events
+    // Build URL with query parameters
     let url;
     if (userRoleForAPI === 'AUDITOR' || userRoleForAPI === 'LEAD_AUDITOR' || userRoleForAPI === 'AUDIT_MANAGER') {
       url = `${API_BASE}/audit-schedule/calendar-events?userId=${currentUser?.id}&userRole=${userRoleForAPI}`;
@@ -1005,27 +1001,22 @@ const [userDepartment, setUserDepartment] = useState(null);
     
     console.log('📡 Fetching from URL:', url);
     
+    // ✅ REMOVE 'User-ID' header
     const response = await fetch(url, {
       headers: {
         'Content-Type': 'application/json',
-        'User-Email': currentUser?.email || '',
-        'User-ID': currentUser?.id || ''
+        'User-Email': currentUser?.email || ''
       }
     })
 
-    if (!response.ok) {
-      console.error('Response not OK:', response.status);
-      setError(`Failed to load calendar data: ${response.status}`);
-      setIsLoading(false);
-      return;
-    }
-
-    // Fetch responses for completion status (if needed)
-    const responsesResponse = await fetch(`${API_BASE}/templates/responses/all`, {
+    // ✅ Fix responses fetch - remove 'User-ID' header
+    const responsesUrl = new URL(`${API_BASE}/templates/responses/all`);
+    responsesUrl.searchParams.append('userId', currentUser?.id || '');
+    
+    const responsesResponse = await fetch(responsesUrl, {
       headers: {
         'Content-Type': 'application/json',
-        'User-Email': currentUser?.email || '',
-        'User-ID': currentUser?.id || ''
+        'User-Email': currentUser?.email || ''
       }
     })
     
@@ -1036,7 +1027,6 @@ const [userDepartment, setUserDepartment] = useState(null);
       console.warn('Could not fetch responses:', e);
     }
 
-    // Create map of audit completion status by scheduleId
     const auditCompletionMap = new Map()
     allResponses.forEach(response => {
       if (response.auditScheduleId) {
@@ -1055,39 +1045,29 @@ const [userDepartment, setUserDepartment] = useState(null);
     let eventsData = await response.json();
     console.log('📊 Calendar events received:', eventsData.length);
     
-    // ✅ FIX: The calendar-events endpoint returns List<Map<String, Object>> directly
-    // Each item has: id, title, description, start, end, status, auditType, department, etc.
     const formattedEvents = [];
     
     if (Array.isArray(eventsData) && eventsData.length > 0) {
       console.log('📊 Processing events...');
       
       for (const eventData of eventsData) {
-        // Skip if no start date
         if (!eventData.start) {
           console.warn('Skipping event without start date:', eventData);
           continue;
         }
         
-        // Parse dates
         const startDate = new Date(eventData.start);
         const endDate = eventData.end ? new Date(eventData.end) : new Date(startDate.getTime() + 3600000);
         
-        // Determine completion status
         const scheduleId = eventData.id;
         const completionInfo = auditCompletionMap.get(scheduleId);
         const isFullyCompleted = completionInfo?.isFullyCompleted || false;
         const isSubmitted = completionInfo?.isSubmitted || false;
         
-        // Determine display status
         let displayStatus = eventData.status || 'SCHEDULED';
-        if (isFullyCompleted) {
-          displayStatus = 'COMPLETED';
-        } else if (isSubmitted) {
-          displayStatus = 'SUBMITTED';
-        }
+        if (isFullyCompleted) displayStatus = 'COMPLETED';
+        else if (isSubmitted) displayStatus = 'SUBMITTED';
         
-        // Determine user relationship
         const isOwner = eventData.isOwner === true;
         const isCoAuditor = eventData.isCoAuditor === true;
         const isAttendee = eventData.isAttendee === true;
@@ -1097,7 +1077,6 @@ const [userDepartment, setUserDepartment] = useState(null);
         else if (isCoAuditor) userRelationship = 'co_auditor';
         else if (isAttendee) userRelationship = 'attendee';
         
-        // Check for date range
         const isDateRange = eventData.isDateRange || false;
         const fromDate = eventData.fromDate || null;
         const toDate = eventData.toDate || null;
@@ -1134,7 +1113,6 @@ const [userDepartment, setUserDepartment] = useState(null);
           extensionHistory: eventData.extensionHistory || [],
           pendingReschedule: eventData.pendingReschedule || false,
           pendingExtension: eventData.pendingExtension || false,
-          // Co-auditor fields
           coAuditorNames: eventData.coAuditorNames || [],
           coAuditorIdList: eventData.coAuditorIdList || []
         });
