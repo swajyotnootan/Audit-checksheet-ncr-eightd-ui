@@ -560,7 +560,7 @@ const AuditDetailsPopup = ({ audit, onClose }) => {
           <div className="flex flex-wrap items-center justify-between gap-2">
             <div>
               <h2 className="text-lg font-bold text-gray-800">
-                {audit.auditType || 'Audit'}
+                {eventData.auditType || 'Audit'}
               </h2>
               {audit.auditNumber && (
                 <p className="text-xs font-mono text-gray-500 mt-0.5">{audit.auditNumber}</p>
