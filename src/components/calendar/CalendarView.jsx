@@ -617,7 +617,7 @@ const AuditDetailsPopup = ({ audit, onClose }) => {
             </div>
             
             {/* Time */}
-            {/* Time - Extracted from description */}
+            {/* Time - Extract from description (handles bullet points) */}
 <div className="flex items-center gap-2 mt-2 text-sm">
   <Clock className="w-4 h-4 text-gray-400" />
   <span className="text-gray-600">Time:</span>
@@ -626,27 +626,17 @@ const AuditDetailsPopup = ({ audit, onClose }) => {
       ? `${audit.startTime} - ${audit.endTime}`
       : (audit.description 
           ? (() => {
-              // Try multiple patterns to handle bullet points and different formats
-              const patterns = [
-                /[•●]\s*Time:\s*([^\n]+)/i,           // "• Time: 09:00 AM - 10:00 AM"
-                /Time:\s*([^\n]+)/i,                   // "Time: 09:00 AM - 10:00 AM"
-                /Timing:\s*([^\n]+)/i,                 // "Timing: 09:00 AM - 10:00 AM"
-                /Time\s*[•●]\s*([^\n]+)/i,             // "Time • 09:00 AM - 10:00 AM"
-                /([0-9]{1,2}:[0-9]{2}\s*(?:AM|PM)\s*-\s*[0-9]{1,2}:[0-9]{2}\s*(?:AM|PM))/i, // Direct time pattern
-              ];
+              // Handle bullet point format: "• Time: 09:00 AM - 10:00 AM"
+              let match = audit.description.match(/[•●]\s*Time:\s*([^\n]+)/i);
+              if (match) return match[1].trim();
               
-              for (const pattern of patterns) {
-                const match = audit.description.match(pattern);
-                if (match) {
-                  return match[1].trim();
-                }
-              }
+              // Handle regular format: "Time: 09:00 AM - 10:00 AM"
+              match = audit.description.match(/Time:\s*([^\n]+)/i);
+              if (match) return match[1].trim();
               
-              // If still not found, try to extract any time-like pattern from description
-              const anyTimeMatch = audit.description.match(/([0-9]{1,2}:[0-9]{2}\s*(?:AM|PM)\s*-\s*[0-9]{1,2}:[0-9]{2}\s*(?:AM|PM))/);
-              if (anyTimeMatch) {
-                return anyTimeMatch[1];
-              }
+              // Handle direct time pattern
+              match = audit.description.match(/([0-9]{1,2}:[0-9]{2}\s*(?:AM|PM)\s*-\s*[0-9]{1,2}:[0-9]{2}\s*(?:AM|PM))/);
+              if (match) return match[1];
               
               return 'N/A';
             })()
