@@ -1551,7 +1551,7 @@ useEffect(() => {
         <div className="h-full p-4">
           <Calendar
             localizer={localizer}
-            events={events.filter(e => !e.isOriginal)}
+            events={events.filter(e => !e.isOriginal)}  // ← This filters out ALL events
             startAccessor="start"
             endAccessor="end"
             view={view}
@@ -1919,7 +1919,7 @@ useEffect(() => {
               ) : (
                 <Calendar
                   localizer={localizer}
-                  events={events.filter(e => !e.isOriginal)}
+                  events={events.filter(e => !e.isOriginal)}  // ← This filters out ALL events
                   startAccessor="start"
                   endAccessor="end"
                   view={view}
