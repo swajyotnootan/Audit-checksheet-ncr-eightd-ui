@@ -377,8 +377,7 @@ const UserAvatar = ({ userId, userName, size = 'sm', showName = false }) => {
   const [imageError, setImageError] = useState(false);
   
   // Don't use blob, just use the URL directly like navbar does
-  const photoUrl = userId ? `https://internalaudit.hub.swajyot.co.in:8090
-/api/users/${userId}/profile-photo` : null;
+  const photoUrl = userId ? `https://internalaudit.hub.swajyot.co.in:8090/api/users/${userId}/profile-photo` : null;
   
   const sizeClasses = {
     'xs': 'w-5 h-5 text-[10px]',
@@ -978,21 +977,22 @@ const [userDepartment, setUserDepartment] = useState(null);
 
 
   ///UPDATED
+ ///UPDATED
  const loadEvents = useCallback(async () => {
   try {
     setIsLoading(true);
     setError(null);
-
+ 
     // Load user cache first
     await fetchAllUsers();
     const userCacheData = await fetchAllUsers();
-
+ 
     let userRoleForAPI = 'AUDITOR'
     if (userRole === 'AUDIT_MANAGER') userRoleForAPI = 'AUDIT_MANAGER'
     else if (userRole === 'TOP_MANAGEMENT') userRoleForAPI = 'TOP_MANAGEMENT'
     else if (userRole === 'LEAD_AUDITOR') userRoleForAPI = 'LEAD_AUDITOR'
     else if (userRole === 'AUDITEE') userRoleForAPI = 'AUDITEE'
-
+ 
     // Fetch schedules
     let url;
     if (userRoleForAPI === 'AUDITOR') {
@@ -1002,7 +1002,7 @@ const [userDepartment, setUserDepartment] = useState(null);
       url = `${API_BASE}/audit-schedule/year/${new Date().getFullYear()}`;
       console.log('📡 Using year endpoint');
     }
-    
+   
     const response = await fetch(url, {
       headers: {
         'Content-Type': 'application/json',
@@ -1010,7 +1010,7 @@ const [userDepartment, setUserDepartment] = useState(null);
         'User-ID': currentUser?.id || ''
       }
     })
-
+ 
     // Fetch responses for completion status
     const responsesResponse = await fetch(`${API_BASE}/templates/responses/all`, {
       headers: {
@@ -1020,7 +1020,7 @@ const [userDepartment, setUserDepartment] = useState(null);
       }
     })
     const allResponses = await responsesResponse.json()
-
+ 
     // Create map of audit completion status by scheduleId
     const auditCompletionMap = new Map()
     allResponses.forEach(response => {
@@ -1035,10 +1035,10 @@ const [userDepartment, setUserDepartment] = useState(null);
         })
       }
     })
-
+ 
     if (response.ok) {
       let allSchedules = await response.json();
-      
+     
       // Handle different response structures
       if (userRoleForAPI === 'AUDITOR') {
         // Check if allSchedules is an array and has the schedule property
@@ -1052,13 +1052,13 @@ const [userDepartment, setUserDepartment] = useState(null);
           allSchedules = [];
         }
       }
-      
+     
       // ✅ ADD SAFETY CHECK - Make sure allSchedules is an array
       if (!Array.isArray(allSchedules)) {
         console.error('allSchedules is not an array:', allSchedules);
         allSchedules = [];
       }
-
+ 
       // Filter by department for Lead Auditor
       if (userRoleForAPI === 'LEAD_AUDITOR' && leadAuditorDepartment) {
         const beforeCount = allSchedules.length;
@@ -1073,10 +1073,10 @@ const [userDepartment, setUserDepartment] = useState(null);
         });
         console.log(`📊 Lead Auditor (${leadAuditorDepartment}): Filtered schedules from ${beforeCount} to ${allSchedules.length}`);
       }
-
+ 
       // Now filter schedules as before
       let filteredSchedules = [];
-      
+     
       if (userRoleForAPI === 'AUDITOR') {
         filteredSchedules = allSchedules;
         console.log(`📊 Found ${filteredSchedules.length} total audits for user ${currentUser?.id}`);
@@ -1085,15 +1085,15 @@ const [userDepartment, setUserDepartment] = useState(null);
       } else {
         filteredSchedules = allSchedules;
       }
-  
+ 
       const formattedEvents = []
-      
+     
       // ✅ ADD SAFETY CHECK - Make sure filteredSchedules is an array
       if (!Array.isArray(filteredSchedules)) {
         console.error('filteredSchedules is not an array:', filteredSchedules);
         filteredSchedules = [];
       }
-      
+     
       // Use for...of for async/await support
       for (const audit of filteredSchedules) {
         // ✅ ADD SAFETY CHECK - Skip if audit is undefined
@@ -1101,7 +1101,7 @@ const [userDepartment, setUserDepartment] = useState(null);
           console.warn('Skipping undefined audit');
           continue;
         }
-        
+       
         // ✅ POPULATE MISSING USER IDs FROM CACHE
         if (userCacheData) {
           // Map auditor name to ID if missing
@@ -1114,7 +1114,7 @@ const [userDepartment, setUserDepartment] = useState(null);
               console.warn(`⚠️ Could not find ID for auditor: "${audit.auditorName}"`);
             }
           }
-          
+         
           // Map auditee name to ID if missing
           if (!audit.auditeeId && audit.auditeeName) {
             const mappedId = userCacheData.byName.get(audit.auditeeName);
@@ -1125,7 +1125,7 @@ const [userDepartment, setUserDepartment] = useState(null);
               console.warn(`⚠️ Could not find ID for auditee: "${audit.auditeeName}"`);
             }
           }
-          
+         
           // Map co-auditor names to IDs
           if (audit.coAuditorNames && Array.isArray(audit.coAuditorNames) && audit.coAuditorNames.length > 0) {
             const coAuditorIds = [];
@@ -1141,11 +1141,11 @@ const [userDepartment, setUserDepartment] = useState(null);
             }
           }
         }
-        
+       
         const completionInfo = auditCompletionMap.get(audit.id)
         const isFullyCompleted = completionInfo?.isFullyCompleted || false
         const isSubmitted = completionInfo?.isSubmitted || false
-        
+       
         // Determine display status
         let displayStatus
         if (isFullyCompleted) {
@@ -1155,9 +1155,9 @@ const [userDepartment, setUserDepartment] = useState(null);
         } else {
           displayStatus = audit.detailedApprovalStatus || audit.approvalStatus || 'SCHEDULED'
         }
-        
+       
         const isDateRange = audit.fromDate && audit.toDate && audit.fromDate !== audit.toDate
-
+ 
         // Fetch history for this audit
         const history = {
           originalScheduledDate: audit.originalScheduledDate || audit.previousScheduledDate || null,
@@ -1167,12 +1167,12 @@ const [userDepartment, setUserDepartment] = useState(null);
           pendingReschedule: audit.pendingReschedule || false,
           pendingExtension: audit.pendingExtension || false
         };
-        
+       
         // Determine co-auditor status
         let isCoAuditor = false
         let coAuditorNamesList = []
         let coAuditorIdList = []
-
+ 
         if (audit.coAuditorIds && audit.coAuditorIds !== 'null' && audit.coAuditorIds !== '[]') {
           try {
             let coIds = []
@@ -1185,10 +1185,10 @@ const [userDepartment, setUserDepartment] = useState(null);
             } else if (Array.isArray(audit.coAuditorIds)) {
               coIds = audit.coAuditorIds
             }
-            
+           
             isCoAuditor = coIds.includes(currentUser?.id)
             coAuditorIdList = coIds
-            
+           
             if (audit.coAuditorNames && Array.isArray(audit.coAuditorNames) && audit.coAuditorNames.length > 0) {
               coAuditorNamesList = audit.coAuditorNames
             } else {
@@ -1198,19 +1198,19 @@ const [userDepartment, setUserDepartment] = useState(null);
             console.error('Error parsing co-auditor IDs for schedule', audit.id, e)
           }
         }
-        
+       
         // Continue with your existing event creation code...
         if (isDateRange) {
           const fromDate = new Date(audit.fromDate)
           const toDate = new Date(audit.toDate)
           const { hours: startHours, minutes: startMinutes } = parseTimeString(audit.startTime || '09:00 AM')
           const { hours: endHours, minutes: endMinutes } = parseTimeString(audit.endTime || '10:00 AM')
-          
+         
           const startDateTime = new Date(fromDate)
           startDateTime.setHours(startHours, startMinutes)
           const endDateTime = new Date(toDate)
           endDateTime.setHours(endHours, endMinutes)
-          
+         
           formattedEvents.push({
             id: audit.id,
             title: audit.title || `${audit.department || 'Audit'} - ${audit.auditType || 'General'}`,
@@ -1247,7 +1247,7 @@ const [userDepartment, setUserDepartment] = useState(null);
             pendingReschedule: history.pendingReschedule,
             pendingExtension: history.pendingExtension
           })
-          
+         
           console.log('📅 Created date range event:', {
             auditId: audit.id,
             auditorId: audit.auditorId,
@@ -1255,7 +1255,7 @@ const [userDepartment, setUserDepartment] = useState(null);
             auditeeId: audit.auditeeId,
             auditeeName: audit.auditeeName
           });
-          
+         
           // Create display events for each day in range
           const currentDate = new Date(fromDate)
           while (currentDate <= toDate) {
@@ -1264,7 +1264,7 @@ const [userDepartment, setUserDepartment] = useState(null);
             startDateTimeDisplay.setHours(startHours, startMinutes)
             const endDateTimeDisplay = new Date(singleDate)
             endDateTimeDisplay.setHours(endHours, endMinutes)
-            
+           
             formattedEvents.push({
               id: `${audit.id}_${currentDate.toISOString().split('T')[0]}`,
               title: audit.title || `${audit.department || 'Audit'} - ${audit.auditType || 'General'}`,
@@ -1304,19 +1304,19 @@ const [userDepartment, setUserDepartment] = useState(null);
               pendingReschedule: history.pendingReschedule,
               pendingExtension: history.pendingExtension
             })
-            
+           
             currentDate.setDate(currentDate.getDate() + 1)
           }
         } else if (audit.scheduledDate) {
           const scheduledDate = new Date(audit.scheduledDate)
           const { hours: startHours, minutes: startMinutes } = parseTimeString(audit.startTime || '09:00 AM')
           const { hours: endHours, minutes: endMinutes } = parseTimeString(audit.endTime || '10:00 AM')
-          
+         
           const startDateTime = new Date(scheduledDate)
           startDateTime.setHours(startHours, startMinutes)
           const endDateTime = new Date(scheduledDate)
           endDateTime.setHours(endHours, endMinutes)
-          
+         
           formattedEvents.push({
             id: audit.id,
             title: audit.title || `${audit.department || 'Audit'} - ${audit.auditType || 'General'}`,
@@ -1352,7 +1352,7 @@ const [userDepartment, setUserDepartment] = useState(null);
             pendingReschedule: history.pendingReschedule,
             pendingExtension: history.pendingExtension
           })
-          
+         
           console.log('📅 Created regular event:', {
             auditId: audit.id,
             auditorId: audit.auditorId,
@@ -1362,10 +1362,10 @@ const [userDepartment, setUserDepartment] = useState(null);
           });
         }
       }
-      
+     
       setEvents(formattedEvents)
       console.log('✅ Events loaded:', formattedEvents.filter(e => !e.isDisplayEvent && e.isOriginal !== false).length)
-      
+     
     } else {
       setError('Failed to load calendar data')
     }
@@ -1376,6 +1376,7 @@ const [userDepartment, setUserDepartment] = useState(null);
     setIsLoading(false);
   }
 }, [currentUser, userRole, leadAuditorDepartment]);
+ 
 // Normalize department name for comparison (matching your dashboard logic)
 const normalizeDepartmentForFilter = (dept) => {
   if (!dept) return '';
