@@ -1071,18 +1071,13 @@ const loadEvents = useCallback(async () => {
       for (const eventData of eventsData) {
         // ✅ SKIP events without a start date (week schedules)
         if (!eventData.start) {
-          // Check if it's a date range event (has fromDate and toDate)
-          if (eventData.fromDate && eventData.toDate) {
-            // Handle date range - keep it
-          } else {
-            console.log(`⏭️ Skipping event without start date:`, {
-              id: eventData.id,
-              department: eventData.department,
-              month: eventData.month,
-              week: eventData.week
-            });
-            continue;
-          }
+          console.log(`⏭️ Skipping event without start date:`, {
+            id: eventData.id,
+            department: eventData.department,
+            month: eventData.month,
+            week: eventData.week
+          });
+          continue; // Skip this event entirely
         }
         
         // ✅ FIX: Apply department filtering for Lead Auditor
@@ -1094,8 +1089,22 @@ const loadEvents = useCallback(async () => {
           }
         }
         
-        const startDate = new Date(eventData.start);
-        const endDate = eventData.end ? new Date(eventData.end) : new Date(startDate.getTime() + 3600000);
+        // ✅ SAFELY create date objects
+        let startDate, endDate;
+        try {
+          startDate = new Date(eventData.start);
+          if (isNaN(startDate.getTime())) {
+            console.warn(`⚠️ Invalid start date for event ${eventData.id}: ${eventData.start}`);
+            continue;
+          }
+          endDate = eventData.end ? new Date(eventData.end) : new Date(startDate.getTime() + 3600000);
+          if (isNaN(endDate.getTime())) {
+            endDate = new Date(startDate.getTime() + 3600000);
+          }
+        } catch (dateErr) {
+          console.warn(`⚠️ Error parsing date for event ${eventData.id}:`, dateErr);
+          continue;
+        }
         
         const scheduleId = eventData.id;
         const completionInfo = auditCompletionMap.get(scheduleId);
@@ -1177,7 +1186,6 @@ const loadEvents = useCallback(async () => {
     setIsLoading(false);
   }
 }, [currentUser, userRole, leadAuditorDepartment]);
- 
 // Normalize department name for comparison (matching your dashboard logic)
 const normalizeDepartmentForFilter = (dept) => {
   if (!dept) return '';
