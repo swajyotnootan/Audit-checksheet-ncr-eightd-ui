@@ -743,12 +743,12 @@ const AuditDetailsPopup = ({ audit, onClose }) => {
 </div>
 
 
-          {audit.description && (
+          {/* {audit.description && (
             <div className="p-3 rounded-lg bg-gray-50">
               <p className="mb-1 text-xs text-gray-500">Objective / Description</p>
               <p className="text-sm text-gray-600">{audit.description}</p>
             </div>
-          )}
+          )} */}
 
           {/* Pending Request Status */}
           {(audit.pendingReschedule || audit.pendingExtension) && (
