@@ -54,7 +54,7 @@ const fetchAllUsers = async () => {
         headers: {
           'Content-Type': 'application/json',
           // 'User-Email': userEmail,
-          'User-ID': userId
+          // 'User-ID': userId
         }
       });
       
@@ -994,9 +994,9 @@ const [userDepartment, setUserDepartment] = useState(null);
 
     // Fetch schedules
     let url;
-    if (userRoleForAPI === 'AUDITOR') {
-      url = `${API_BASE}/audit-schedule/auditor/${currentUser?.id}/schedules-with-status`;
-      console.log('📡 Using auditor endpoint (includes history)');
+    if (userRoleForAPI === 'AUDITOR' || userRoleForAPI === 'LEAD_AUDITOR' || userRoleForAPI === 'AUDIT_MANAGER') {
+      url = `${API_BASE}/audit-schedule/calendar-events?userId=${currentUser?.id}&userRole=${userRoleForAPI}`;
+      console.log('📡 Using calendar-events endpoint with userRole:', userRoleForAPI);
     } else {
       url = `${API_BASE}/audit-schedule/year/${new Date().getFullYear()}`;
       console.log('📡 Using year endpoint');
@@ -1005,8 +1005,8 @@ const [userDepartment, setUserDepartment] = useState(null);
     const response = await fetch(url, {
       headers: {
         'Content-Type': 'application/json',
-        'User-Email': currentUser?.email || '',
-        'User-ID': currentUser?.id || ''
+        // 'User-Email': currentUser?.email || '',
+        // 'User-ID': currentUser?.id || ''
       }
     })
 
@@ -1014,8 +1014,8 @@ const [userDepartment, setUserDepartment] = useState(null);
     const responsesResponse = await fetch(`${API_BASE}/templates/responses/all`, {
       headers: {
         'Content-Type': 'application/json',
-        'User-Email': currentUser?.email || '',
-        'User-ID': currentUser?.id || ''
+        // 'User-Email': currentUser?.email || '',
+        // 'User-ID': currentUser?.id || ''
       }
     })
     const allResponses = await responsesResponse.json()
