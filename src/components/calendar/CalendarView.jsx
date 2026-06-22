@@ -1012,12 +1012,13 @@ const loadEvents = useCallback(async () => {
     else if (userRole === 'AUDITEE') userRoleForAPI = 'AUDITEE'
 
     let url;
-    if (userRoleForAPI === 'AUDITOR' || userRoleForAPI === 'LEAD_AUDITOR' || userRoleForAPI === 'AUDIT_MANAGER') {
+    // ✅ CHANGED: Use calendar-events for ALL roles EXCEPT AUDITEE
+    if (userRoleForAPI !== 'AUDITEE') {
       url = `${API_BASE}/audit-schedule/calendar-events?userId=${currentUser?.id}&userRole=${userRoleForAPI}`;
       console.log('📡 Using calendar-events endpoint with userRole:', userRoleForAPI);
     } else {
       url = `${API_BASE}/audit-schedule/year/${new Date().getFullYear()}`;
-      console.log('📡 Using year endpoint');
+      console.log('📡 Using year endpoint for AUDITEE');
     }
     
     console.log('📡 Fetching from URL:', url);
@@ -1068,9 +1069,20 @@ const loadEvents = useCallback(async () => {
       console.log('📊 Processing events...');
       
       for (const eventData of eventsData) {
+        // ✅ SKIP events without a start date (week schedules)
         if (!eventData.start) {
-          console.warn('Skipping event without start date:', eventData);
-          continue;
+          // Check if it's a date range event (has fromDate and toDate)
+          if (eventData.fromDate && eventData.toDate) {
+            // Handle date range - keep it
+          } else {
+            console.log(`⏭️ Skipping event without start date:`, {
+              id: eventData.id,
+              department: eventData.department,
+              month: eventData.month,
+              week: eventData.week
+            });
+            continue;
+          }
         }
         
         // ✅ FIX: Apply department filtering for Lead Auditor
