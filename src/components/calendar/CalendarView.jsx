@@ -998,6 +998,7 @@ const [userDepartment, setUserDepartment] = useState(null);
 // Helper function removed - no longer needed for Auditee
 
 /// UPDATED - ALL users use calendar-events endpoint
+/// UPDATED - ALL users use calendar-events endpoint
 const loadEvents = useCallback(async () => {
   try {
     setIsLoading(true);
@@ -1120,27 +1121,9 @@ const loadEvents = useCallback(async () => {
         const fromDate = eventData.fromDate || null;
         const toDate = eventData.toDate || null;
         
-        // ✅ For Auditee, filter only schedules where they are the auditee
-        if (userRoleForAPI === 'AUDITEE') {
-  let isUserAuditee = false;
-  const userId = Number(currentUser?.id); // ✅ Ensure number type
-  
-  if (eventData.auditeeIdList && Array.isArray(eventData.auditeeIdList)) {
-    isUserAuditee = eventData.auditeeIdList.some(id => Number(id) === userId);
-  } else if (eventData.auditeeId) {
-    isUserAuditee = Number(eventData.auditeeId) === userId;
-  }
-  
-  if (!isUserAuditee) {
-    console.log(`⏭️ Skipping event - user not auditee:`, {
-      department: eventData.department,
-      userId: userId,
-      auditeeId: eventData.auditeeId,
-      auditeeIdList: eventData.auditeeIdList
-    });
-    continue;
-  }
-}
+        // ✅ REMOVED: Auditee filtering - backend already filters by role
+        // The backend /calendar-events endpoint already returns only events
+        // where the user is the auditee, so we don't need to filter here.
         
         formattedEvents.push({
           id: eventData.id,
