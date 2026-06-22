@@ -995,47 +995,9 @@ const [userDepartment, setUserDepartment] = useState(null);
   }, [currentUser])
 
 
-// Helper function to get the start date of a week in a given month/year
-function getWeekStartDate(year, weekNumber, month) {
-  // Map month name to month number
-  const monthMap = {
-    'Jan': 0, 'Feb': 1, 'Mar': 2, 'Apr': 3, 'May': 4, 'Jun': 5,
-    'Jul': 6, 'Aug': 7, 'Sep': 8, 'Oct': 9, 'Nov': 10, 'Dec': 11
-  };
-  
-  const monthIndex = monthMap[month];
-  if (monthIndex === undefined) return null;
-  
-  // For financial year (Apr-Mar), adjust year for Jan-Mar
-  let actualYear = year;
-  if (monthIndex >= 0 && monthIndex <= 2) {
-    actualYear = year + 1; // Jan-Mar belong to next financial year
-  }
-  
-  // Get first day of month
-  const firstDay = new Date(actualYear, monthIndex, 1);
-  const firstDayOfWeek = firstDay.getDay(); // 0=Sun, 1=Mon, etc.
-  
-  // Calculate the Monday of week 1 (first full week)
-  let weekStartDay = 1;
-  if (firstDayOfWeek > 1) {
-    // Start from the Monday before the first day
-    weekStartDay = 1 - (firstDayOfWeek - 1);
-  }
-  
-  // Add (weekNumber - 1) * 7 days
-  const startDate = new Date(actualYear, monthIndex, weekStartDay + (weekNumber - 1) * 7);
-  
-  // Make sure the date is within the month
-  if (startDate.getMonth() !== monthIndex) {
-    // If it's in the next month, use the first day of the month
-    return new Date(actualYear, monthIndex, 1);
-  }
-  
-  return startDate;
-}
+// Helper function removed - no longer needed for Auditee
 
- ///UPDATED
+/// UPDATED - ALL users use calendar-events endpoint
 const loadEvents = useCallback(async () => {
   try {
     setIsLoading(true);
@@ -1049,15 +1011,9 @@ const loadEvents = useCallback(async () => {
     else if (userRole === 'LEAD_AUDITOR') userRoleForAPI = 'LEAD_AUDITOR'
     else if (userRole === 'AUDITEE') userRoleForAPI = 'AUDITEE'
 
-    let url;
-    if (userRoleForAPI !== 'AUDITEE') {
-      url = `${API_BASE}/audit-schedule/calendar-events?userId=${currentUser?.id}&userRole=${userRoleForAPI}`;
-      console.log('📡 Using calendar-events endpoint with userRole:', userRoleForAPI);
-    } else {
-      url = `${API_BASE}/audit-schedule/year/${new Date().getFullYear()}`;
-      console.log('📡 Using year endpoint for AUDITEE');
-    }
-    
+    // ✅ ALL users use calendar-events endpoint - including AUDITEE!
+    const url = `${API_BASE}/audit-schedule/calendar-events?userId=${currentUser?.id}&userRole=${userRoleForAPI}`;
+    console.log('📡 Using calendar-events endpoint with userRole:', userRoleForAPI);
     console.log('📡 Fetching from URL:', url);
     
     const response = await fetch(url, {
@@ -1105,77 +1061,8 @@ const loadEvents = useCallback(async () => {
       console.log('📊 Processing events...');
       
       for (const eventData of eventsData) {
-        // ✅ For AUDITEE: Show week schedules even without dates
+        // ✅ Skip events without a start date (week schedules)
         if (!eventData.start) {
-          // Check if this is a week schedule (has week but no date) and user is AUDITEE
-          if (userRoleForAPI === 'AUDITEE' && eventData.week) {
-            const weekNumber = eventData.week.replace('W-', '');
-            const year = eventData.planYear || new Date().getFullYear();
-            
-            // Approximate the week start date
-            let weekStartDate = getWeekStartDate(year, parseInt(weekNumber), eventData.month);
-            
-            if (weekStartDate) {
-              const startDate = new Date(weekStartDate);
-              const endDate = new Date(startDate);
-              endDate.setDate(endDate.getDate() + 6); // Week ends 6 days later
-              
-              // Check if this schedule is for the current user as auditee
-              // If eventData has auditeeIdList, check if current user is in it
-              let isUserAuditee = false;
-              if (eventData.auditeeIdList && Array.isArray(eventData.auditeeIdList)) {
-                isUserAuditee = eventData.auditeeIdList.includes(currentUser?.id);
-              } else if (eventData.auditeeId) {
-                isUserAuditee = eventData.auditeeId === currentUser?.id;
-              }
-              
-              // If not the auditee for this schedule, skip it
-              if (!isUserAuditee) {
-                console.log(`⏭️ Skipping week schedule - user not auditee: ${eventData.department} - ${eventData.week}`);
-                continue;
-              }
-              
-              formattedEvents.push({
-                id: eventData.id,
-                title: `📋 ${eventData.department} - Week ${weekNumber}`,
-                start: startDate,
-                end: endDate,
-                status: eventData.status || 'SCHEDULED',
-                auditType: eventData.auditType || 'Week Schedule',
-                department: eventData.department || '',
-                isOwner: false,
-                isCoAuditor: false,
-                isAttendee: true,
-                userRelationship: 'attendee',
-                auditorName: eventData.auditorName || '',
-                auditorId: eventData.auditorId || null,
-                auditeeName: eventData.auditeeName || '',
-                auditeeId: eventData.auditeeId || null,
-                description: eventData.remarks || `Week ${weekNumber} schedule for ${eventData.department}`,
-                fromDate: startDate.toISOString().split('T')[0],
-                toDate: endDate.toISOString().split('T')[0],
-                startTime: '09:00 AM',
-                endTime: '05:00 PM',
-                isDateRange: true,
-                isOriginal: true,
-                isFullyCompleted: false,
-                isSubmitted: false,
-                originalScheduledDate: null,
-                rescheduleHistory: [],
-                extensionHistory: [],
-                pendingReschedule: false,
-                pendingExtension: false,
-                coAuditorNames: eventData.coAuditorNames || [],
-                coAuditorIdList: eventData.coAuditorIdList || [],
-                week: eventData.week,
-                month: eventData.month,
-                isWeekSchedule: true
-              });
-              console.log(`✅ Added week schedule: ${eventData.department} - ${eventData.week}`);
-            }
-            continue; // Skip the rest of the loop
-          }
-          
           console.log(`⏭️ Skipping event without start date:`, {
             id: eventData.id,
             department: eventData.department,
@@ -1233,6 +1120,21 @@ const loadEvents = useCallback(async () => {
         const fromDate = eventData.fromDate || null;
         const toDate = eventData.toDate || null;
         
+        // ✅ For Auditee, filter only schedules where they are the auditee
+        if (userRoleForAPI === 'AUDITEE') {
+          let isUserAuditee = false;
+          if (eventData.auditeeIdList && Array.isArray(eventData.auditeeIdList)) {
+            isUserAuditee = eventData.auditeeIdList.includes(currentUser?.id);
+          } else if (eventData.auditeeId) {
+            isUserAuditee = eventData.auditeeId === currentUser?.id;
+          }
+          
+          if (!isUserAuditee) {
+            console.log(`⏭️ Skipping event - user not auditee: ${eventData.department}`);
+            continue;
+          }
+        }
+        
         formattedEvents.push({
           id: eventData.id,
           title: eventData.title || `${eventData.department || 'Audit'} - ${eventData.auditType || 'General'}`,
@@ -1274,7 +1176,9 @@ const loadEvents = useCallback(async () => {
           title: eventData.title,
           date: startDate.toISOString().split('T')[0],
           department: eventData.department,
-          relationship: userRelationship
+          relationship: userRelationship,
+          startTime: eventData.startTime,
+          endTime: eventData.endTime
         });
       }
     } else {
