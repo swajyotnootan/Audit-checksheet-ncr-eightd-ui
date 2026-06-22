@@ -560,7 +560,7 @@ const AuditDetailsPopup = ({ audit, onClose }) => {
           <div className="flex flex-wrap items-center justify-between gap-2">
             <div>
               <h2 className="text-lg font-bold text-gray-800">
-                {audit.auditType || 'Audit'} 
+                {audit.title || 'Audit'} 
               </h2>
               {audit.auditNumber && (
                 <p className="text-xs font-mono text-gray-500 mt-0.5">{audit.auditNumber}</p>
@@ -622,7 +622,7 @@ const AuditDetailsPopup = ({ audit, onClose }) => {
               <span className="text-gray-600">Time:</span>
               <span className="text-gray-700">{audit.startTime && audit.endTime 
       ? `${audit.startTime} - ${audit.endTime}`
-      : audit.timeSlot || 'N/A'}</span>
+      : 'N/A'}</span>
             </div>
 
             {/* Date Range Progress Bar */}
