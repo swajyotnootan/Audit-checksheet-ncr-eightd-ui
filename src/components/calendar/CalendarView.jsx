@@ -979,7 +979,6 @@ const loadEvents = useCallback(async () => {
     setIsLoading(true);
     setError(null);
 
-    // Load user cache first
     await fetchAllUsers();
     const userCacheData = await fetchAllUsers();
 
@@ -989,7 +988,6 @@ const loadEvents = useCallback(async () => {
     else if (userRole === 'LEAD_AUDITOR') userRoleForAPI = 'LEAD_AUDITOR'
     else if (userRole === 'AUDITEE') userRoleForAPI = 'AUDITEE'
 
-    // Build URL with query parameters
     let url;
     if (userRoleForAPI === 'AUDITOR' || userRoleForAPI === 'LEAD_AUDITOR' || userRoleForAPI === 'AUDIT_MANAGER') {
       url = `${API_BASE}/audit-schedule/calendar-events?userId=${currentUser?.id}&userRole=${userRoleForAPI}`;
@@ -1001,22 +999,20 @@ const loadEvents = useCallback(async () => {
     
     console.log('📡 Fetching from URL:', url);
     
-    // ✅ REMOVE 'User-ID' header
+    // ✅ NO custom headers
     const response = await fetch(url, {
       headers: {
-        'Content-Type': 'application/json',
-        'User-Email': currentUser?.email || ''
+        'Content-Type': 'application/json'
       }
     })
 
-    // ✅ Fix responses fetch - remove 'User-ID' header
+    // ✅ NO custom headers
     const responsesUrl = new URL(`${API_BASE}/templates/responses/all`);
     responsesUrl.searchParams.append('userId', currentUser?.id || '');
     
     const responsesResponse = await fetch(responsesUrl, {
       headers: {
-        'Content-Type': 'application/json',
-        'User-Email': currentUser?.email || ''
+        'Content-Type': 'application/json'
       }
     })
     
@@ -1041,7 +1037,6 @@ const loadEvents = useCallback(async () => {
       }
     })
 
-    // Parse the response data
     let eventsData = await response.json();
     console.log('📊 Calendar events received:', eventsData.length);
     
