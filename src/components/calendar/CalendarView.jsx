@@ -1122,18 +1122,25 @@ const loadEvents = useCallback(async () => {
         
         // ✅ For Auditee, filter only schedules where they are the auditee
         if (userRoleForAPI === 'AUDITEE') {
-          let isUserAuditee = false;
-          if (eventData.auditeeIdList && Array.isArray(eventData.auditeeIdList)) {
-            isUserAuditee = eventData.auditeeIdList.includes(currentUser?.id);
-          } else if (eventData.auditeeId) {
-            isUserAuditee = eventData.auditeeId === currentUser?.id;
-          }
-          
-          if (!isUserAuditee) {
-            console.log(`⏭️ Skipping event - user not auditee: ${eventData.department}`);
-            continue;
-          }
-        }
+  let isUserAuditee = false;
+  const userId = Number(currentUser?.id); // ✅ Ensure number type
+  
+  if (eventData.auditeeIdList && Array.isArray(eventData.auditeeIdList)) {
+    isUserAuditee = eventData.auditeeIdList.some(id => Number(id) === userId);
+  } else if (eventData.auditeeId) {
+    isUserAuditee = Number(eventData.auditeeId) === userId;
+  }
+  
+  if (!isUserAuditee) {
+    console.log(`⏭️ Skipping event - user not auditee:`, {
+      department: eventData.department,
+      userId: userId,
+      auditeeId: eventData.auditeeId,
+      auditeeIdList: eventData.auditeeIdList
+    });
+    continue;
+  }
+}
         
         formattedEvents.push({
           id: eventData.id,
