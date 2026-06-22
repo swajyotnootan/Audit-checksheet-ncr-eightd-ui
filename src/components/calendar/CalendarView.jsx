@@ -46,21 +46,23 @@ const fetchAllUsers = async () => {
   
   userCachePromise = (async () => {
     try {
-      const userEmail = localStorage.getItem('userEmail') || '';
       const userId = localStorage.getItem('userId') || '';
       
       console.log('📡 Fetching all users from backend...');
-      const response = await fetch(`${API_BASE}/users`, {
+      
+      // ✅ Pass userId as query parameter
+      const url = new URL(`${API_BASE}/users`);
+      url.searchParams.append('userId', userId);
+      
+      const response = await fetch(url, {
         headers: {
-          'Content-Type': 'application/json',
-          // 'User-Email': userEmail,
-          // 'User-ID': userId
+          'Content-Type': 'application/json'
+          // ❌ 'User-ID' header REMOVED
         }
       });
       
       if (response.ok) {
         const users = await response.json();
-        // Create maps for quick lookup
         userCache = {
           byId: new Map(),
           byName: new Map(),
@@ -69,19 +71,13 @@ const fetchAllUsers = async () => {
         
         users.forEach(user => {
           userCache.byId.set(user.id, user);
-          
-          // Store by full name
           if (user.name) {
             userCache.byName.set(user.name, user.id);
           }
-          
-          // Store by first + last name
           if (user.firstName && user.lastName) {
             const fullName = `${user.firstName} ${user.lastName}`;
             userCache.byName.set(fullName, user.id);
           }
-          
-          // Store by email
           if (user.email) {
             userCache.byEmail.set(user.email, user.id);
           }
@@ -977,12 +973,12 @@ const [userDepartment, setUserDepartment] = useState(null);
 
 
   ///UPDATED
- const loadEvents = useCallback(async () => {
+ ///UPDATED
+const loadEvents = useCallback(async () => {
   try {
     setIsLoading(true);
     setError(null);
 
-    // Load user cache first
     await fetchAllUsers();
     const userCacheData = await fetchAllUsers();
 
@@ -992,10 +988,8 @@ const [userDepartment, setUserDepartment] = useState(null);
     else if (userRole === 'LEAD_AUDITOR') userRoleForAPI = 'LEAD_AUDITOR'
     else if (userRole === 'AUDITEE') userRoleForAPI = 'AUDITEE'
 
-    // Build URL
     let url;
     if (userRoleForAPI === 'AUDITOR' || userRoleForAPI === 'LEAD_AUDITOR' || userRoleForAPI === 'AUDIT_MANAGER') {
-      // ✅ Use calendar-events endpoint
       url = `${API_BASE}/audit-schedule/calendar-events?userId=${currentUser?.id}&userRole=${userRoleForAPI}`;
       console.log('📡 Using calendar-events endpoint with userRole:', userRoleForAPI);
     } else {
@@ -1005,69 +999,129 @@ const [userDepartment, setUserDepartment] = useState(null);
     
     console.log('📡 Fetching from URL:', url);
     
+    // ✅ NO custom headers
     const response = await fetch(url, {
       headers: {
         'Content-Type': 'application/json'
-        // No custom headers
       }
     })
 
-    if (!response.ok) {
-      console.error('Response not OK:', response.status);
-      setError(`Failed to load calendar data: ${response.status}`);
-      setIsLoading(false);
-      return;
+    // ✅ NO custom headers
+    const responsesUrl = new URL(`${API_BASE}/templates/responses/all`);
+    responsesUrl.searchParams.append('userId', currentUser?.id || '');
+    
+    const responsesResponse = await fetch(responsesUrl, {
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    })
+    
+    let allResponses = [];
+    try {
+      allResponses = await responsesResponse.json();
+    } catch (e) {
+      console.warn('Could not fetch responses:', e);
     }
 
-    // ✅ Parse the response directly - calendar-events returns simple array
+    const auditCompletionMap = new Map()
+    allResponses.forEach(response => {
+      if (response.auditScheduleId) {
+        const isFullyCompleted = response.status === 'APPROVED'
+        const isSubmitted = response.status === 'SUBMITTED'
+        auditCompletionMap.set(response.auditScheduleId, {
+          status: response.status,
+          isFullyCompleted,
+          isSubmitted,
+          completedAt: response.updatedAt
+        })
+      }
+    })
+
     let eventsData = await response.json();
     console.log('📊 Calendar events received:', eventsData.length);
     
-    // ✅ Format events directly - NO complex parsing needed
-    const formattedEvents = eventsData.map(eventData => {
-      // Parse dates
-      const startDate = new Date(eventData.start);
-      const endDate = eventData.end ? new Date(eventData.end) : new Date(startDate.getTime() + 3600000);
+    const formattedEvents = [];
+    
+    if (Array.isArray(eventsData) && eventsData.length > 0) {
+      console.log('📊 Processing events...');
       
-      // Determine user relationship
-      const isOwner = eventData.isOwner === true;
-      const isCoAuditor = eventData.isCoAuditor === true;
-      const isAttendee = eventData.isAttendee === true;
-      
-      let userRelationship = 'none';
-      if (isOwner) userRelationship = 'owner';
-      else if (isCoAuditor) userRelationship = 'co_auditor';
-      else if (isAttendee) userRelationship = 'attendee';
-      
-      return {
-        id: eventData.id,
-        title: eventData.title || `${eventData.department || 'Audit'} - ${eventData.auditType || 'General'}`,
-        start: startDate,
-        end: endDate,
-        status: eventData.status || 'SCHEDULED',
-        auditType: eventData.auditType || 'Audit',
-        department: eventData.department || '',
-        isOwner: isOwner,
-        isCoAuditor: isCoAuditor,
-        isAttendee: isAttendee,
-        userRelationship: userRelationship,
-        auditorName: eventData.auditorName || '',
-        auditorId: eventData.auditorId || null,
-        auditeeName: eventData.auditeeName || '',
-        auditeeId: eventData.auditeeId || null,
-        description: eventData.description || '',
-        fromDate: eventData.fromDate || null,
-        toDate: eventData.toDate || null,
-        startTime: eventData.startTime || '',
-        endTime: eventData.endTime || '',
-        isDateRange: eventData.isDateRange || false,
-        isOriginal: true,
-        isFullyCompleted: eventData.isFullyCompleted || false,
-        isSubmitted: eventData.isSubmitted || false,
-        coAuditorNames: eventData.coAuditorNames || [],
-        coAuditorIdList: eventData.coAuditorIdList || []
-      };
-    });
+      for (const eventData of eventsData) {
+        if (!eventData.start) {
+          console.warn('Skipping event without start date:', eventData);
+          continue;
+        }
+        
+        const startDate = new Date(eventData.start);
+        const endDate = eventData.end ? new Date(eventData.end) : new Date(startDate.getTime() + 3600000);
+        
+        const scheduleId = eventData.id;
+        const completionInfo = auditCompletionMap.get(scheduleId);
+        const isFullyCompleted = completionInfo?.isFullyCompleted || false;
+        const isSubmitted = completionInfo?.isSubmitted || false;
+        
+        let displayStatus = eventData.status || 'SCHEDULED';
+        if (isFullyCompleted) displayStatus = 'COMPLETED';
+        else if (isSubmitted) displayStatus = 'SUBMITTED';
+        
+        const isOwner = eventData.isOwner === true;
+        const isCoAuditor = eventData.isCoAuditor === true;
+        const isAttendee = eventData.isAttendee === true;
+        
+        let userRelationship = 'none';
+        if (isOwner) userRelationship = 'owner';
+        else if (isCoAuditor) userRelationship = 'co_auditor';
+        else if (isAttendee) userRelationship = 'attendee';
+        
+        const isDateRange = eventData.isDateRange || false;
+        const fromDate = eventData.fromDate || null;
+        const toDate = eventData.toDate || null;
+        
+        formattedEvents.push({
+          id: eventData.id,
+          title: eventData.title || `${eventData.department || 'Audit'} - ${eventData.auditType || 'General'}`,
+          start: startDate,
+          end: endDate,
+          status: displayStatus,
+          auditType: eventData.auditType || 'Audit',
+          department: eventData.department || '',
+          isOwner: isOwner,
+          isCoAuditor: isCoAuditor,
+          isAttendee: isAttendee,
+          userRelationship: userRelationship,
+          auditorName: eventData.auditorName || '',
+          auditorId: eventData.auditorId || null,
+          auditeeName: eventData.auditeeName || '',
+          auditeeId: eventData.auditeeId || null,
+          description: eventData.description || '',
+          fromDate: fromDate,
+          toDate: toDate,
+          startTime: eventData.startTime || '',
+          endTime: eventData.endTime || '',
+          isDateRange: isDateRange,
+          isOriginal: true,
+          isFullyCompleted: isFullyCompleted,
+          isSubmitted: isSubmitted,
+          auditCompletionStatus: completionInfo?.status || null,
+          originalScheduledDate: eventData.originalScheduledDate || null,
+          originalStartTime: eventData.originalStartTime || null,
+          rescheduleHistory: eventData.rescheduleHistory || [],
+          extensionHistory: eventData.extensionHistory || [],
+          pendingReschedule: eventData.pendingReschedule || false,
+          pendingExtension: eventData.pendingExtension || false,
+          coAuditorNames: eventData.coAuditorNames || [],
+          coAuditorIdList: eventData.coAuditorIdList || []
+        });
+        
+        console.log('✅ Added event:', {
+          id: eventData.id,
+          title: eventData.title,
+          date: startDate.toISOString().split('T')[0],
+          relationship: userRelationship
+        });
+      }
+    } else {
+      console.log('📊 No events received from calendar-events endpoint');
+    }
     
     setEvents(formattedEvents);
     console.log('✅ Total events loaded:', formattedEvents.length);
@@ -1079,6 +1133,7 @@ const [userDepartment, setUserDepartment] = useState(null);
     setIsLoading(false);
   }
 }, [currentUser, userRole, leadAuditorDepartment]);
+ 
 // Normalize department name for comparison (matching your dashboard logic)
 const normalizeDepartmentForFilter = (dept) => {
   if (!dept) return '';
@@ -1255,7 +1310,7 @@ useEffect(() => {
         <div className="h-full p-4">
           <Calendar
             localizer={localizer}
-            events={events.filter(e => e.isOriginal === true)}  // ✅ Show original events
+            events={events.filter(e => !e.isOriginal)}
             startAccessor="start"
             endAccessor="end"
             view={view}
@@ -1623,7 +1678,7 @@ useEffect(() => {
               ) : (
                 <Calendar
                   localizer={localizer}
-                  events={events.filter(e => e.isOriginal === true)}  // ✅ Show original events
+                  events={events.filter(e => !e.isOriginal)}
                   startAccessor="start"
                   endAccessor="end"
                   view={view}
