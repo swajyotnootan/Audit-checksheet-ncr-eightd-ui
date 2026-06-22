@@ -999,7 +999,6 @@ const loadEvents = useCallback(async () => {
     
     console.log('📡 Fetching from URL:', url);
     
-    // ✅ NO custom headers
     const response = await fetch(url, {
       headers: {
         'Content-Type': 'application/json'
@@ -1049,6 +1048,15 @@ const loadEvents = useCallback(async () => {
         if (!eventData.start) {
           console.warn('Skipping event without start date:', eventData);
           continue;
+        }
+        
+        // ✅ FIX: Apply department filtering for Lead Auditor
+        if (userRoleForAPI === 'LEAD_AUDITOR' && leadAuditorDepartment) {
+          const eventDept = normalizeDepartmentForFilter(eventData.department);
+          if (eventDept !== leadAuditorDepartment) {
+            console.log(`⏭️ Skipping event: ${eventData.department} (expected: ${leadAuditorDepartment})`);
+            continue;
+          }
         }
         
         const startDate = new Date(eventData.start);
@@ -1116,6 +1124,7 @@ const loadEvents = useCallback(async () => {
           id: eventData.id,
           title: eventData.title,
           date: startDate.toISOString().split('T')[0],
+          department: eventData.department,
           relationship: userRelationship
         });
       }
