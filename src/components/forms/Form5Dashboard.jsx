@@ -1,39 +1,102 @@
-// src/components/forms/Form5Dashboard.jsx
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../ToastContext';
 import { auditScheduleApi } from '../../services/auditScheduleApi';
 import { 
   FiCalendar, FiCheckCircle, FiClock, FiAlertCircle, 
-  FiArrowRight, FiFileText, FiUsers, FiUserCheck, 
-  FiTrendingUp, FiEye, FiRefreshCw, FiPlus, FiEdit2,
-  FiBarChart2, FiGrid, FiList, FiDownload, FiPrinter, FiInfo
+  FiArrowRight, FiFileText, FiRefreshCw, FiPlus, FiInfo, FiArrowLeft
 } from 'react-icons/fi';
-import { useSearchParams } from 'react-router-dom';
 
+// ═════ MNC STANDARD PALETTE ═════
+const T = {
+  bg: '#F8FAFC',
+  card: '#FFFFFF',
+  border: '#E2E8F0',
+  text: '#000000',       
+  textValue: '#1F2937',  
+  textMuted: '#6B7280',
+  accent: '#00529B',
+  accentLight: '#EFF6FF',
+  accentBorder: '#DBEAFE',
+  success: '#10B981',
+  successLight: '#ECFDF5',
+  successBorder: '#A7F3D0',
+  error: '#EF4444',
+  errorLight: '#FEF2F2',
+  errorBorder: '#FECACA',
+  warning: '#F59E0B',
+  warningLight: '#FFFBEB',
+  warningBorder: '#FDE68A',
+};
 
+const FONT_FAMILY = "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif";
+
+// ═════ SUBTLE MONTH COLORS ═════
+const monthThemeColors = {
+  "Apr": { bg: '#ECFDF5', border: '#A7F3D0', text: '#065F46', icon: '#10B981' }, // Emerald
+  "May": { bg: '#EFF6FF', border: '#BFDBFE', text: '#1E40AF', icon: '#3B82F6' }, // Blue
+  "Jun": { bg: '#F5F3FF', border: '#DDD6FE', text: '#5B21B6', icon: '#8B5CF6' }, // Purple
+  "Jul": { bg: '#FDF2F8', border: '#FBCFE8', text: '#9D174D', icon: '#EC4899' }, // Pink
+  "Aug": { bg: '#FFF7ED', border: '#FED7AA', text: '#9A3412', icon: '#F97316' }, // Orange
+  "Sep": { bg: '#FFFBEB', border: '#FDE68A', text: '#92400E', icon: '#F59E0B' }, // Amber
+  "Oct": { bg: '#FEF2F2', border: '#FECACA', text: '#991B1B', icon: '#EF4444' }, // Red
+  "Nov": { bg: '#F0FDF4', border: '#BBF7D0', text: '#166534', icon: '#22C55E' }, // Green
+  "Dec": { bg: '#ECFEFF', border: '#A5F3FC', text: '#155E75', icon: '#06B6D4' }, // Cyan
+  "Jan": { bg: '#F0F9FF', border: '#BAE6FD', text: '#075985', icon: '#0EA5E9' }, // Sky
+  "Feb": { bg: '#EEF2FF', border: '#C7D2FE', text: '#3730A3', icon: '#6366F1' }, // Indigo
+  "Mar": { bg: '#FAF5FF', border: '#E9D5FF', text: '#6B21A8', icon: '#A855F7' }  // Violet
+};
+
+/* ─── Reusable UI Components ────────────────────────────────────────────── */
+
+const Card = ({ children, style }) => (
+  <div style={{ background: T.card, border: `1px solid ${T.border}`, borderRadius: 12, boxShadow: '0 1px 3px 0 rgba(0, 0, 0, 0.05), 0 1px 2px 0 rgba(0, 0, 0, 0.03)', ...style }}>
+    {children}
+  </div>
+);
+
+const ActionButton = ({ onClick, disabled, loading, color, bgColor, borderColor, icon: Icon, children, style }) => (
+  <button
+    onClick={onClick}
+    disabled={disabled || loading}
+    style={{
+      height: 40, padding: '0 20px', borderRadius: 8, border: `1px solid ${borderColor || 'transparent'}`,
+      background: (disabled || loading) ? '#F1F5F9' : bgColor, color: (disabled || loading) ? '#94A3B8' : color,
+      fontSize: 14, fontWeight: 600, cursor: (disabled || loading) ? 'not-allowed' : 'pointer',
+      display: 'flex', alignItems: 'center', gap: 8, transition: 'all 0.2s', fontFamily: FONT_FAMILY,
+      boxShadow: (disabled || loading) ? 'none' : '0 1px 2px 0 rgba(0, 0, 0, 0.05)',
+      ...style
+    }}
+  >
+    {loading ? (
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" style={{ animation: 'spin 1s linear infinite' }}>
+        <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
+        <circle cx="12" cy="12" r="10" stroke={color} strokeWidth="3" strokeLinecap="round" strokeDasharray="31.4 31.4" strokeDashoffset="10" />
+      </svg>
+    ) : Icon ? <Icon size={16} /> : null}
+    {children}
+  </button>
+);
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   MAIN COMPONENT
+   ═══════════════════════════════════════════════════════════════════════════ */
 const Form5Dashboard = () => {
-  const { user, isAuditManager, isTopManagement } = useAuth();
+  const { user } = useAuth();
   const { addToast } = useToast();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-const urlYear = searchParams.get('year');
+  const urlYear = searchParams.get('year');
   
-const [selectedYear, setSelectedYear] = useState(
-  urlYear ? parseInt(urlYear) : new Date().getFullYear()
-);  const [availableMonths, setAvailableMonths] = useState([]);
+  const [selectedYear, setSelectedYear] = useState(urlYear ? parseInt(urlYear) : new Date().getFullYear());
+  const [availableMonths, setAvailableMonths] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [availableYears, setAvailableYears] = useState([]);
   const [stats, setStats] = useState({
-    totalMonths: 0,
-    approvedMonths: 0,
-    pendingMonths: 0,
-    draftMonths: 0,
-    rejectedMonths: 0,
-    totalSchedules: 0
+    totalMonths: 0, approvedMonths: 0, pendingMonths: 0,
+    draftMonths: 0, rejectedMonths: 0, totalSchedules: 0
   });
-  
-const [availableYears, setAvailableYears] = useState([]);
   
   const monthDisplay = {
     "Apr": "April", "May": "May", "Jun": "June", "Jul": "July",
@@ -42,19 +105,25 @@ const [availableYears, setAvailableYears] = useState([]);
   };
   
   const financialMonths = ["Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec", "Jan", "Feb", "Mar"];
-  const monthColors = {
-    "Apr": "from-emerald-500 to-teal-500",
-    "May": "from-blue-500 to-cyan-500",
-    "Jun": "from-indigo-500 to-purple-500",
-    "Jul": "from-purple-500 to-pink-500",
-    "Aug": "from-pink-500 to-rose-500",
-    "Sep": "from-orange-500 to-amber-500",
-    "Oct": "from-amber-500 to-yellow-500",
-    "Nov": "from-lime-500 to-green-500",
-    "Dec": "from-green-500 to-emerald-500",
-    "Jan": "from-cyan-500 to-blue-500",
-    "Feb": "from-sky-500 to-indigo-500",
-    "Mar": "from-violet-500 to-purple-500"
+
+  // Helper to fetch schedule counts for a list of months using the Form5 API
+  const fetchScheduleCounts = async (monthsList) => {
+    const counts = {};
+    await Promise.all(
+      monthsList.map(async (m) => {
+        try {
+          const response = await auditScheduleApi.getByYearAndMonth(selectedYear, m.month);
+          const allSchedules = response.data || [];
+          // Filter for week schedules (same logic as Form5View)
+          const weekSchedules = allSchedules.filter(schedule => !schedule.scheduledDate);
+          counts[m.month] = weekSchedules.length;
+        } catch (error) {
+          console.error(`Error fetching schedules for ${m.month}:`, error);
+          counts[m.month] = 0;
+        }
+      })
+    );
+    return counts;
   };
   
   const fetchData = async () => {
@@ -62,21 +131,30 @@ const [availableYears, setAvailableYears] = useState([]);
     try {
       const response = await auditScheduleApi.getAvailableMonths(selectedYear);
       const months = response.data || [];
-      setAvailableMonths(months);
+      
+      // Fetch schedule counts for months with planned audits
+      const validMonths = months.filter(m => m.hasPlannedAudits);
+      const scheduleCounts = await fetchScheduleCounts(validMonths);
+      
+      // Update months with fetched schedule counts
+      const updatedMonths = months.map(m => ({
+        ...m,
+        scheduleCount: scheduleCounts[m.month] || 0
+      }));
+      
+      setAvailableMonths(updatedMonths);
       
       // Calculate stats
-      const approved = months.filter(m => m.approvalStatus === 'APPROVED' && m.hasPlannedAudits).length;
-      const pending = months.filter(m => m.approvalStatus === 'PENDING_APPROVAL').length;
-      const draft = months.filter(m => m.approvalStatus === 'DRAFT').length;
-      const rejected = months.filter(m => m.approvalStatus === 'REJECTED').length;
-      const totalSchedules = months.reduce((sum, m) => sum + (m.scheduleCount || 0), 0);
+      const approved = updatedMonths.filter(m => m.approvalStatus === 'APPROVED' && m.hasPlannedAudits).length;
+      const pending = updatedMonths.filter(m => m.approvalStatus === 'PENDING_APPROVAL').length;
+      const draft = updatedMonths.filter(m => m.approvalStatus === 'DRAFT').length;
+      const rejected = updatedMonths.filter(m => m.approvalStatus === 'REJECTED').length;
+      const totalSchedules = updatedMonths.reduce((sum, m) => sum + (m.scheduleCount || 0), 0);
       
       setStats({
-        totalMonths: months.filter(m => m.hasPlannedAudits).length,
-        approvedMonths: approved,
-        pendingMonths: pending,
-        draftMonths: draft,
-        rejectedMonths: rejected,
+        totalMonths: updatedMonths.filter(m => m.hasPlannedAudits).length,
+        approvedMonths: approved, pendingMonths: pending,
+        draftMonths: draft, rejectedMonths: rejected,
         totalSchedules: totalSchedules
       });
     } catch (error) {
@@ -87,295 +165,242 @@ const [availableYears, setAvailableYears] = useState([]);
     }
   };
   
+  useEffect(() => { fetchData(); }, [selectedYear]);
+  useEffect(() => { if (urlYear) setSelectedYear(parseInt(urlYear)); }, [urlYear]);
   useEffect(() => {
-    fetchData();
-  }, [selectedYear]);
-
-  useEffect(() => {
-  if (urlYear) {
-    setSelectedYear(parseInt(urlYear));
-  }
-}, [urlYear]);
-
-  useEffect(() => {
-  const currentYear = new Date().getFullYear();
-  const years = [];
-  for (let i = currentYear - 5; i <= currentYear + 5; i++) {
-    years.push(i);
-  }
-  setAvailableYears(years);
-}, []);
+    const currentYear = new Date().getFullYear();
+    const years = [];
+    for (let i = currentYear - 5; i <= currentYear + 5; i++) years.push(i);
+    setAvailableYears(years);
+  }, []);
   
   const handleMonthClick = (month) => {
-    navigate('/form5', {
-      state: { 
-        preselectedYear: selectedYear, 
-        preselectedMonth: month.month 
-      }
-    });
+    navigate('/form5', { state: { preselectedYear: selectedYear, preselectedMonth: month.month } });
   };
   
   const handleCreateNew = () => {
-    navigate('/form5', {
-      state: { 
-        preselectedYear: selectedYear, 
-        preselectedMonth: null 
-      }
-    });
+    navigate('/form5', { state: { preselectedYear: selectedYear, preselectedMonth: null } });
   };
   
   const getStatusBadge = (status) => {
+    const styles = {
+      'APPROVED': { bg: T.successLight, color: '#065F46', border: T.successBorder, text: 'Approved', icon: FiCheckCircle },
+      'PENDING_APPROVAL': { bg: T.warningLight, color: '#92400E', border: T.warningBorder, text: 'Pending', icon: FiClock },
+      'REJECTED': { bg: T.errorLight, color: '#991B1B', border: T.errorBorder, text: 'Rejected', icon: FiAlertCircle }
+    };
+    const s = styles[status] || { bg: '#F1F5F9', color: '#475569', border: '#E2E8F0', text: 'Draft', icon: FiFileText };
+    const Icon = s.icon;
+    return (
+      <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '4px 10px', background: s.bg, border: `1px solid ${s.border}`, borderRadius: 20, fontSize: 11, fontWeight: 600, color: s.color, fontFamily: FONT_FAMILY }}>
+        <Icon size={12} /> {s.text}
+      </span>
+    );
+  };
+
+  const getStatusDescription = (status) => {
     switch(status) {
-      case 'APPROVED':
-        return (
-          <span className="inline-flex items-center px-2 py-1 rounded-full text-xs bg-emerald-100 text-emerald-700">
-            <FiCheckCircle className="w-3 h-3 mr-1" />
-            Approved
-          </span>
-        );
-      case 'PENDING_APPROVAL':
-        return (
-          <span className="inline-flex items-center px-2 py-1 rounded-full text-xs bg-amber-100 text-amber-700">
-            <FiClock className="w-3 h-3 mr-1" />
-            Pending
-          </span>
-        );
-      case 'REJECTED':
-        return (
-          <span className="inline-flex items-center px-2 py-1 rounded-full text-xs bg-rose-100 text-rose-700">
-            <FiAlertCircle className="w-3 h-3 mr-1" />
-            Rejected
-          </span>
-        );
-      default:
-        return (
-          <span className="inline-flex items-center px-2 py-1 rounded-full text-xs bg-slate-100 text-slate-600">
-            <FiFileText className="w-3 h-3 mr-1" />
-            Draft
-          </span>
-        );
+      case 'APPROVED': return 'Ready for daily scheduling';
+      case 'PENDING_APPROVAL': return 'Awaiting management approval';
+      case 'REJECTED': return 'Needs correction and resubmission';
+      default: return 'Draft - Complete and submit';
     }
   };
   
   if (loading) {
     return (
-      <div className="flex justify-center items-center h-64">
-        <div className="animate-spin rounded-full h-8 w-8 border-2 border-gray-200 border-t-indigo-600"></div>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '60vh', fontFamily: FONT_FAMILY }}>
+        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" style={{ animation: 'spin 1s linear infinite' }}>
+          <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
+          <circle cx="12" cy="12" r="10" stroke="#E2E8F0" strokeWidth="3" />
+          <circle cx="12" cy="12" r="10" stroke={T.accent} strokeWidth="3" strokeLinecap="round" strokeDasharray="31.4 31.4" strokeDashoffset="10" />
+        </svg>
       </div>
     );
   }
   
+  // Filter to only show months that have planned audits from Form 4
+  const validMonths = financialMonths.filter(m => {
+    const monthData = availableMonths.find(am => am.month === m);
+    return monthData?.hasPlannedAudits;
+  });
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100">
-      <div className="max-w-7xl mx-auto px-4 py-6 sm:px-6 lg:px-8">
-        
-        {/* Header */}
-        <div className="mb-8">
-          <div className="flex items-center justify-between flex-wrap gap-4">
-            <div className="flex items-center gap-4">
-              <div className="p-3 bg-gradient-to-br from-indigo-600 to-purple-600 rounded-2xl shadow-lg">
-                <FiFileText className="w-7 h-7 text-white" />
-              </div>
-              <div>
-                <h1 className="text-2xl font-bold text-slate-800">Internal Quality Audit Schedule</h1>
-                <p className="text-sm text-slate-500 mt-0.5">Form 5 - Month-wise Audit Planning (IATF16949)</p>
-              </div>
-            </div>
-            <div className="flex items-center gap-3">
-              <select
-                value={selectedYear}
-                onChange={(e) => setSelectedYear(parseInt(e.target.value))}
-                className="px-3 py-2 border border-slate-200 rounded-xl text-sm bg-white shadow-sm focus:ring-2 focus:ring-indigo-500"
-              >
-                {availableYears.map(year => (
-                  <option key={year} value={year}>{year} - {year + 1}</option>
-                ))}
-              </select>
-              <button
-                onClick={handleCreateNew}
-                className="px-4 py-2 bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 flex items-center gap-2 transition-all shadow-sm"
-              >
-                <FiPlus className="w-4 h-4" />
-                Create New Schedule
-              </button>
-              <button
-                onClick={fetchData}
-                className="p-2 text-slate-500 hover:text-indigo-600 rounded-xl transition-colors"
-              >
-                <FiRefreshCw className="w-5 h-5" />
-              </button>
-            </div>
-          </div>
-        </div>
-        
-        {/* Statistics Cards */}
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 mb-8">
-          <div className="bg-white rounded-2xl border border-slate-100 p-4 shadow-sm">
-            <p className="text-xs text-slate-500">Total Months</p>
-            <p className="text-2xl font-bold text-slate-800">{stats.totalMonths}</p>
-          </div>
-          <div className="bg-white rounded-2xl border border-slate-100 p-4 shadow-sm">
-            <p className="text-xs text-emerald-600">Approved</p>
-            <p className="text-2xl font-bold text-emerald-600">{stats.approvedMonths}</p>
-          </div>
-          <div className="bg-white rounded-2xl border border-slate-100 p-4 shadow-sm">
-            <p className="text-xs text-amber-600">Pending</p>
-            <p className="text-2xl font-bold text-amber-600">{stats.pendingMonths}</p>
-          </div>
-          <div className="bg-white rounded-2xl border border-slate-100 p-4 shadow-sm">
-            <p className="text-xs text-slate-500">Draft</p>
-            <p className="text-2xl font-bold text-slate-500">{stats.draftMonths}</p>
-          </div>
-          <div className="bg-white rounded-2xl border border-slate-100 p-4 shadow-sm">
-            <p className="text-xs text-rose-600">Rejected</p>
-            <p className="text-2xl font-bold text-rose-600">{stats.rejectedMonths}</p>
-          </div>
-          <div className="bg-gradient-to-r from-indigo-50 to-purple-50 rounded-2xl border border-indigo-100 p-4 shadow-sm">
-            <p className="text-xs text-indigo-600">Total Schedules</p>
-            <p className="text-2xl font-bold text-indigo-600">{stats.totalSchedules}</p>
-          </div>
-        </div>
-        
-        {/* Info Banner */}
-        <div className="mb-6 p-4 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-2xl border border-blue-100">
-          <div className="flex items-start gap-3">
-            <div className="p-2 bg-blue-100 rounded-xl">
-              <FiInfo className="w-5 h-5 text-blue-600" />
+    <div style={{ padding: 24, background: T.bg, minHeight: '100vh', fontFamily: FONT_FAMILY }}>
+      
+      {/* Header */}
+      <Card style={{ padding: 24, marginBottom: 24 }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 16 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+            
+            {/* Back Button */}
+             <button 
+              onClick={() => navigate('/audit-manager?view=schedules')} // 👈 Updated to navigate to Schedules Workflow
+              style={{ width: 40, height: 40, borderRadius: 8, border: `1px solid ${T.border}`, background: T.card, color: T.textMuted, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', transition: 'all 0.2s' }}
+              onMouseEnter={e => { e.currentTarget.style.background = '#F8FAFC'; e.currentTarget.style.color = T.accent; }}
+              onMouseLeave={e => { e.currentTarget.style.background = T.card; e.currentTarget.style.color = T.textMuted; }}
+              title="Back to Schedules Workflow" // 👈 Updated tooltip text
+            >
+              <FiArrowLeft size={18} />
+            </button>
+
+            {/* Icon & Title */}
+            <div style={{ width: 48, height: 48, borderRadius: 12, background: T.accentLight, border: `1px solid ${T.accentBorder}`, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <FiCalendar size={24} color={T.accent} />
             </div>
             <div>
-              <p className="text-sm font-semibold text-blue-800">How to use Form 5</p>
-              <p className="text-xs text-blue-600 mt-1">
-                Select a month below to create week-wise audit schedules. After completing all weeks, submit for approval.
-                Once approved, you can create daily schedules with specific time slots.
-              </p>
+              <h1 style={{ margin: 0, fontSize: 20, fontWeight: 700, color: T.text }}>Internal Quality Audit Schedule</h1>
+              <p style={{ margin: '4px 0 0', fontSize: 13, color: T.textMuted }}>Form 5 - Month-wise Audit Planning (IATF16949)</p>
             </div>
           </div>
-        </div>
-        
-        {/* Month Grid Cards */}
-        {availableMonths.length === 0 ? (
-          <div className="bg-white rounded-2xl border border-slate-100 p-12 text-center">
-            <FiCalendar className="w-16 h-16 mx-auto text-slate-300 mb-4" />
-            <p className="text-slate-500">No months available for {selectedYear}</p>
-            <p className="text-sm text-slate-400 mt-2">Please complete Form 4 (Department Audit Plan) first.</p>
-            <button
-              onClick={() => navigate('/form4')}
-              className="mt-4 px-4 py-2 bg-indigo-600 text-white rounded-xl hover:bg-indigo-700"
+          
+          {/* Right Controls */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+            <select
+              value={selectedYear}
+              onChange={(e) => setSelectedYear(parseInt(e.target.value))}
+              style={{
+                height: 40, padding: '0 32px 0 12px', fontSize: 14, fontWeight: 500, fontFamily: FONT_FAMILY, borderRadius: 8,
+                border: `1px solid ${T.border}`, background: T.card, color: T.textValue, outline: 'none', cursor: 'pointer',
+                backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%236B7280' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E")`,
+                backgroundRepeat: 'no-repeat', backgroundPosition: 'right 10px center',
+                WebkitAppearance: 'none', MozAppearance: 'none', appearance: 'none'
+              }}
             >
-              Go to Form 4
+              {availableYears.map(year => <option key={year} value={year}>{year} - {year + 1}</option>)}
+            </select>
+            <ActionButton onClick={handleCreateNew} color="#FFF" bgColor={T.accent} icon={FiPlus}>Create New Schedule</ActionButton>
+            <button 
+              onClick={fetchData} 
+              style={{ width: 40, height: 40, borderRadius: 8, border: `1px solid ${T.border}`, background: T.card, color: T.textMuted, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', transition: 'all 0.2s' }}
+              onMouseEnter={e => { e.currentTarget.style.background = '#F8FAFC'; e.currentTarget.style.color = T.accent; }}
+              onMouseLeave={e => { e.currentTarget.style.background = T.card; e.currentTarget.style.color = T.textMuted; }}
+              title="Refresh"
+            >
+              <FiRefreshCw size={18} />
             </button>
           </div>
-        ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
-            {financialMonths.map(month => {
-              const monthData = availableMonths.find(m => m.month === month);
-              const hasPlannedAudits = monthData?.hasPlannedAudits || false;
-              const approvalStatus = monthData?.approvalStatus || 'DRAFT';
-              const scheduleCount = monthData?.scheduleCount || 0;
-              const isDisabled = !hasPlannedAudits;
-              
-              // Don't show months without planned audits
-              if (!hasPlannedAudits) return null;
-              
-              const gradientColor = monthColors[month] || "from-gray-500 to-gray-600";
-              
-              return (
-                <div
-                  key={month}
-                  onClick={() => !isDisabled && handleMonthClick(monthData)}
-                  className={`bg-white rounded-2xl border-2 overflow-hidden transition-all cursor-pointer
-                    ${!isDisabled 
-                      ? 'border-slate-200 hover:border-indigo-400 hover:shadow-xl hover:-translate-y-1' 
-                      : 'border-slate-200 opacity-60 cursor-not-allowed'
-                    }`}
-                >
-                  {/* Gradient Header */}
-                  <div className={`bg-gradient-to-r ${gradientColor} px-4 py-3`}>
-                    <div className="flex items-center justify-between">
-                      <h3 className="text-xl font-bold text-white">{monthDisplay[month]}</h3>
-                      {getStatusBadge(approvalStatus)}
-                    </div>
-                    <p className="text-white/80 text-sm mt-1">{selectedYear}</p>
-                  </div>
-                  
-                  {/* Content */}
-                  <div className="p-4">
-                    <div className="flex items-center gap-2 text-sm text-slate-500 mb-3">
-                      <FiCalendar className="w-4 h-4" />
-                      <span>Financial Year {selectedYear}-{selectedYear+1}</span>
-                    </div>
-                    
-                    <div className="flex items-center justify-between mb-3">
-                      <div className="flex items-center gap-2">
-                        <div className="w-8 h-8 bg-indigo-100 rounded-full flex items-center justify-center">
-                          <FiFileText className="w-4 h-4 text-indigo-600" />
-                        </div>
-                        <div>
-                          <p className="text-xs text-slate-400">Schedules</p>
-                          <p className="text-lg font-bold text-slate-800">{scheduleCount}</p>
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <div className="w-8 h-8 bg-emerald-100 rounded-full flex items-center justify-center">
-                          <FiCheckCircle className="w-4 h-4 text-emerald-600" />
-                        </div>
-                        <div>
-                          <p className="text-xs text-slate-400">Status</p>
-                          <p className="text-sm font-medium text-slate-700">
-                            {approvalStatus === 'APPROVED' ? 'Ready for Daily Schedule' : 
-                             approvalStatus === 'PENDING_APPROVAL' ? 'Awaiting Approval' :
-                             approvalStatus === 'REJECTED' ? 'Needs Revision' : 'In Progress'}
-                          </p>
-                        </div>
-                      </div>
-                    </div>
-                    
-                    {!isDisabled && (
-                      <div className="mt-3 pt-3 border-t border-slate-100 flex items-center justify-between">
-                        <span className="text-xs text-indigo-600">
-                          {approvalStatus === 'APPROVED' ? '✓ Approved - Can create daily schedule' :
-                           approvalStatus === 'PENDING_APPROVAL' ? '⏳ Waiting for approval' :
-                           approvalStatus === 'REJECTED' ? '✗ Needs correction' : '📝 Draft - Complete and submit'}
-                        </span>
-                        <FiArrowRight className="w-4 h-4 text-indigo-600" />
-                      </div>
-                    )}
-                    
-                    {isDisabled && (
-                      <div className="mt-3 pt-3 border-t border-slate-100">
-                        <span className="text-xs text-slate-400">Complete Form 4 first</span>
-                      </div>
-                    )}
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        )}
-        
-        {/* Legend */}
-        <div className="mt-8 p-4 bg-white rounded-2xl border border-slate-200">
-          <h4 className="text-sm font-semibold text-slate-700 mb-3">Status Legend</h4>
-          <div className="flex flex-wrap gap-4 text-xs">
-            <div className="flex items-center gap-2">
-              <div className="w-4 h-4 bg-emerald-100 border border-emerald-300 rounded"></div>
-              <span className="text-slate-600">Approved - Ready for daily scheduling</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <div className="w-4 h-4 bg-amber-100 border border-amber-300 rounded"></div>
-              <span className="text-slate-600">Pending Approval - Waiting for review</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <div className="w-4 h-4 bg-rose-100 border border-rose-300 rounded"></div>
-              <span className="text-slate-600">Rejected - Needs correction</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <div className="w-4 h-4 bg-slate-100 border border-slate-300 rounded"></div>
-              <span className="text-slate-600">Draft - In progress, not submitted</span>
-            </div>
-          </div>
+        </div>
+      </Card>
+
+      {/* Info Banner */}
+      <div style={{ padding: 16, background: T.accentLight, border: `1px solid ${T.accentBorder}`, borderRadius: 12, marginBottom: 24, display: 'flex', gap: 12, fontFamily: FONT_FAMILY }}>
+        <div style={{ width: 36, height: 36, borderRadius: 8, background: T.card, border: `1px solid ${T.accentBorder}`, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+          <FiInfo size={18} color={T.accent} />
+        </div>
+        <div>
+          <p style={{ margin: 0, fontSize: 14, fontWeight: 600, color: '#1E3A8A' }}>How to use Form 5</p>
+          <p style={{ margin: '4px 0 0', fontSize: 13, color: '#1E40AF', opacity: 0.9 }}>
+            Select a month below to create week-wise audit schedules. After completing all weeks, submit for approval. Once approved, you can create daily schedules with specific time slots.
+          </p>
         </div>
       </div>
+      
+      {/* Month Grid Cards */}
+      {validMonths.length === 0 ? (
+        <Card style={{ padding: 40, textAlign: 'center' }}>
+          <FiCalendar size={40} style={{ margin: '0 auto 16px', color: '#CBD5E1' }} />
+          <p style={{ margin: '0 0 8px', fontSize: 16, fontWeight: 600, color: T.textValue }}>No months available for {selectedYear}</p>
+          <p style={{ margin: '0 0 20px', fontSize: 13, color: T.textMuted }}>Please complete Form 4 (Department Audit Plan) first.</p>
+          <ActionButton onClick={() => navigate('/form4')} color="#FFF" bgColor={T.accent} icon={FiFileText}>Go to Form 4</ActionButton>
+        </Card>
+      ) : (
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: 20 }}>
+          {validMonths.map(month => {
+            const monthData = availableMonths.find(m => m.month === month);
+            const approvalStatus = monthData?.approvalStatus || 'DRAFT';
+            const scheduleCount = monthData?.scheduleCount || 0; // Now correctly populated from API
+            const monthTheme = monthThemeColors[month] || { bg: '#F8FAFC', border: '#E2E8F0', text: '#1F2937', icon: '#6B7280' };
+            
+            return (
+              <div
+                key={month}
+                onClick={() => handleMonthClick(monthData)}
+                style={{
+                  background: T.card, border: `1px solid ${T.border}`, borderRadius: 12, 
+                  overflow: 'hidden', cursor: 'pointer', transition: 'all 0.2s',
+                  boxShadow: '0 1px 3px 0 rgba(0, 0, 0, 0.05), 0 1px 2px 0 rgba(0, 0, 0, 0.03)'
+                }}
+                onMouseEnter={e => { 
+                  e.currentTarget.style.borderColor = monthTheme.border; 
+                  e.currentTarget.style.boxShadow = '0 10px 15px -3px rgba(0, 0, 0, 0.05), 0 4px 6px -2px rgba(0, 0, 0, 0.025)';
+                  e.currentTarget.style.transform = 'translateY(-2px)';
+                }}
+                onMouseLeave={e => { 
+                  e.currentTarget.style.borderColor = T.border; 
+                  e.currentTarget.style.boxShadow = '0 1px 3px 0 rgba(0, 0, 0, 0.05), 0 1px 2px 0 rgba(0, 0, 0, 0.03)';
+                  e.currentTarget.style.transform = 'translateY(0)';
+                }}
+              >
+                {/* Card Header with Subtle Month Color */}
+                <div style={{ padding: '16px 20px', borderBottom: `1px solid ${T.border}`, background: monthTheme.bg, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                    <div style={{ width: 36, height: 36, borderRadius: 8, background: T.card, border: `1px solid ${monthTheme.border}`, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                      <FiCalendar size={18} color={monthTheme.icon} />
+                    </div>
+                    <div>
+                      <h3 style={{ margin: 0, fontSize: 18, fontWeight: 700, color: monthTheme.text }}>{monthDisplay[month]}</h3>
+                      <p style={{ margin: '2px 0 0', fontSize: 12, color: T.textMuted }}>Financial Year {selectedYear}-{selectedYear + 1}</p>
+                    </div>
+                  </div>
+                  {getStatusBadge(approvalStatus)}
+                </div>
+                
+                {/* Card Body */}
+                <div style={{ padding: 20 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 16 }}>
+                    <div style={{ width: 40, height: 40, borderRadius: 8, background: T.accentLight, border: `1px solid ${T.accentBorder}`, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                      <FiFileText size={18} color={T.accent} />
+                    </div>
+                    <div>
+                      <p style={{ margin: 0, fontSize: 11, fontWeight: 600, color: T.textMuted, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Schedules</p>
+                      <p style={{ margin: 0, fontSize: 20, fontWeight: 700, color: T.text }}>{scheduleCount}</p>
+                    </div>
+                  </div>
+                  
+                  <div style={{ padding: '12px 16px', background: '#F8FAFC', borderRadius: 8, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <span style={{ fontSize: 13, fontWeight: 500, color: T.textValue }}>
+                      {getStatusDescription(approvalStatus)}
+                    </span>
+                    <FiArrowRight size={16} color={T.accent} />
+                  </div>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
+      
+      {/* Legend */}
+      <Card style={{ padding: 24, marginTop: 24 }}>
+        <h4 style={{ margin: '0 0 16px', fontSize: 13, fontWeight: 700, color: T.text, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Status Legend</h4>
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 24, fontSize: 13, color: T.textMuted }}>
+          <span style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <div style={{ width: 16, height: 16, borderRadius: '50%', background: T.successLight, border: `1px solid ${T.successBorder}`, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <FiCheckCircle size={10} color={T.success} />
+            </div>
+            Approved - Ready for daily scheduling
+          </span>
+          <span style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <div style={{ width: 16, height: 16, borderRadius: '50%', background: T.warningLight, border: `1px solid ${T.warningBorder}`, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <FiClock size={10} color={T.warning} />
+            </div>
+            Pending Approval - Waiting for review
+          </span>
+          <span style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <div style={{ width: 16, height: 16, borderRadius: '50%', background: T.errorLight, border: `1px solid ${T.errorBorder}`, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <FiAlertCircle size={10} color={T.error} />
+            </div>
+            Rejected - Needs correction
+          </span>
+          <span style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <div style={{ width: 16, height: 16, borderRadius: '50%', background: '#F1F5F9', border: '1px solid #E2E8F0', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <FiFileText size={10} color="#475569" />
+            </div>
+            Draft - In progress, not submitted
+          </span>
+        </div>
+      </Card>
+      
     </div>
   );
 };

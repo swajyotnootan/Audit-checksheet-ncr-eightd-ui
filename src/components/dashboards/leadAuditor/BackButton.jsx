@@ -28,12 +28,11 @@ const BackButton = ({
   };
   
   return (
-    <button 
+   <button 
       onClick={handleBack}
-      className={`flex items-center gap-2 px-4 py-2 text-gray-600 transition-all duration-200 rounded-lg hover:bg-gray-100 hover:text-gray-900 ${className}`}
+      className={`flex items-center gap-2 p-2 transition-all duration-200 rounded-lg text-white bg-[#00529B] hover:bg-[#0d4aab] hover:text-white ${className}`}
     >
       <FiArrowLeft size={18} />
-      <span>{label}</span>
     </button>
   );
 };

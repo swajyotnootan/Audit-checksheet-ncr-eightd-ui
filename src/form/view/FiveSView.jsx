@@ -14,26 +14,39 @@ import {
   Download, XCircle, Info, AlertTriangle
 } from 'lucide-react';
 
-const getStatusBadge = (status) => {
-  const badges = {
-    'DRAFT': 'bg-gray-100 text-gray-700',
-    'IN_PROGRESS': 'bg-blue-100 text-blue-700',
-    'SUBMITTED': 'bg-purple-100 text-purple-700',
-    'APPROVED': 'bg-green-100 text-green-700',
-    'REJECTED': 'bg-red-100 text-red-700',
-    'CLOSED': 'bg-emerald-100 text-emerald-700',
-  };
-  return badges[status] || 'bg-gray-100 text-gray-700';
+// ============================================================================
+// MNC PROFESSIONAL COLOR PALETTE (Matching Audit Manager Dashboard)
+// ============================================================================
+const NAVBAR_COLORS = {
+  primary: '#00529B',
+  secondary: '#3b82f6',
+  dark: '#1e3a8a',
+  light: '#60a5fa',
+  lighter: '#93c5fd',
+  bg: '#eff6ff',
+  white: '#ffffff',
 };
 
-// Score mapping for display
+const getStatusBadge = (status) => {
+  const badges = {
+    'DRAFT': 'bg-slate-100 text-slate-700 border border-slate-200',
+    'IN_PROGRESS': 'bg-blue-50 text-blue-700 border border-blue-200',
+    'SUBMITTED': 'bg-indigo-50 text-indigo-700 border border-indigo-200',
+    'APPROVED': 'bg-emerald-50 text-emerald-700 border border-emerald-200',
+    'REJECTED': 'bg-rose-50 text-rose-700 border border-rose-200',
+    'CLOSED': 'bg-slate-50 text-slate-700 border border-slate-200',
+  };
+  return badges[status] || 'bg-slate-100 text-slate-700 border border-slate-200';
+};
+
+// Score mapping for display - PRESERVED EXACTLY, just updated colors
 const getScoreInfo = (score) => {
-  if (score === 4) return { label: 'Total Compliance', level: 'Excellent', color: 'green', bgColor: 'bg-green-100', textColor: 'text-green-800' };
-  if (score === 3) return { label: 'Significant Compliance', level: 'Good', color: 'lime', bgColor: 'bg-lime-100', textColor: 'text-lime-800' };
-  if (score === 2) return { label: 'Some Compliance', level: 'Average', color: 'yellow', bgColor: 'bg-yellow-100', textColor: 'text-yellow-800' };
-  if (score === 1) return { label: 'Very Little Compliance', level: 'Poor', color: 'orange', bgColor: 'bg-orange-100', textColor: 'text-orange-800' };
-  if (score === 0) return { label: 'No Compliance', level: 'Very Poor', color: 'red', bgColor: 'bg-red-100', textColor: 'text-red-800' };
-  return { label: 'Not Rated', level: 'Not Rated', color: 'gray', bgColor: 'bg-gray-100', textColor: 'text-gray-800' };
+  if (score === 4) return { label: 'Total Compliance', level: 'Excellent', color: 'green', bgColor: 'bg-emerald-50', textColor: 'text-emerald-700' };
+  if (score === 3) return { label: 'Significant Compliance', level: 'Good', color: 'lime', bgColor: 'bg-lime-50', textColor: 'text-lime-700' };
+  if (score === 2) return { label: 'Some Compliance', level: 'Average', color: 'yellow', bgColor: 'bg-amber-50', textColor: 'text-amber-700' };
+  if (score === 1) return { label: 'Very Little Compliance', level: 'Poor', color: 'orange', bgColor: 'bg-orange-50', textColor: 'text-orange-700' };
+  if (score === 0) return { label: 'No Compliance', level: 'Very Poor', color: 'red', bgColor: 'bg-rose-50', textColor: 'text-rose-700' };
+  return { label: 'Not Rated', level: 'Not Rated', color: 'gray', bgColor: 'bg-slate-100', textColor: 'text-slate-600' };
 };
 
 const getLevelOfJudgment = (score) => {
@@ -45,6 +58,7 @@ const getLevelOfJudgment = (score) => {
   return 'Not Rated';
 };
 
+// UPDATED SECTION STYLES TO MATCH MNC PROFESSIONAL THEME
 const getSectionStyles = (sectionName) => {
   switch(sectionName) {
     case '1S - SORT':
@@ -59,46 +73,46 @@ const getSectionStyles = (sectionName) => {
     case '2S - SET IN ORDER':
       return { 
         displayName: '2S - SET IN ORDER',
-        headerBg: 'bg-teal-50', 
-        headerBorder: 'border-teal-200', 
-        textColor: 'text-teal-700', 
-        barColor: 'bg-teal-500',
+        headerBg: 'bg-cyan-50', 
+        headerBorder: 'border-cyan-200', 
+        textColor: 'text-cyan-700', 
+        barColor: 'bg-cyan-500',
         description: 'A place for everything and everything in its place.'
       };
     case '3S - SHINE':
       return { 
         displayName: '3S - SHINE',
-        headerBg: 'bg-green-50', 
-        headerBorder: 'border-green-200', 
-        textColor: 'text-green-700', 
-        barColor: 'bg-green-500',
+        headerBg: 'bg-emerald-50', 
+        headerBorder: 'border-emerald-200', 
+        textColor: 'text-emerald-700', 
+        barColor: 'bg-emerald-500',
         description: 'Cleaning and looking for ways to keep it clean.'
       };
     case '4S - STANDARDIZE':
       return { 
         displayName: '4S - STANDARDIZE',
-        headerBg: 'bg-orange-50', 
-        headerBorder: 'border-orange-200', 
-        textColor: 'text-orange-700', 
-        barColor: 'bg-orange-500',
+        headerBg: 'bg-amber-50', 
+        headerBorder: 'border-amber-200', 
+        textColor: 'text-amber-700', 
+        barColor: 'bg-amber-500',
         description: 'Make standards obvious and maintained.'
       };
     case '5S - SUSTAIN':
       return { 
         displayName: '5S - SUSTAIN',
-        headerBg: 'bg-purple-50', 
-        headerBorder: 'border-purple-200', 
-        textColor: 'text-purple-700', 
-        barColor: 'bg-purple-500',
+        headerBg: 'bg-indigo-50', 
+        headerBorder: 'border-indigo-200', 
+        textColor: 'text-indigo-700', 
+        barColor: 'bg-indigo-500',
         description: 'Maintain high standards and constantly seek to improve.'
       };
     default:
       return { 
         displayName: sectionName,
-        headerBg: 'bg-gray-50', 
-        headerBorder: 'border-gray-200', 
-        textColor: 'text-gray-700', 
-        barColor: 'bg-gray-500',
+        headerBg: 'bg-slate-50', 
+        headerBorder: 'border-slate-200', 
+        textColor: 'text-slate-700', 
+        barColor: 'bg-slate-500',
         description: ''
       };
   }
@@ -123,7 +137,7 @@ export default function FiveSView() {
   const [auditorSignedAt, setAuditorSignedAt] = useState(null);
   const [auditeeSignedAt, setAuditeeSignedAt] = useState(null);
   
-  // Signature image states
+  // Signature image states - PRESERVED
   const [auditorSignatureUrl, setAuditorSignatureUrl] = useState(null);
   const [auditeeSignatureUrl, setAuditeeSignatureUrl] = useState(null);
   const [loadingSignatures, setLoadingSignatures] = useState(false);
@@ -142,13 +156,12 @@ export default function FiveSView() {
     };
   }, [id]);
 
-  // Fetch signature as image URL
+  // Fetch signature as image URL - PRESERVED EXACTLY
   const fetchSignatureAsImageUrl = async (userId, fullName) => {
     try {
       let response;
       if (userId) {
-        response = await axios.get(`https://internalaudit.hub.swajyot.co.in:8090
-/api/users/${userId}/signature`, {
+        response = await axios.get(`https://internalaudit.hub.swajyot.co.in:8090/api/users/${userId}/signature`, {
           responseType: 'blob',
           withCredentials: true
         });
@@ -182,6 +195,7 @@ export default function FiveSView() {
     return null;
   };
 
+  // PRESERVED EXACTLY - All role-based logic intact
   const fetchAuditDetails = async () => {
     try {
       setLoading(true);
@@ -260,7 +274,7 @@ export default function FiveSView() {
         }
       }
       
-      // Fetch auditee signature based on role and status
+      // Fetch auditee signature based on role and status - PRESERVED EXACTLY
       const currentUserRole = user?.role?.toLowerCase?.() || '';
       const isAuditorUser = currentUserRole === 'auditor' || auditData.auditorId === user?.id;
       
@@ -351,11 +365,12 @@ export default function FiveSView() {
   };
 
   const getScoreColor = (score) => {
-    if (score >= 80) return 'text-green-600';
+    if (score >= 80) return 'text-emerald-600';
     if (score >= 60) return 'text-amber-600';
-    return 'text-red-600';
+    return 'text-rose-600';
   };
 
+  // PRESERVED EXACTLY
   const handleDownloadPDF = async () => {
     if (!audit || !audit.id) {
       addToast('Audit data not available', 'error');
@@ -397,8 +412,7 @@ export default function FiveSView() {
     }
   };
 
-
-
+  // PRESERVED EXACTLY - Blob to base64 conversion logic intact
   const handleApprove = async () => {
     console.log('=== APPROVE BUTTON CLICKED ===');
     
@@ -454,6 +468,7 @@ export default function FiveSView() {
     }
   };
 
+  // PRESERVED EXACTLY
   const handleReject = async () => {
     console.log('=== REJECT BUTTON CLICKED ===');
     
@@ -535,7 +550,7 @@ export default function FiveSView() {
 
   const sections = groupQuestionsBySection();
 
-  // Derived values
+  // Derived values - PRESERVED EXACTLY
   const currentStatus = audit?.status || 'SUBMITTED';
   const statusUpper = currentStatus?.toUpperCase?.() || '';
   const isSubmitted = statusUpper === 'SUBMITTED';
@@ -549,512 +564,520 @@ export default function FiveSView() {
                     (audit?.auditeeName && audit?.auditeeName === user?.name);
 
   const showAuditeeActions = isAuditee && isSubmitted;
-  const canDownloadPDF = true; // Always show PDF button
+  const canDownloadPDF = true;
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-64">
-        <div className="w-8 h-8 border-2 border-gray-200 rounded-full animate-spin border-t-green-600"></div>
+      <div className="flex items-center justify-center min-h-screen" style={{ backgroundColor: NAVBAR_COLORS.bg }}>
+        <div className="p-8 text-center bg-white border shadow-sm border-slate-200 rounded-2xl">
+          <div className="w-12 h-12 mx-auto mb-4 border-4 rounded-full animate-spin" style={{ borderColor: NAVBAR_COLORS.lighter, borderTopColor: NAVBAR_COLORS.primary }}></div>
+          <p className="text-sm font-medium text-slate-500">Loading audit report...</p>
+        </div>
       </div>
     );
   }
 
   if (!audit) {
     return (
-      <div className="p-6 text-center">
-        <p className="text-gray-500">Audit not found</p>
-        <button onClick={() => navigate('/auditor')} className="px-4 py-2 mt-4 text-white bg-green-600 rounded-lg">
-          Go Back
-        </button>
+      <div className="flex items-center justify-center min-h-screen" style={{ backgroundColor: NAVBAR_COLORS.bg }}>
+        <div className="p-8 text-center bg-white border shadow-sm border-slate-200 rounded-2xl">
+          <AlertCircle size={48} className="mx-auto mb-4 text-rose-500" />
+          <p className="text-lg font-bold text-slate-800">Audit not found</p>
+          <button onClick={() => navigate('/auditor')} className="px-5 py-2.5 mt-4 text-sm font-medium text-white shadow-md rounded-xl" style={{ backgroundColor: NAVBAR_COLORS.primary }}>Go Back</button>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="p-4 mx-auto max-w-7xl print:p-2" id="audit-report-content">
-      {/* Header with Action Buttons */}
-      <div className="flex items-center justify-between gap-3 mb-4 print:hidden">
-  <div className="flex items-center gap-3">
-    <BackButton 
-      fallbackPath="/lead-auditor" 
-      defaultTab="responses" 
-      label="Back"
-    />
-    <div>
-      <h1 className="text-xl font-bold text-gray-800">5S Audit Report</h1>
-      <p className="text-xs text-gray-500 mt-0.5">Workplace organization audit details and findings</p>
-    </div>
-  </div>
-  {/* Keep the download button and other buttons as they are */}
-  <div className="flex gap-2">
-    <button 
-      onClick={handleDownloadPDF} 
-      disabled={downloading}
-      className="px-3 py-1.5 bg-green-600 border border-green-600 rounded-lg text-white hover:bg-green-700 flex items-center gap-1.5 disabled:opacity-50"
-    >
-      {downloading ? (
-        <>
-          <div className="w-3.5 h-3.5 border-2 border-white rounded-full animate-spin border-t-transparent"></div>
-          Generating...
-        </>
-      ) : (
-        <>
-          <Download className="w-3.5 h-3.5" /> Download PDF
-        </>
-      )}
-    </button>
-  </div>
-</div>
+    <div className="min-h-screen" style={{ backgroundColor: NAVBAR_COLORS.bg }}>
+      <div className="p-4 mx-auto max-w-7xl print:p-2" id="audit-report-content">
+        
+        {/* Header with Action Buttons */}
+        <div className="flex items-center justify-between gap-3 mb-6 print:hidden">
+          <div className="flex items-center gap-3">
+            <BackButton fallbackPath="/lead-auditor" defaultTab="responses" label="Back" />
+            <div>
+              <h1 className="text-2xl font-bold text-slate-800">5S Audit Report</h1>
+              <p className="text-sm text-slate-500 mt-0.5">Workplace organization audit details and findings</p>
+            </div>
+          </div>
+          <button 
+            onClick={handleDownloadPDF} 
+            disabled={downloading}
+            className="flex items-center gap-2 px-4 py-2.5 text-sm font-medium text-white shadow-md rounded-xl disabled:opacity-50 transition-all hover:shadow-lg"
+            style={{ backgroundColor: NAVBAR_COLORS.primary }}
+          >
+            {downloading ? (
+              <>
+                <div className="w-4 h-4 border-2 border-white rounded-full animate-spin border-t-transparent"></div>
+                Generating...
+              </>
+            ) : (
+              <>
+                <Download className="w-4 h-4" /> Download PDF
+              </>
+            )}
+          </button>
+        </div>
 
-      {/* Approval Status Banner */}
-      {isApproved && (
-        <div className="p-4 mb-4 text-center text-green-800 bg-green-100 border border-green-300 rounded-lg">
-          <div className="flex items-center justify-center gap-2">
-            <CheckCircle className="w-5 h-5" />
-            <span className="text-lg font-semibold">✓ Audit Approved by Auditee</span>
-          </div>
-          {answers.auditeeComment && (
-            <div className="mt-2 text-sm">
-              <span className="font-medium">Comment: </span>
-              {answers.auditeeComment}
+        {/* Approval Status Banner */}
+        {isApproved && (
+          <div className="p-2 mb-6 text-center border rounded-xl bg-emerald-50 border-emerald-200">
+            <div className="flex items-center justify-center gap-2 text-emerald-800">
+              <CheckCircle className="w-5 h-5" />
+              <span className="text-lg font-bold">✓ Audit Approved by Auditee</span>
             </div>
-          )}
-        </div>
-      )}
+            {answers.auditeeComment && (
+              <div className="mt-2 text-sm text-emerald-700">
+                <span className="font-semibold">Comment: </span>{answers.auditeeComment}
+              </div>
+            )}
+          </div>
+        )}
 
-      {isRejected && (
-        <div className="p-4 mb-4 text-center text-red-800 bg-red-100 border border-red-300 rounded-lg">
-          <div className="flex items-center justify-center gap-2">
-            <XCircle className="w-5 h-5" />
-            <span className="text-lg font-semibold">✗ Audit Rejected - Corrections Required</span>
-          </div>
-          {answers.auditeeComment && (
-            <div className="mt-2 text-sm">
-              <span className="font-medium">Reason: </span>
-              {answers.auditeeComment}
+        {isRejected && (
+          <div className="p-2 mb-6 text-center border rounded-xl bg-rose-50 border-rose-200">
+            <div className="flex items-center justify-center gap-2 text-rose-800">
+              <XCircle className="w-5 h-5" />
+              <span className="text-lg font-bold">✗ Audit Rejected - Corrections Required</span>
             </div>
-          )}
-        </div>
-      )}
+            {answers.auditeeComment && (
+              <div className="mt-2 text-sm text-rose-700">
+                <span className="font-semibold">Reason: </span>{answers.auditeeComment}
+              </div>
+            )}
+          </div>
+        )}
 
-      {/* 5S Header Banner */}
-      <div className="p-4 mb-4 text-center text-white rounded-xl bg-gradient-to-r from-green-600 to-emerald-600">
-        <div className="flex items-center justify-center gap-2 mb-1">
-          <Sparkles size={24} />
-          <span className="text-xl font-bold">5S AUDIT CHECK SHEET</span>
+        {/* 5S Header Banner */}
+        <div className="p-3 mb-6 text-center text-white shadow-md rounded-2xl" style={{ backgroundColor: NAVBAR_COLORS.primary }}>
+          <div className="flex items-center justify-center gap-2 mb-1">
+            <Sparkles size={24} />
+            <span className="text-xl font-bold">5S AUDIT CHECK SHEET</span>
+          </div>
+          <p className="text-sm opacity-90">Sort | Set in Order | Shine | Standardize | Sustain</p>
         </div>
-        <p className="text-xs opacity-90">Sort | Set in Order | Shine | Standardize | Sustain</p>
-      </div>
 
-      {/* Audit Information - REMOVED Completed By, Auditor, Overall Score, Supervisor */}
-      <div className="p-4 mb-4 bg-white border border-gray-200 rounded-xl">
-        <h2 className="mb-3 text-base font-semibold text-gray-800">Audit Information</h2>
-        <div className="grid grid-cols-1 gap-3 md:grid-cols-2 lg:grid-cols-4">
-          <div className="flex items-center gap-2 p-2 rounded-lg bg-gray-50">
-            <FileText className="w-4 h-4 text-gray-400" />
-            <div>
-              <p className="text-xs text-gray-500">Document Number</p>
-              <p className="text-sm font-medium text-gray-800">{answers.documentNumber || `5S-${audit.id}`}</p>
+        {/* Audit Information */}
+        <div className="p-6 mb-6 bg-white border shadow-sm border-slate-200 rounded-2xl">
+          <h2 className="flex items-center gap-2 mb-4 text-base font-bold text-slate-800">
+            <FileText size={18} style={{ color: NAVBAR_COLORS.primary }} /> Audit Information
+          </h2>
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
+            <div className="flex items-center gap-3 p-3 border rounded-xl bg-slate-50 border-slate-100">
+              <FileText className="w-4 h-4 text-slate-400" />
+              <div>
+                <p className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Document Number</p>
+                <p className="text-sm font-semibold text-slate-800">{answers.documentNumber || `5S-${audit.id}`}</p>
+              </div>
             </div>
-          </div>
-          <div className="flex items-center gap-2 p-2 rounded-lg bg-gray-50">
-            <Building className="w-4 h-4 text-gray-400" />
-            <div>
-              <p className="text-xs text-gray-500">Department</p>
-              <p className="text-sm font-medium text-gray-800">{answers.department || audit.department || '-'}</p>
+            <div className="flex items-center gap-3 p-3 border rounded-xl bg-slate-50 border-slate-100">
+              <Building className="w-4 h-4 text-slate-400" />
+              <div>
+                <p className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Department</p>
+                <p className="text-sm font-semibold text-slate-800">{answers.department || audit.department || '-'}</p>
+              </div>
             </div>
-          </div>
-          <div className="flex items-center gap-2 p-2 rounded-lg bg-gray-50">
-            <User className="w-4 h-4 text-gray-400" />
-            <div>
-              <p className="text-xs text-gray-500">Auditor (Supervisor)</p>
-              <p className="text-sm font-medium text-gray-800">{auditorName || answers.auditorName || 'N/A'}</p>
+            <div className="flex items-center gap-3 p-3 border rounded-xl bg-slate-50 border-slate-100">
+              <User className="w-4 h-4 text-slate-400" />
+              <div>
+                <p className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Auditor (Supervisor)</p>
+                <p className="text-sm font-semibold text-slate-800">{auditorName || answers.auditorName || 'N/A'}</p>
+              </div>
             </div>
-          </div>
-          <div className="flex items-center gap-2 p-2 rounded-lg bg-gray-50">
-            <User className="w-4 h-4 text-gray-400" />
-            <div>
-              <p className="text-xs text-gray-500">Auditee</p>
-              <p className="text-sm font-medium text-gray-800">{auditeeName || answers.auditeeName || 'N/A'}</p>
+            <div className="flex items-center gap-3 p-3 border rounded-xl bg-slate-50 border-slate-100">
+              <User className="w-4 h-4 text-slate-400" />
+              <div>
+                <p className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Auditee</p>
+                <p className="text-sm font-semibold text-slate-800">{auditeeName || answers.auditeeName || 'N/A'}</p>
+              </div>
             </div>
-          </div>
-          <div className="flex items-center gap-2 p-2 rounded-lg bg-gray-50">
-            <Calendar className="w-4 h-4 text-gray-400" />
-            <div>
-              <p className="text-xs text-gray-500">Audit Date</p>
-              <p className="text-sm font-medium text-gray-800">{answers.date || formatDate(audit.auditDate)}</p>
+            <div className="flex items-center gap-3 p-3 border rounded-xl bg-slate-50 border-slate-100">
+              <Calendar className="w-4 h-4 text-slate-400" />
+              <div>
+                <p className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Audit Date</p>
+                <p className="text-sm font-semibold text-slate-800">{answers.date || formatDate(audit.auditDate)}</p>
+              </div>
             </div>
-          </div>
-          <div className="flex items-center gap-2 p-2 rounded-lg bg-gray-50">
-            <MapPin className="w-4 h-4 text-gray-400" />
-            <div>
-              <p className="text-xs text-gray-500">Area / Location</p>
-              <p className="text-sm font-medium text-gray-800">{answers.area || '-'}</p>
+            <div className="flex items-center gap-3 p-3 border rounded-xl bg-slate-50 border-slate-100">
+              <MapPin className="w-4 h-4 text-slate-400" />
+              <div>
+                <p className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Area / Location</p>
+                <p className="text-sm font-semibold text-slate-800">{answers.area || '-'}</p>
+              </div>
             </div>
-          </div>
-          <div className="flex items-center gap-2 p-2 rounded-lg bg-gray-50">
-            <Clock className="w-4 h-4 text-gray-400" />
-            <div>
-              <p className="text-xs text-gray-500">Shift</p>
-              <p className="text-sm font-medium text-gray-800">{audit.shift || answers.shift || '-'}</p>
+            <div className="flex items-center gap-3 p-3 border rounded-xl bg-slate-50 border-slate-100">
+              <Clock className="w-4 h-4 text-slate-400" />
+              <div>
+                <p className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Shift</p>
+                <p className="text-sm font-semibold text-slate-800">{audit.shift || answers.shift || '-'}</p>
+              </div>
             </div>
-          </div>
-          <div className="flex items-center gap-2 p-2 rounded-lg bg-gray-50">
-            <div className="w-4 h-4" />
-            <div>
-              <p className="text-xs text-gray-500">Status</p>
-              <span className={`inline-flex px-2 py-0.5 rounded-full text-xs ${getStatusBadge(currentStatus)}`}>
-                {currentStatus || 'DRAFT'}
-              </span>
+            <div className="flex items-center gap-3 p-3 border rounded-xl bg-slate-50 border-slate-100">
+              <div className="w-4 h-4" />
+              <div>
+                <p className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Status</p>
+                <span className={`inline-flex px-2.5 py-1 rounded-lg text-xs font-semibold ${getStatusBadge(currentStatus)}`}>
+                  {currentStatus || 'DRAFT'}
+                </span>
+              </div>
             </div>
           </div>
         </div>
-      </div>
 
-      {/* Rating Scale Legend */}
-      <div className="p-3 mb-4 bg-white border border-gray-200 rounded-xl">
-        <p className="mb-2 text-sm font-medium text-gray-700">Rating Scale:</p>
-        <div className="grid grid-cols-5 gap-2 text-xs text-center">
-          <div className="p-1 text-red-800 bg-red-100 rounded">0 = No Compliance</div>
-          <div className="p-1 text-orange-800 bg-orange-100 rounded">1 = Very Little Compliance</div>
-          <div className="p-1 text-yellow-800 bg-yellow-100 rounded">2 = Some Compliance</div>
-          <div className="p-1 rounded bg-lime-100 text-lime-800">3 = Significant Compliance</div>
-          <div className="p-1 text-green-800 bg-green-100 rounded">4 = Total Compliance</div>
+        {/* Rating Scale Legend */}
+        <div className="p-5 mb-6 bg-white border shadow-sm border-slate-200 rounded-2xl">
+          <p className="mb-3 text-sm font-bold text-slate-700">Rating Scale:</p>
+          <div className="grid grid-cols-5 gap-3 text-xs text-center">
+            <div className="p-2 font-medium border rounded-lg bg-rose-50 border-rose-200 text-rose-700">0 = No Compliance</div>
+            <div className="p-2 font-medium text-orange-700 border border-orange-200 rounded-lg bg-orange-50">1 = Very Little</div>
+            <div className="p-2 font-medium border rounded-lg bg-amber-50 border-amber-200 text-amber-700">2 = Some</div>
+            <div className="p-2 font-medium border rounded-lg bg-lime-50 border-lime-200 text-lime-700">3 = Significant</div>
+            <div className="p-2 font-medium border rounded-lg bg-emerald-50 border-emerald-200 text-emerald-700">4 = Total</div>
+          </div>
         </div>
-      </div>
 
-      {/* Score Summary Cards */}
-      <div className="grid grid-cols-2 gap-3 mb-4 md:grid-cols-4">
-        <div className="p-3 text-center bg-white border border-gray-200 rounded-xl">
-          <p className="text-xl font-bold text-gray-800">{totalQuestions}</p>
-          <p className="text-xs text-gray-500">Total Questions</p>
+        {/* Score Summary Cards */}
+        <div className="grid grid-cols-2 gap-4 mb-6 md:grid-cols-4">
+          <div className="p-4 text-center bg-white border shadow-sm border-slate-200 rounded-2xl">
+            <p className="text-2xl font-bold text-slate-800">{totalQuestions}</p>
+            <p className="text-[10px] font-bold text-slate-500 uppercase tracking-wider mt-1">Total Questions</p>
+          </div>
+          <div className="p-4 text-center bg-white border shadow-sm border-slate-200 rounded-2xl">
+            <p className="text-2xl font-bold text-emerald-600">{ratedCount}</p>
+            <p className="text-[10px] font-bold text-slate-500 uppercase tracking-wider mt-1">Rated</p>
+          </div>
+          <div className="p-4 text-center bg-white border shadow-sm border-slate-200 rounded-2xl">
+            <p className="text-2xl font-bold" style={{ color: NAVBAR_COLORS.primary }}>{totalScore}</p>
+            <p className="text-[10px] font-bold text-slate-500 uppercase tracking-wider mt-1">Total Score</p>
+          </div>
+          <div className="p-4 text-center bg-white border shadow-sm border-slate-200 rounded-2xl">
+            <p className={`text-2xl font-bold ${getScoreColor(percentage)}`}>{percentage}%</p>
+            <p className="text-[10px] font-bold text-slate-500 uppercase tracking-wider mt-1">Percentage</p>
+          </div>
         </div>
-        <div className="p-3 text-center bg-white border border-gray-200 rounded-xl">
-          <p className="text-xl font-bold text-green-600">{ratedCount}</p>
-          <p className="text-xs text-gray-500">Rated</p>
-        </div>
-        <div className="p-3 text-center bg-white border border-gray-200 rounded-xl">
-          <p className="text-xl font-bold text-blue-600">{totalScore}</p>
-          <p className="text-xs text-gray-500">Total Score</p>
-        </div>
-        <div className="p-3 text-center bg-white border border-gray-200 rounded-xl">
-          <p className={`text-xl font-bold ${getScoreColor(percentage)}`}>{percentage}%</p>
-          <p className="text-xs text-gray-500">Percentage</p>
-        </div>
-      </div>
 
-      {/* 5S Sections Summary */}
-      <div className="p-4 mb-4 bg-white border border-gray-200 rounded-xl">
-        <h2 className="mb-3 text-base font-semibold text-gray-800">5S Sections Summary</h2>
-        <div className="grid grid-cols-5 gap-3">
+        {/* 5S Sections Summary */}
+        <div className="p-6 mb-6 bg-white border shadow-sm border-slate-200 rounded-2xl">
+          <h2 className="mb-4 text-base font-bold text-slate-800">5S Sections Summary</h2>
+          <div className="grid grid-cols-2 gap-4 md:grid-cols-5">
+            {Object.entries(sections).map(([sectionName, section]) => {
+              const sectionScore = getSectionScore(section.start, section.end);
+              const sectionMaxScore = getSectionMaxScore(section.start, section.end);
+              const sectionPercentage = Math.round((sectionScore / sectionMaxScore) * 100);
+              const styles = getSectionStyles(sectionName);
+              return (
+                <div key={sectionName} className="p-4 text-center border rounded-xl bg-slate-50 border-slate-100">
+                  <div className={`text-[10px] font-bold uppercase tracking-wider ${styles.textColor}`}>{styles.displayName}</div>
+                  <div className="mt-1 text-2xl font-bold text-slate-800">{sectionScore}</div>
+                  <div className="text-[10px] text-slate-400">/ {sectionMaxScore}</div>
+                  <div className="w-full h-1.5 mt-2 bg-slate-200 rounded-full overflow-hidden">
+                    <div className={`h-full rounded-full ${styles.barColor}`} style={{ width: `${sectionPercentage}%` }} />
+                  </div>
+                  <div className="mt-1 text-xs font-medium text-slate-600">{sectionPercentage}%</div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* Audit Findings Table */}
+        <div className="p-6 mb-6 overflow-x-auto bg-white border shadow-sm border-slate-200 rounded-2xl">
+          <div className="flex items-center gap-2 mb-4">
+            <Sparkles className="w-5 h-5" style={{ color: NAVBAR_COLORS.primary }} />
+            <h2 className="text-base font-bold text-slate-800">Audit Findings</h2>
+          </div>
+          
           {Object.entries(sections).map(([sectionName, section]) => {
             const sectionScore = getSectionScore(section.start, section.end);
             const sectionMaxScore = getSectionMaxScore(section.start, section.end);
             const sectionPercentage = Math.round((sectionScore / sectionMaxScore) * 100);
             const styles = getSectionStyles(sectionName);
+            
             return (
-              <div key={sectionName} className="p-3 text-center rounded-lg bg-gray-50">
-                <div className={`text-xs font-medium ${styles.textColor}`}>{styles.displayName}</div>
-                <div className="text-2xl font-bold text-gray-800">{sectionScore}</div>
-                <div className="text-[10px] text-gray-500">/ {sectionMaxScore}</div>
-                <div className="w-full h-1.5 mt-2 bg-gray-200 rounded-full overflow-hidden">
-                  <div className={`h-full rounded-full ${styles.barColor}`} style={{ width: `${sectionPercentage}%` }} />
+              <div key={sectionName} className="mb-6 overflow-hidden border border-slate-200 rounded-xl">
+                <div className={`p-4 ${styles.headerBg} border-b ${styles.headerBorder}`}>
+                  <div className="flex items-start justify-between">
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2">
+                        <span className={`text-sm font-bold ${styles.textColor}`}>{styles.displayName}</span>
+                        <div className="relative group">
+                          <Info className="w-3.5 h-3.5 text-slate-400 cursor-help" />
+                          <div className="absolute left-0 z-10 hidden w-64 p-2 mb-1 text-xs text-white rounded-lg bg-slate-800 group-hover:block bottom-full">
+                            {styles.description}
+                          </div>
+                        </div>
+                      </div>
+                      <p className="text-xs text-slate-500 mt-0.5">
+                        Max marks: {sectionMaxScore} | Score: {sectionScore}/{sectionMaxScore} ({sectionPercentage}%)
+                      </p>
+                    </div>
+                    <div className={`text-right text-xs font-semibold ${styles.textColor}`}>
+                      Level of Judgment: {sectionPercentage >= 80 ? 'Excellent' : sectionPercentage >= 60 ? 'Good' : sectionPercentage >= 40 ? 'Average' : 'Poor'}
+                    </div>
+                  </div>
                 </div>
-                <div className="mt-1 text-xs text-gray-600">{sectionPercentage}%</div>
+                
+                <table className="w-full text-sm">
+                  <thead className="border-b bg-slate-50 border-slate-200">
+                    <tr>
+                      <th className="w-12 px-3 py-2 text-xs font-bold tracking-wider text-center uppercase text-slate-600">S.No</th>
+                      <th className="min-w-[350px] px-3 py-2 text-xs font-bold text-left text-slate-600 uppercase tracking-wider">Audit Checkpoint</th>
+                      <th className="w-20 px-3 py-2 text-xs font-bold tracking-wider text-center uppercase text-slate-600">Max</th>
+                      <th className="w-32 px-3 py-2 text-xs font-bold tracking-wider text-center uppercase text-slate-600">Score</th>
+                      <th className="min-w-[200px] px-3 py-2 text-xs font-bold text-left text-slate-600 uppercase tracking-wider">Comments</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-100">
+                    {section.questions.map((q) => {
+                      const score = scores[q.slNo];
+                      const comment = comments[q.slNo];
+                      const scoreInfo = getScoreInfo(score);
+                      const levelOfJudgment = getLevelOfJudgment(score);
+                      
+                      return (
+                        <tr key={q.slNo} className="transition-colors hover:bg-slate-50">
+                          <td className="px-3 py-2 text-sm font-medium text-center text-slate-600">{q.slNo}</td>
+                          <td className="px-3 py-2 text-sm text-slate-800">{q.checkpoint}</td>
+                          <td className="px-3 py-2 text-sm text-center text-slate-500">4</td>
+                          <td className="px-3 py-2 text-center">
+                            {score !== undefined && score !== null ? (
+                              <div className="flex flex-col items-center gap-1">
+                                <span className={`inline-flex items-center justify-center w-10 h-10 text-sm font-bold rounded-full border-2 ${scoreInfo.bgColor} ${scoreInfo.textColor} border-current`}>
+                                  {score}
+                                </span>
+                                <span className="text-[10px] font-medium text-slate-500">{levelOfJudgment}</span>
+                              </div>
+                            ) : (
+                              <span className="inline-flex px-2 py-1 text-xs font-medium rounded-full text-slate-500 bg-slate-100">Not Rated</span>
+                            )}
+                          </td>
+                          <td className="px-3 py-2 text-sm text-slate-600">{comment || '-'}</td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                  <tfoot className="border-t bg-slate-50 border-slate-200">
+                    <tr>
+                      <td colSpan="2" className="px-3 py-2 text-sm font-bold text-right text-slate-700">Section Total:</td>
+                      <td className="px-3 py-2 text-sm font-bold text-center text-slate-800">{sectionMaxScore}</td>
+                      <td className="px-3 py-2 text-center">
+                        <span className="font-bold text-slate-800">{sectionScore}</span>
+                        <span className="text-xs text-slate-500">/{sectionMaxScore}</span>
+                      </td>
+                      <td className="px-3 py-2 text-sm font-medium text-left text-slate-600">
+                        {sectionPercentage}% - {sectionPercentage >= 80 ? 'Excellent' : sectionPercentage >= 60 ? 'Good' : sectionPercentage >= 40 ? 'Average' : 'Poor'}
+                      </td>
+                    </tr>
+                  </tfoot>
+                </table>
               </div>
             );
           })}
         </div>
-      </div>
 
-      {/* Audit Findings Table */}
-      <div className="p-4 mb-4 overflow-x-auto bg-white border border-gray-200 rounded-xl">
-        <div className="flex items-center gap-2 mb-3">
-          <Sparkles className="w-4 h-4 text-green-600" />
-          <h2 className="text-base font-semibold text-gray-800">Audit Findings</h2>
+        {/* Rating Message */}
+        <div className={`p-4 mb-6 text-center rounded-xl border ${
+          percentage >= 90 ? 'bg-emerald-50 border-emerald-200 text-emerald-800' :
+          percentage >= 75 && percentage < 90 ? 'bg-lime-50 border-lime-200 text-lime-800' :
+          percentage >= 60 && percentage < 75 ? 'bg-amber-50 border-amber-200 text-amber-800' :
+          'bg-rose-50 border-rose-200 text-rose-800'
+        }`}>
+          <div className="flex items-center justify-center gap-2">
+            {percentage >= 90 && <Star size={18} />}
+            {percentage >= 75 && percentage < 90 && <ThumbsUp size={18} />}
+            {percentage >= 60 && percentage < 75 && <AlertCircle size={18} />}
+            {percentage < 60 && <AlertCircle size={18} />}
+            <span className="font-bold">
+              {percentage >= 90 ? 'Excellent - World Class 5S!' : 
+               percentage >= 75 ? 'Good - Above Average' : 
+               percentage >= 60 ? 'Needs Improvement' : 
+               'Poor - Immediate Action Required'}
+            </span>
+          </div>
         </div>
-        
-        {Object.entries(sections).map(([sectionName, section]) => {
-          const sectionScore = getSectionScore(section.start, section.end);
-          const sectionMaxScore = getSectionMaxScore(section.start, section.end);
-          const sectionPercentage = Math.round((sectionScore / sectionMaxScore) * 100);
-          const styles = getSectionStyles(sectionName);
-          
-          return (
-            <div key={sectionName} className="mb-6 overflow-hidden border rounded-lg">
-              <div className={`p-3 ${styles.headerBg} border-b ${styles.headerBorder}`}>
-                <div className="flex items-start justify-between">
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2">
-                      <span className={`text-sm font-bold ${styles.textColor}`}>{styles.displayName}</span>
-                      <div className="relative group">
-                        <Info className="w-3.5 h-3.5 text-gray-400 cursor-help" />
-                        <div className="absolute left-0 z-10 hidden w-64 p-2 mb-1 text-xs text-white bg-gray-800 rounded-lg group-hover:block bottom-full">
-                          {styles.description}
-                        </div>
-                      </div>
-                    </div>
-                    <p className="text-xs text-gray-500 mt-0.5">
-                      Max marks: {sectionMaxScore} | Score: {sectionScore}/{sectionMaxScore} ({sectionPercentage}%)
-                    </p>
+
+        {/* Signature Section - ALL LOGIC PRESERVED EXACTLY */}
+        <div className="p-6 bg-white border shadow-sm border-slate-200 rounded-2xl print:break-inside-avoid">
+          <h2 className="flex items-center gap-2 mb-4 text-base font-bold text-slate-800">
+            <PenTool size={18} style={{ color: NAVBAR_COLORS.primary }} /> Signatures & Comments
+          </h2>
+          <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+            
+            {/* AUDITOR SIGNATURE SECTION */}
+            <div className="p-5 border rounded-xl bg-slate-50 border-slate-200">
+              <p className="text-xs font-bold tracking-wider uppercase text-slate-500">Auditor Signature</p>
+              <div className="mt-3">
+                {loadingSignatures ? (
+                  <div className="flex justify-center p-4">
+                    <div className="w-6 h-6 border-2 rounded-full animate-spin" style={{ borderColor: NAVBAR_COLORS.lighter, borderTopColor: NAVBAR_COLORS.primary }}></div>
                   </div>
-                  <div className={`text-right text-xs font-medium ${styles.textColor}`}>
-                    Level of Judgment: {sectionPercentage >= 80 ? 'Excellent' : sectionPercentage >= 60 ? 'Good' : sectionPercentage >= 40 ? 'Average' : 'Poor'}
+                ) : auditorSignatureUrl ? (
+                  <img 
+                    src={auditorSignatureUrl} 
+                    alt="Auditor Signature" 
+                    className="object-contain p-3 bg-white border rounded-lg shadow-sm border-slate-200 max-h-24"
+                  />
+                ) : (
+                  <div className="flex items-center gap-2 text-slate-400">
+                    <AlertTriangle size={16} />
+                    <span className="text-sm font-medium">No signature uploaded</span>
                   </div>
-                </div>
+                )}
               </div>
-              
-              <table className="w-full text-sm">
-                <thead className="bg-gray-100">
-                  <tr>
-                    <th className="w-12 px-3 py-2 text-xs font-medium text-center text-gray-700">S.No</th>
-                    <th className="min-w-[350px] px-3 py-2 text-xs font-medium text-left text-gray-700">Audit Checkpoint</th>
-                    <th className="w-20 px-3 py-2 text-xs font-medium text-center text-gray-700">Max marks</th>
-                    <th className="w-32 px-3 py-2 text-xs font-medium text-center text-gray-700">Level of Judgment</th>
-                    <th className="min-w-[200px] px-3 py-2 text-xs font-medium text-left text-gray-700">Comments / Actions</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-200">
-                  {section.questions.map((q) => {
-                    const score = scores[q.slNo];
-                    const comment = comments[q.slNo];
-                    const scoreInfo = getScoreInfo(score);
-                    const levelOfJudgment = getLevelOfJudgment(score);
-                    
-                    return (
-                      <tr key={q.slNo} className="hover:bg-gray-50">
-                        <td className="px-3 py-2 text-sm text-center text-gray-600">{q.slNo}</td>
-                        <td className="px-3 py-2 text-sm text-gray-800">{q.checkpoint}</td>
-                        <td className="px-3 py-2 text-sm text-center text-gray-600">4</td>
-                        <td className="px-3 py-2 text-center">
-                          {score !== undefined && score !== null ? (
-                            <div className="flex flex-col items-center gap-1">
-                              <span className={`inline-flex items-center justify-center w-10 h-10 text-sm font-bold rounded-full ${scoreInfo.bgColor} ${scoreInfo.textColor}`}>
-                                {score}
-                              </span>
-                              <span className="text-[10px] text-gray-500">{levelOfJudgment}</span>
-                            </div>
-                          ) : (
-                            <span className="inline-flex px-2 py-1 text-xs text-gray-500 bg-gray-100 rounded-full">Not Rated</span>
-                          )}
-                        </td>
-                        <td className="px-3 py-2 text-sm text-gray-600">{comment || '-'}</td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-                <tfoot className="bg-gray-50">
-                  <tr>
-                    <td colSpan="2" className="px-3 py-2 text-sm font-medium text-right text-gray-700">Section Total:</td>
-                    <td className="px-3 py-2 text-sm font-bold text-center text-gray-800">{sectionMaxScore}</td>
-                    <td className="px-3 py-2 text-center">
-                      <span className="font-bold text-gray-800">{sectionScore}</span>
-                      <span className="text-xs text-gray-500">/{sectionMaxScore}</span>
-                    </td>
-                    <td className="px-3 py-2 text-sm text-left text-gray-600">
-                      {sectionPercentage}% - {sectionPercentage >= 80 ? 'Excellent' : sectionPercentage >= 60 ? 'Good' : sectionPercentage >= 40 ? 'Average' : 'Poor'}
-                    </td>
-                  </tr>
-                </tfoot>
-              </table>
-            </div>
-          );
-        })}
-      </div>
-
-      {/* Rating Message */}
-      <div className="p-3 mb-4 text-center text-green-800 bg-green-100 border border-green-300 rounded-lg">
-        <div className="flex items-center justify-center gap-2">
-          {percentage >= 90 && <Star size={18} className="text-green-600" />}
-          {percentage >= 75 && percentage < 90 && <ThumbsUp size={18} className="text-lime-600" />}
-          {percentage >= 60 && percentage < 75 && <AlertCircle size={18} className="text-yellow-600" />}
-          {percentage < 60 && <AlertCircle size={18} className="text-red-600" />}
-          <span className="font-semibold">
-            {percentage >= 90 ? 'Excellent - World Class 5S!' : 
-             percentage >= 75 ? 'Good - Above Average' : 
-             percentage >= 60 ? 'Needs Improvement' : 
-             'Poor - Immediate Action Required'}
-          </span>
-        </div>
-      </div>
-
-      {/* Signature Section - Like IATF View */}
-      <div className="p-4 bg-white border border-gray-200 rounded-xl print:break-inside-avoid">
-        <h2 className="mb-3 text-base font-semibold text-gray-800">Signatures & Comments</h2>
-        <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
-          
-          {/* AUDITOR SIGNATURE SECTION */}
-          <div className="p-3 border border-gray-200 rounded-lg">
-            <p className="text-xs font-medium text-gray-500">Auditor Signature</p>
-            <div className="mt-2">
-              {loadingSignatures ? (
-                <div className="flex justify-center p-2">
-                  <div className="w-5 h-5 border-2 border-green-500 rounded-full animate-spin border-t-transparent"></div>
-                </div>
-              ) : auditorSignatureUrl ? (
-                <img 
-                  src={auditorSignatureUrl} 
-                  alt="Auditor Signature" 
-                  className="object-contain p-2 border rounded max-h-20 bg-gray-50"
-                />
-              ) : (
-                <div className="flex items-center gap-2 text-gray-400">
-                  <AlertTriangle size={16} />
-                  <span className="text-sm">No signature uploaded</span>
+              <p className="mt-3 text-sm font-semibold text-slate-700">Name: {auditorName}</p>
+              <p className="text-xs text-slate-500 mt-0.5">
+                Date: {auditorSignedAt ? formatDateTime(auditorSignedAt) : (answers.date || formatDate(audit.auditDate) || '-')}
+              </p>
+              {answers.auditorComment && (
+                <div className="p-3 mt-3 text-xs bg-white border rounded-lg text-slate-600 border-slate-200">
+                  <span className="font-bold">Comment:</span> {answers.auditorComment}
                 </div>
               )}
             </div>
-            <p className="mt-2 text-xs text-gray-500">Name: {auditorName}</p>
-            <p className="text-xs text-gray-500">
-              Date: {auditorSignedAt ? formatDateTime(auditorSignedAt) : (answers.date || formatDate(audit.auditDate) || '-')}
-            </p>
-            {answers.auditorComment && (
-              <div className="p-2 mt-2 text-xs text-gray-600 rounded bg-gray-50">
-                <span className="font-medium">Comment:</span> {answers.auditorComment}
-              </div>
-            )}
-          </div>
-          
-          {/* AUDITEE SIGNATURE SECTION */}
-          <div className="p-3 border border-gray-200 rounded-lg">
-            {showAuditeeActions ? (
-              // Auditee Approval Mode
-              <>
-                <p className="text-xs font-medium text-gray-500">Your Electronic Signature</p>
-                
-                {loadingSignatures ? (
-                  <div className="flex justify-center p-2">
-                    <div className="w-5 h-5 border-2 border-green-500 rounded-full animate-spin border-t-transparent"></div>
-                  </div>
-                ) : auditeeSignatureUrl ? (
-                  <div className="mt-2">
-                    <img 
-                      src={auditeeSignatureUrl} 
-                      alt="Auditee Signature" 
-                      className="object-contain p-2 border rounded max-h-20 bg-gray-50"
-                    />
-                    <p className="mt-1 text-xs text-green-600">✓ Signature loaded from your profile</p>
-                    <p className="text-xs text-gray-500">Name: {auditeeName}</p>
-                  </div>
-                ) : (
-                  <div className="mt-2">
-                    <div className="flex items-center gap-2 text-gray-400">
-                      <AlertTriangle size={16} />
-                      <span className="text-sm">No signature uploaded in profile</span>
-                    </div>
-                    <input
-                      type="text"
-                      value={auditeeSignature}
-                      onChange={(e) => setAuditeeSignature(e.target.value)}
-                      placeholder="Type your full name as signature (fallback)"
-                      className="w-full px-3 py-2 mt-2 text-sm border rounded-lg focus:ring-2 focus:ring-green-500"
-                    />
-                  </div>
-                )}
-                
-                <p className="mt-3 text-xs font-medium text-gray-500">Comments / Remarks</p>
-                <textarea
-                  value={auditeeComment}
-                  onChange={(e) => setAuditeeComment(e.target.value)}
-                  placeholder="Enter your comments (required for rejection)"
-                  rows="3"
-                  className="w-full px-3 py-2 mt-1 text-sm border rounded-lg focus:ring-2 focus:ring-green-500"
-                />
-                
-                <div className="flex gap-3 mt-4">
-                  <button
-                    onClick={handleApprove}
-                    disabled={submitting || (!auditeeSignatureUrl && !auditeeSignature.trim())}
-                    className="flex items-center gap-2 px-4 py-2 text-sm text-white bg-green-600 rounded-lg hover:bg-green-700 disabled:opacity-50"
-                  >
-                    <ThumbsUp className="w-4 h-4" />
-                    {submitting ? 'Processing...' : 'Approve & Sign'}
-                  </button>
-                  <button
-                    onClick={handleReject}
-                    disabled={submitting}
-                    className="flex items-center gap-2 px-4 py-2 text-sm text-white bg-red-600 rounded-lg hover:bg-red-700 disabled:opacity-50"
-                  >
-                    <ThumbsDown className="w-4 h-4" />
-                    Reject
-                  </button>
-                </div>
-              </>
-            ) : (
-              // View Mode
-              <>
-                <p className="text-xs font-medium text-gray-500">Auditee Signature</p>
-                <div className="mt-2">
+            
+            {/* AUDITEE SIGNATURE SECTION - ALL CONDITIONAL LOGIC PRESERVED */}
+            <div className="p-5 border rounded-xl bg-slate-50 border-slate-200">
+              {showAuditeeActions ? (
+                // Auditee Approval Mode
+                <>
+                  <p className="text-xs font-bold tracking-wider uppercase text-slate-500">Your Electronic Signature</p>
+                  
                   {loadingSignatures ? (
-                    <div className="flex justify-center p-2">
-                      <div className="w-5 h-5 border-2 border-green-500 rounded-full animate-spin border-t-transparent"></div>
+                    <div className="flex justify-center p-4">
+                      <div className="w-6 h-6 border-2 rounded-full animate-spin" style={{ borderColor: NAVBAR_COLORS.lighter, borderTopColor: NAVBAR_COLORS.primary }}></div>
                     </div>
-                  ) : (isApproved || isRejected) ? (
-                    auditeeSignatureUrl ? (
+                  ) : auditeeSignatureUrl ? (
+                    <div className="mt-3">
                       <img 
                         src={auditeeSignatureUrl} 
                         alt="Auditee Signature" 
-                        className="object-contain p-2 border rounded max-h-20 bg-gray-50"
+                        className="object-contain p-3 bg-white border rounded-lg shadow-sm border-slate-200 max-h-24"
                       />
-                    ) : auditeeSignature ? (
-                      <p className="p-2 text-sm font-medium text-gray-800 border rounded bg-gray-50">
-                        {auditeeSignature}
-                      </p>
-                    ) : (
-                      <div className="flex items-center gap-2 text-gray-400">
-                        <AlertTriangle size={16} />
-                        <span className="text-sm">No signature available</span>
-                      </div>
-                    )
+                      <p className="mt-2 text-xs font-medium" style={{ color: NAVBAR_COLORS.secondary }}>✓ Signature loaded from your profile</p>
+                      <p className="mt-1 text-xs text-slate-500">Name: {auditeeName}</p>
+                    </div>
                   ) : (
-                    <div className="flex items-center justify-center p-4 border-2 border-dashed rounded-lg bg-amber-50 border-amber-200">
-                      <div className="text-center">
-                        <Clock className="w-8 h-8 mx-auto mb-2 text-amber-500" />
-                        <p className="text-sm font-medium text-amber-700">Waiting for Approval</p>
-                        <p className="text-xs text-amber-600">Signature will appear after auditee approval</p>
+                    <div className="mt-3">
+                      <div className="flex items-center gap-2 text-slate-400">
+                        <AlertTriangle size={16} />
+                        <span className="text-sm font-medium">No signature uploaded in profile</span>
                       </div>
+                      <input
+                        type="text"
+                        value={auditeeSignature}
+                        onChange={(e) => setAuditeeSignature(e.target.value)}
+                        placeholder="Type your full name as signature (fallback)"
+                        className="w-full px-4 py-2.5 mt-3 text-sm border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white"
+                      />
                     </div>
                   )}
-                </div>
-                <p className="mt-2 text-xs text-gray-500">Name: {auditeeName}</p>
-                <p className="text-xs text-gray-500">
-                  Date: {auditeeSignedAt ? formatDateTime(auditeeSignedAt) : ((isApproved || isRejected) ? formatDateTime(audit.updatedAt) : '-')}
-                </p>
-                
-                {(answers.auditeeComment || auditeeComment) && (isApproved || isRejected) && (
-                  <div className="p-2 mt-2 text-xs text-gray-600 rounded bg-gray-50">
-                    <span className="font-medium">Comment:</span> {answers.auditeeComment || auditeeComment}
+                  
+                  <p className="mt-4 text-xs font-bold tracking-wider uppercase text-slate-500">Comments / Remarks</p>
+                  <textarea
+                    value={auditeeComment}
+                    onChange={(e) => setAuditeeComment(e.target.value)}
+                    placeholder="Enter your comments (required for rejection)"
+                    rows="3"
+                    className="w-full px-4 py-3 mt-2 text-sm bg-white border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  />
+                  
+                  <div className="flex gap-3 mt-4">
+                    <button
+                      onClick={handleApprove}
+                      disabled={submitting || (!auditeeSignatureUrl && !auditeeSignature.trim())}
+                      className="flex items-center gap-2 px-5 py-2.5 text-sm font-medium text-white bg-emerald-600 rounded-xl hover:bg-emerald-700 disabled:opacity-50 shadow-md transition-all"
+                    >
+                      <ThumbsUp className="w-4 h-4" />
+                      {submitting ? 'Processing...' : 'Approve & Sign'}
+                    </button>
+                    <button
+                      onClick={handleReject}
+                      disabled={submitting}
+                      className="flex items-center gap-2 px-5 py-2.5 text-sm font-medium text-white bg-rose-600 rounded-xl hover:bg-rose-700 disabled:opacity-50 shadow-md transition-all"
+                    >
+                      <ThumbsDown className="w-4 h-4" />
+                      Reject
+                    </button>
                   </div>
-                )}
-                
-                <div className="mt-3">
-                  <p className="text-xs font-medium text-gray-500">Status</p>
-                  <div className="mt-1">
-                    {isApproved ? (
-                      <span className="inline-flex items-center gap-1 px-2 py-1 text-xs text-green-700 bg-green-100 rounded">
-                        <CheckCircle size={12} /> Approved
-                      </span>
-                    ) : isRejected ? (
-                      <span className="inline-flex items-center gap-1 px-2 py-1 text-xs text-red-700 bg-red-100 rounded">
-                        <XCircle size={12} /> Rejected
-                      </span>
+                </>
+              ) : (
+                // View Mode
+                <>
+                  <p className="text-xs font-bold tracking-wider uppercase text-slate-500">Auditee Signature</p>
+                  <div className="mt-3">
+                    {loadingSignatures ? (
+                      <div className="flex justify-center p-4">
+                        <div className="w-6 h-6 border-2 rounded-full animate-spin" style={{ borderColor: NAVBAR_COLORS.lighter, borderTopColor: NAVBAR_COLORS.primary }}></div>
+                      </div>
+                    ) : (isApproved || isRejected) ? (
+                      auditeeSignatureUrl ? (
+                        <img 
+                          src={auditeeSignatureUrl} 
+                          alt="Auditee Signature" 
+                          className="object-contain p-3 bg-white border rounded-lg shadow-sm border-slate-200 max-h-24"
+                        />
+                      ) : auditeeSignature ? (
+                        <p className="p-3 text-sm font-semibold bg-white border rounded-lg shadow-sm text-slate-800 border-slate-200">
+                          {auditeeSignature}
+                        </p>
+                      ) : (
+                        <div className="flex items-center gap-2 text-slate-400">
+                          <AlertTriangle size={16} />
+                          <span className="text-sm font-medium">No signature available</span>
+                        </div>
+                      )
                     ) : (
-                      <span className="inline-flex items-center gap-1 px-2 py-1 text-xs text-yellow-700 bg-yellow-100 rounded">
-                        <AlertCircle size={12} /> Pending Approval
-                      </span>
+                      <div className="flex items-center justify-center p-6 border-2 border-dashed rounded-xl bg-amber-50 border-amber-200">
+                        <div className="text-center">
+                          <Clock className="w-8 h-8 mx-auto mb-2 text-amber-500" />
+                          <p className="text-sm font-bold text-amber-700">Waiting for Approval</p>
+                          <p className="text-xs text-amber-600 mt-0.5">Signature will appear after auditee approval</p>
+                        </div>
+                      </div>
                     )}
                   </div>
-                </div>
-              </>
-            )}
+                  <p className="mt-3 text-sm font-semibold text-slate-700">Name: {auditeeName}</p>
+                  <p className="text-xs text-slate-500 mt-0.5">
+                    Date: {auditeeSignedAt ? formatDateTime(auditeeSignedAt) : ((isApproved || isRejected) ? formatDateTime(audit.updatedAt) : '-')}
+                  </p>
+                  
+                  {(answers.auditeeComment || auditeeComment) && (isApproved || isRejected) && (
+                    <div className="p-3 mt-3 text-xs bg-white border rounded-lg text-slate-600 border-slate-200">
+                      <span className="font-bold">Comment:</span> {answers.auditeeComment || auditeeComment}
+                    </div>
+                  )}
+                  
+                  <div className="mt-4">
+                    <p className="text-xs font-bold tracking-wider uppercase text-slate-500">Status</p>
+                    <div className="mt-2">
+                      {isApproved ? (
+                        <span className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200 rounded-lg">
+                          <CheckCircle size={12} /> Approved
+                        </span>
+                      ) : isRejected ? (
+                        <span className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-rose-700 bg-rose-50 border border-rose-200 rounded-lg">
+                          <XCircle size={12} /> Rejected
+                        </span>
+                      ) : (
+                        <span className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-amber-700 bg-amber-50 border border-amber-200 rounded-lg">
+                          <AlertCircle size={12} /> Pending Approval
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                </>
+              )}
+            </div>
           </div>
         </div>
-      </div>
 
-      {/* Footer */}
-      <div className="pb-4 mt-6 text-xs text-center text-gray-500">
-        <p>5S Workplace Organization Audit Report | Generated on {formatDate(new Date().toISOString())}</p>
-        <p className="mt-1">This is an electronic document and does not require a physical signature</p>
+        {/* Footer */}
+        <div className="pb-6 mt-8 text-xs text-center text-slate-400">
+          <p>5S Workplace Organization Audit Report | Generated on {formatDate(new Date().toISOString())}</p>
+          <p className="mt-1">This is an electronic document and does not require a physical signature</p>
+        </div>
       </div>
     </div>
   );
