@@ -1099,7 +1099,7 @@ const Form5DetailedView = () => {
                               <button 
                                 onClick={() => handleAddSchedule(dateInfo.dateStr)} 
                                 style={{ width: 36, height: 36, borderRadius: '50%', background: T.accentLight, border: `1px solid ${T.accentBorder}`, color: T.accent, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', transition: 'all 0.2s' }} 
-                                onMouseEnter={e => e.currentTarget.style.background = T.accent} 
+                                onMouseEnter={e => e.currentTarget.style.background = T.accentLight} 
                                 onMouseLeave={e => e.currentTarget.style.background = T.accentLight}
                               >
                                 <FiPlus size={18} />
