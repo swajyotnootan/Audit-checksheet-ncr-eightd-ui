@@ -118,8 +118,14 @@ function parseTimeString(timeStr) {
 }
 
 // Get short display for audit type
-function getAuditTypeShort(auditType) {
-  if (!auditType) return 'AUD'
+function getAuditTypeShort(audit) {
+  if (!audit) return 'AUD'
+  
+  // Use title first (matching the popup)
+  const typeString = audit.title || audit.auditType || ''
+  
+  if (!typeString) return 'AUD'
+  
   const types = {
     '5S Audit': '5S',
     'IATF 16949': 'IATF',
@@ -130,9 +136,21 @@ function getAuditTypeShort(auditType) {
     'System Audit (IATF16949)': 'IATF',
     'Opening Meeting': 'OPN',
     'Closing Meeting': 'CLS',
-    'Lunch Break': 'LCH'
+    'Lunch Break': 'LCH',
   }
-  return types[auditType] || auditType?.substring(0, 3).toUpperCase() || 'AUD'
+  
+  // Check exact match
+  if (types[typeString]) return types[typeString]
+  
+  // Check if it contains any key
+  for (const [key, value] of Object.entries(types)) {
+    if (typeString.includes(key) || key.includes(typeString)) {
+      return value
+    }
+  }
+  
+  // Fallback: take first 3 chars
+  return typeString.substring(0, 3).toUpperCase() || 'AUD'
 }
 
 // Check if event is COMPLETED (from audit form)
@@ -1382,7 +1400,7 @@ useEffect(() => {
     if (parentEvent) actualEvent = parentEvent;
   }
   
-  const shortType = getAuditTypeShort(actualEvent.auditType)
+const shortType = getAuditTypeShort(actualEvent)
   const dotColorRgb = getDotColor(actualEvent)  // Now returns RGB string
   const isOverdue = isEventOverdue(actualEvent)
   const isCompleted = isEventCompleted(actualEvent)
@@ -1750,7 +1768,7 @@ useEffect(() => {
     if (parentEvent) actualEvent = parentEvent;
   }
   
-  const shortType = getAuditTypeShort(actualEvent.auditType)
+const shortType = getAuditTypeShort(actualEvent)
   const dotColorRgb = getDotColor(actualEvent)  // Now returns RGB string
   const isOverdue = isEventOverdue(actualEvent)
   const isCompleted = isEventCompleted(actualEvent)
