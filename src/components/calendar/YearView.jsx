@@ -14,11 +14,55 @@ export default function YearView({ date, events, onEventClick, onDateClick, onMo
     if (!Array.isArray(events)) return []
     return events.filter(event => {
       if (!event) return false
-      if (!event.start) return false
-      // Allow events without title (will use department or auditType)
-      return true
+      // ✅ Check if event has a valid date (either start, fromDate, or toDate)
+      const hasValidDate = event.start || event.fromDate || event.toDate
+      return !!hasValidDate
     })
   }, [events])
+
+  // ✅ Get the effective date for an event (for filtering)
+  const getEventStart = (event) => {
+    if (event.fromDate) {
+      return moment(event.fromDate)
+    }
+    if (event.start) {
+      return moment(event.start)
+    }
+    return null
+  }
+
+  // ✅ Get the end date for an event (for date ranges)
+  const getEventEnd = (event) => {
+    if (event.toDate) {
+      return moment(event.toDate)
+    }
+    if (event.end) {
+      return moment(event.end)
+    }
+    return getEventStart(event)
+  }
+
+  // ✅ Check if event falls within a month
+  const isEventInMonth = (event, monthStart, monthEnd) => {
+    const eventStart = getEventStart(event)
+    if (!eventStart) return false
+    
+    const eventEnd = getEventEnd(event)
+    
+    // Check if event overlaps with the month
+    return eventStart.isSameOrBefore(monthEnd, 'day') && 
+           eventEnd.isSameOrAfter(monthStart, 'day')
+  }
+
+  // ✅ Check if event falls on a specific date
+  const isEventOnDate = (event, date) => {
+    const eventStart = getEventStart(event)
+    if (!eventStart) return false
+    
+    const eventEnd = getEventEnd(event)
+    
+    return date.isBetween(eventStart, eventEnd, 'day', '[]')
+  }
 
   const getEventsForMonth = (monthIndex) => {
     const monthStart = moment().year(currentYear).month(monthIndex).startOf('month')
@@ -26,8 +70,7 @@ export default function YearView({ date, events, onEventClick, onDateClick, onMo
 
     return validEvents.filter(event => {
       try {
-        const eventDate = moment(event.start)
-        return eventDate.isBetween(monthStart, monthEnd, 'day', '[]')
+        return isEventInMonth(event, monthStart, monthEnd)
       } catch (error) {
         return false
       }
@@ -37,7 +80,7 @@ export default function YearView({ date, events, onEventClick, onDateClick, onMo
   const getEventsForDate = (date) => {
     return validEvents.filter(event => {
       try {
-        return moment(event.start).isSame(date, 'day')
+        return isEventOnDate(event, date)
       } catch (error) {
         return false
       }
@@ -61,16 +104,28 @@ export default function YearView({ date, events, onEventClick, onDateClick, onMo
 
   // Get event color based on status or type
   const getEventColor = (event) => {
+    if (event.status === 'COMPLETED' || event.isFullyCompleted) return 'bg-emerald-500'
+    if (event.status === 'SUBMITTED' || event.isSubmitted) return 'bg-blue-500'
     if (event.status === 'PENDING_APPROVAL') return 'bg-yellow-500'
     if (event.status === 'APPROVED') return 'bg-green-500'
     if (event.status === 'REJECTED') return 'bg-red-500'
     if (event.status === 'CHANGE_REQUESTED') return 'bg-orange-500'
+    if (event.isDateRange) return 'bg-purple-500'
     if (event.auditType === '5S Audit') return 'bg-blue-500'
     if (event.auditType === 'IATF 16949') return 'bg-yellow-500'
     if (event.auditType === 'Process Audit') return 'bg-green-500'
     if (event.auditType === 'Product Audit') return 'bg-pink-500'
     if (event.auditType === 'ISO 9001') return 'bg-indigo-500'
     return 'bg-purple-500'
+  }
+
+  // ✅ Check if event is overdue
+  const isEventOverdue = (event) => {
+    if (!event) return false
+    const status = event.status || 'SCHEDULED'
+    if (status === 'COMPLETED' || status === 'APPROVED' || status === 'SUBMITTED') return false
+    const eventEnd = getEventEnd(event)
+    return eventEnd && eventEnd.isBefore(today)
   }
 
   const toggleMonthExpansion = (monthIndex) => {
@@ -114,15 +169,28 @@ export default function YearView({ date, events, onEventClick, onDateClick, onMo
             const dayEvents = getEventsForDate(day)
             const hasEvents = dayEvents.length > 0
 
+            // ✅ Check if any event is overdue on this date
+            const hasOverdue = dayEvents.some(e => isEventOverdue(e))
+            const hasCompleted = dayEvents.some(e => e.status === 'COMPLETED' || e.isFullyCompleted)
+
             return (
               <div
                 key={`${weekIndex}-${dayIndex}`}
-                onClick={() => hasEvents && onDateClick && onDateClick(day.toDate())}
+                onClick={() => {
+                  if (hasEvents) {
+                    // If there are events, show them
+                    if (onDateClick) {
+                      onDateClick(day.toDate())
+                    }
+                  }
+                }}
                 className={`
                   h-8 flex flex-col items-center justify-center relative cursor-pointer rounded-sm transition-colors
                   ${isCurrentMonth ? 'text-gray-900 hover:bg-gray-100' : 'text-gray-400'}
                   ${isToday ? 'bg-blue-600 text-white hover:bg-blue-700' : ''}
                   ${hasEvents && !isToday ? 'bg-blue-50 border border-blue-200 hover:bg-blue-100' : ''}
+                  ${hasOverdue && !isToday ? 'bg-red-50 border border-red-200 hover:bg-red-100' : ''}
+                  ${hasCompleted && !isToday && !hasOverdue ? 'bg-emerald-50 border border-emerald-200 hover:bg-emerald-100' : ''}
                   ${hasEvents ? 'cursor-pointer' : 'cursor-default'}
                 `}
               >
@@ -158,9 +226,11 @@ export default function YearView({ date, events, onEventClick, onDateClick, onMo
     const groupedEvents = {}
 
     monthEvents.forEach(event => {
-      if (!event || !event.start) return
+      if (!event) return
+      const eventStart = getEventStart(event)
+      if (!eventStart) return
       try {
-        const dateKey = moment(event.start).format('YYYY-MM-DD')
+        const dateKey = eventStart.format('YYYY-MM-DD')
         if (!groupedEvents[dateKey]) {
           groupedEvents[dateKey] = []
         }
@@ -200,19 +270,34 @@ export default function YearView({ date, events, onEventClick, onDateClick, onMo
                             {getEventTitle(event)}
                           </div>
                           <div className="text-gray-500">
-                            {event.timeSlot || (event.start ? moment(event.start).format('h:mm A') : 'Time TBD')}
+                            {event.isDateRange 
+                              ? `${event.fromDate ? moment(event.fromDate).format('MMM DD') : ''} → ${event.toDate ? moment(event.toDate).format('MMM DD, YYYY') : ''}`
+                              : (event.start ? moment(event.start).format('h:mm A') : 'Time TBD')
+                            }
                           </div>
                         </div>
-                        {event.status && (
-                          <span className={`px-1.5 py-0.5 rounded-full text-[10px] font-medium ${
-                            event.status === 'PENDING_APPROVAL' ? 'bg-yellow-100 text-yellow-700' :
-                            event.status === 'APPROVED' ? 'bg-green-100 text-green-700' :
-                            event.status === 'REJECTED' ? 'bg-red-100 text-red-700' :
-                            'bg-gray-100 text-gray-600'
-                          }`}>
-                            {event.status === 'PENDING_APPROVAL' ? 'Pending' : event.status}
-                          </span>
-                        )}
+                        <div className="flex items-center gap-1">
+                          {event.isDateRange && (
+                            <span className="px-1.5 py-0.5 rounded-full text-[10px] font-medium bg-purple-100 text-purple-700">
+                              Range
+                            </span>
+                          )}
+                          {event.status && (
+                            <span className={`px-1.5 py-0.5 rounded-full text-[10px] font-medium ${
+                              event.status === 'COMPLETED' || event.isFullyCompleted ? 'bg-emerald-100 text-emerald-700' :
+                              event.status === 'SUBMITTED' || event.isSubmitted ? 'bg-blue-100 text-blue-700' :
+                              event.status === 'PENDING_APPROVAL' ? 'bg-yellow-100 text-yellow-700' :
+                              event.status === 'APPROVED' ? 'bg-green-100 text-green-700' :
+                              event.status === 'REJECTED' ? 'bg-red-100 text-red-700' :
+                              'bg-gray-100 text-gray-600'
+                            }`}>
+                              {event.status === 'COMPLETED' ? '✓ Done' :
+                               event.status === 'SUBMITTED' ? 'Pending' :
+                               event.status === 'PENDING_APPROVAL' ? 'Pending' : 
+                               event.status}
+                            </span>
+                          )}
+                        </div>
                       </div>
                     ))}
                   </div>
@@ -227,9 +312,10 @@ export default function YearView({ date, events, onEventClick, onDateClick, onMo
 
   // Calculate statistics safely
   const totalEvents = validEvents.length
-  const pendingEvents = validEvents.filter(e => e.status === 'PENDING_APPROVAL').length
+  const pendingEvents = validEvents.filter(e => e.status === 'PENDING_APPROVAL' || e.status === 'SUBMITTED').length
   const approvedEvents = validEvents.filter(e => e.status === 'APPROVED').length
-  const scheduledEvents = validEvents.filter(e => e.status === 'SCHEDULED').length
+  const completedEvents = validEvents.filter(e => e.status === 'COMPLETED' || e.isFullyCompleted).length
+  const scheduledEvents = validEvents.filter(e => e.status === 'SCHEDULED' && !e.isFullyCompleted && !e.isSubmitted).length
 
   return (
     <div className="min-h-max flex flex-col bg-white overflow-auto">
@@ -265,7 +351,7 @@ export default function YearView({ date, events, onEventClick, onDateClick, onMo
               {currentYear} Audit Summary
             </h3>
 
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4">
+            <div className="grid grid-cols-2 md:grid-cols-5 gap-3 mb-4">
               <div className="bg-white rounded-lg p-3 text-center">
                 <div className="text-xl font-bold text-blue-600">{totalEvents}</div>
                 <div className="text-xs text-gray-500">Total Audits</div>
@@ -277,6 +363,10 @@ export default function YearView({ date, events, onEventClick, onDateClick, onMo
               <div className="bg-white rounded-lg p-3 text-center">
                 <div className="text-xl font-bold text-green-600">{approvedEvents}</div>
                 <div className="text-xs text-gray-500">Approved</div>
+              </div>
+              <div className="bg-white rounded-lg p-3 text-center">
+                <div className="text-xl font-bold text-emerald-600">{completedEvents}</div>
+                <div className="text-xs text-gray-500">Completed</div>
               </div>
               <div className="bg-white rounded-lg p-3 text-center">
                 <div className="text-xl font-bold text-blue-600">{scheduledEvents}</div>
