@@ -982,7 +982,6 @@ const [userDepartment, setUserDepartment] = useState(null);
     setIsLoading(true);
     setError(null);
 
-    // Load user cache first
     await fetchAllUsers();
     const userCacheData = await fetchAllUsers();
 
@@ -992,15 +991,9 @@ const [userDepartment, setUserDepartment] = useState(null);
     else if (userRole === 'LEAD_AUDITOR') userRoleForAPI = 'LEAD_AUDITOR'
     else if (userRole === 'AUDITEE') userRoleForAPI = 'AUDITEE'
 
-    // Fetch schedules
-    let url;
-    if (userRoleForAPI === 'AUDITOR') {
-      url = `${API_BASE}/audit-schedule/auditor/${currentUser?.id}/schedules-with-status`;
-      console.log('📡 Using auditor endpoint (includes history)');
-    } else {
-      url = `${API_BASE}/audit-schedule/year/${new Date().getFullYear()}`;
-      console.log('📡 Using year endpoint');
-    }
+    // ✅ USE THE WORKING ENDPOINT
+    const url = `${API_BASE}/audit-schedule/year/${new Date().getFullYear()}`;
+    console.log('📡 Using year endpoint:', url);
     
     const response = await fetch(url, {
       headers: {
@@ -1038,27 +1031,12 @@ const [userDepartment, setUserDepartment] = useState(null);
     if (response.ok) {
       let allSchedules = await response.json();
       
-      // Handle different response structures
-      if (userRoleForAPI === 'AUDITOR') {
-        // Check if allSchedules is an array and has the schedule property
-        if (Array.isArray(allSchedules) && allSchedules.length > 0 && allSchedules[0].schedule) {
-          allSchedules = allSchedules.map(item => item.schedule);
-          console.log('📊 Extracted schedules from auditor endpoint:', allSchedules.length);
-        } else if (Array.isArray(allSchedules)) {
-          console.log('📊 Schedules already in correct format:', allSchedules.length);
-        } else {
-          console.log('📊 Unexpected data format:', allSchedules);
-          allSchedules = [];
-        }
-      }
-      
-      // ✅ ADD SAFETY CHECK - Make sure allSchedules is an array
       if (!Array.isArray(allSchedules)) {
         console.error('allSchedules is not an array:', allSchedules);
         allSchedules = [];
       }
 
-      // Filter by department for Lead Auditor
+      // ✅ Filter by department for Lead Auditor
       if (userRoleForAPI === 'LEAD_AUDITOR' && leadAuditorDepartment) {
         const beforeCount = allSchedules.length;
         allSchedules = allSchedules.filter(schedule => {
@@ -1073,72 +1051,31 @@ const [userDepartment, setUserDepartment] = useState(null);
         console.log(`📊 Lead Auditor (${leadAuditorDepartment}): Filtered schedules from ${beforeCount} to ${allSchedules.length}`);
       }
 
-      // Now filter schedules as before
+      // ✅ Filter by role
       let filteredSchedules = [];
       
       if (userRoleForAPI === 'AUDITOR') {
-        filteredSchedules = allSchedules;
-        console.log(`📊 Found ${filteredSchedules.length} total audits for user ${currentUser?.id}`);
+        filteredSchedules = allSchedules.filter(s => s && s.auditorId === currentUser?.id);
+        console.log(`📊 Found ${filteredSchedules.length} audits for auditor ${currentUser?.id}`);
       } else if (userRoleForAPI === 'AUDITEE') {
         filteredSchedules = allSchedules.filter(s => s && s.auditeeId === currentUser?.id);
+        console.log(`📊 Found ${filteredSchedules.length} audits for auditee ${currentUser?.id}`);
       } else {
         filteredSchedules = allSchedules;
+        console.log(`📊 Found ${filteredSchedules.length} total audits`);
       }
   
       const formattedEvents = []
       
-      // ✅ ADD SAFETY CHECK - Make sure filteredSchedules is an array
       if (!Array.isArray(filteredSchedules)) {
         console.error('filteredSchedules is not an array:', filteredSchedules);
         filteredSchedules = [];
       }
       
-      // Use for...of for async/await support
       for (const audit of filteredSchedules) {
-        // ✅ ADD SAFETY CHECK - Skip if audit is undefined
         if (!audit) {
           console.warn('Skipping undefined audit');
           continue;
-        }
-        
-        // ✅ POPULATE MISSING USER IDs FROM CACHE
-        if (userCacheData) {
-          // Map auditor name to ID if missing
-          if (!audit.auditorId && audit.auditorName) {
-            const mappedId = userCacheData.byName.get(audit.auditorName);
-            if (mappedId) {
-              audit.auditorId = mappedId;
-              console.log(`✅ Mapped auditor "${audit.auditorName}" to ID: ${mappedId}`);
-            } else {
-              console.warn(`⚠️ Could not find ID for auditor: "${audit.auditorName}"`);
-            }
-          }
-          
-          // Map auditee name to ID if missing
-          if (!audit.auditeeId && audit.auditeeName) {
-            const mappedId = userCacheData.byName.get(audit.auditeeName);
-            if (mappedId) {
-              audit.auditeeId = mappedId;
-              console.log(`✅ Mapped auditee "${audit.auditeeName}" to ID: ${mappedId}`);
-            } else {
-              console.warn(`⚠️ Could not find ID for auditee: "${audit.auditeeName}"`);
-            }
-          }
-          
-          // Map co-auditor names to IDs
-          if (audit.coAuditorNames && Array.isArray(audit.coAuditorNames) && audit.coAuditorNames.length > 0) {
-            const coAuditorIds = [];
-            for (const coName of audit.coAuditorNames) {
-              const coId = userCacheData.byName.get(coName);
-              if (coId) {
-                coAuditorIds.push(coId);
-              }
-            }
-            if (coAuditorIds.length > 0) {
-              audit.coAuditorIdList = coAuditorIds;
-              console.log(`✅ Mapped ${coAuditorIds.length} co-auditors to IDs`);
-            }
-          }
         }
         
         const completionInfo = auditCompletionMap.get(audit.id)
@@ -1157,9 +1094,9 @@ const [userDepartment, setUserDepartment] = useState(null);
         
         const isDateRange = audit.fromDate && audit.toDate && audit.fromDate !== audit.toDate
 
-        // Fetch history for this audit
+        // ✅ Get history fields
         const history = {
-          originalScheduledDate: audit.originalScheduledDate || audit.previousScheduledDate || null,
+          originalScheduledDate: audit.originalScheduledDate || null,
           originalStartTime: audit.originalStartTime || null,
           rescheduleHistory: audit.rescheduleHistory || [],
           extensionHistory: audit.extensionHistory || [],
@@ -1167,7 +1104,7 @@ const [userDepartment, setUserDepartment] = useState(null);
           pendingExtension: audit.pendingExtension || false
         };
         
-        // Determine co-auditor status
+        // ✅ Determine co-auditor status
         let isCoAuditor = false
         let coAuditorNamesList = []
         let coAuditorIdList = []
@@ -1198,7 +1135,7 @@ const [userDepartment, setUserDepartment] = useState(null);
           }
         }
         
-        // Continue with your existing event creation code...
+        // ✅ CREATE EVENT
         if (isDateRange) {
           const fromDate = new Date(audit.fromDate)
           const toDate = new Date(audit.toDate)
@@ -1212,28 +1149,27 @@ const [userDepartment, setUserDepartment] = useState(null);
           
           formattedEvents.push({
             id: audit.id,
-            title: audit.title || `${audit.department || 'Audit'} - ${audit.auditType || 'General'}`,
+            title: audit.department ? `${audit.department} - ${audit.auditType || 'Audit'}` : (audit.auditType || 'Audit'),
             start: startDateTime,
             end: endDateTime,
             status: displayStatus,
-            auditType: audit.auditType,
-            department: audit.department,
+            auditType: audit.auditType || 'Audit',
+            department: audit.department || '',
             isOwner: audit.auditorId === currentUser?.id,
             isCoAuditor: isCoAuditor,
             isAttendee: audit.auditeeId === currentUser?.id,
             userRelationship: audit.auditorId === currentUser?.id ? 'owner' : (isCoAuditor ? 'co_auditor' : (audit.auditeeId === currentUser?.id ? 'attendee' : 'none')),
-            auditorName: audit.auditorName,
-            auditorId: audit.auditorId,
-            auditeeName: audit.auditeeName,
-            auditeeId: audit.auditeeId,
-            coAuditorIds: audit.coAuditorIds,
+            auditorName: audit.auditorName || '',
+            auditorId: audit.auditorId || null,
+            auditeeName: audit.auditeeName || '',
+            auditeeId: audit.auditeeId || null,
             coAuditorNames: coAuditorNamesList,
             coAuditorIdList: coAuditorIdList,
-            description: audit.auditObjective,
+            description: audit.auditObjective || '',
             fromDate: audit.fromDate,
             toDate: audit.toDate,
-            startTime: audit.startTime,
-            endTime: audit.endTime,
+            startTime: audit.startTime || '',
+            endTime: audit.endTime || '',
             isDateRange: true,
             isOriginal: true,
             isFullyCompleted: isFullyCompleted,
@@ -1247,15 +1183,7 @@ const [userDepartment, setUserDepartment] = useState(null);
             pendingExtension: history.pendingExtension
           })
           
-          console.log('📅 Created date range event:', {
-            auditId: audit.id,
-            auditorId: audit.auditorId,
-            auditorName: audit.auditorName,
-            auditeeId: audit.auditeeId,
-            auditeeName: audit.auditeeName
-          });
-          
-          // Create display events for each day in range
+          // ✅ Create display events for each day in range
           const currentDate = new Date(fromDate)
           while (currentDate <= toDate) {
             const singleDate = new Date(currentDate)
@@ -1266,28 +1194,27 @@ const [userDepartment, setUserDepartment] = useState(null);
             
             formattedEvents.push({
               id: `${audit.id}_${currentDate.toISOString().split('T')[0]}`,
-              title: audit.title || `${audit.department || 'Audit'} - ${audit.auditType || 'General'}`,
+              title: audit.department ? `${audit.department} - ${audit.auditType || 'Audit'}` : (audit.auditType || 'Audit'),
               start: startDateTimeDisplay,
               end: endDateTimeDisplay,
               status: displayStatus,
-              auditType: audit.auditType,
-              department: audit.department,
+              auditType: audit.auditType || 'Audit',
+              department: audit.department || '',
               isOwner: audit.auditorId === currentUser?.id,
               isCoAuditor: isCoAuditor,
               isAttendee: audit.auditeeId === currentUser?.id,
               userRelationship: audit.auditorId === currentUser?.id ? 'owner' : (isCoAuditor ? 'co_auditor' : (audit.auditeeId === currentUser?.id ? 'attendee' : 'none')),
-              auditorName: audit.auditorName,
-              auditorId: audit.auditorId,
-              auditeeName: audit.auditeeName,
-              auditeeId: audit.auditeeId,
-              coAuditorIds: audit.coAuditorIds,
+              auditorName: audit.auditorName || '',
+              auditorId: audit.auditorId || null,
+              auditeeName: audit.auditeeName || '',
+              auditeeId: audit.auditeeId || null,
               coAuditorNames: coAuditorNamesList,
               coAuditorIdList: coAuditorIdList,
-              description: audit.auditObjective,
-              fromDate: fromDate,
-              toDate: toDate,
-              startTime: audit.startTime,
-              endTime: audit.endTime,
+              description: audit.auditObjective || '',
+              fromDate: audit.fromDate,
+              toDate: audit.toDate,
+              startTime: audit.startTime || '',
+              endTime: audit.endTime || '',
               isDateRange: true,
               isDisplayEvent: true,
               parentId: audit.id,
@@ -1318,28 +1245,27 @@ const [userDepartment, setUserDepartment] = useState(null);
           
           formattedEvents.push({
             id: audit.id,
-            title: audit.title || `${audit.department || 'Audit'} - ${audit.auditType || 'General'}`,
+            title: audit.department ? `${audit.department} - ${audit.auditType || 'Audit'}` : (audit.auditType || 'Audit'),
             start: startDateTime,
             end: endDateTime,
             status: displayStatus,
-            auditType: audit.auditType,
-            department: audit.department,
+            auditType: audit.auditType || 'Audit',
+            department: audit.department || '',
             isOwner: audit.auditorId === currentUser?.id,
             isCoAuditor: isCoAuditor,
             isAttendee: audit.auditeeId === currentUser?.id,
             userRelationship: audit.auditorId === currentUser?.id ? 'owner' : (isCoAuditor ? 'co_auditor' : (audit.auditeeId === currentUser?.id ? 'attendee' : 'none')),
-            auditorName: audit.auditorName,
-            auditorId: audit.auditorId,
-            auditeeName: audit.auditeeName,
-            auditeeId: audit.auditeeId,
-            coAuditorIds: audit.coAuditorIds,
+            auditorName: audit.auditorName || '',
+            auditorId: audit.auditorId || null,
+            auditeeName: audit.auditeeName || '',
+            auditeeId: audit.auditeeId || null,
             coAuditorNames: coAuditorNamesList,
             coAuditorIdList: coAuditorIdList,
-            description: audit.auditObjective,
-            fromDate: null,
-            toDate: null,
-            startTime: audit.startTime,
-            endTime: audit.endTime,
+            description: audit.auditObjective || '',
+            fromDate: audit.fromDate || null,
+            toDate: audit.toDate || null,
+            startTime: audit.startTime || '',
+            endTime: audit.endTime || '',
             isDateRange: false,
             isFullyCompleted: isFullyCompleted,
             isSubmitted: isSubmitted,
@@ -1351,14 +1277,6 @@ const [userDepartment, setUserDepartment] = useState(null);
             pendingReschedule: history.pendingReschedule,
             pendingExtension: history.pendingExtension
           })
-          
-          console.log('📅 Created regular event:', {
-            auditId: audit.id,
-            auditorId: audit.auditorId,
-            auditorName: audit.auditorName,
-            auditeeId: audit.auditeeId,
-            auditeeName: audit.auditeeName
-          });
         }
       }
       
