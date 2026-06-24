@@ -10,7 +10,7 @@ import {
   FiStar, FiCalendar, FiArrowLeft // 👈 Added FiArrowLeft
 } from 'react-icons/fi';
 
-const API_BASE = 'https://internalaudit.hub.swajyot.co.in:8090/api';
+const API_BASE = 'http://localhost:8080/api';
 
 // ══════ MNC STANDARD PALETTE ══════
 const T = {
@@ -46,6 +46,42 @@ const Card = ({ children, style }) => (
     {children}
   </div>
 );
+
+const formatLocalDateTime = (utcDateStr) => {
+  if (!utcDateStr) return '-';
+
+  // Create date object - handle both with and without timezone info
+  const date = new Date(utcDateStr);
+  
+  // Check if date is valid
+  if (isNaN(date.getTime())) {
+    // If invalid, try appending 'Z' for UTC
+    const altDate = new Date(utcDateStr + 'Z');
+    if (isNaN(altDate.getTime())) return '-';
+    
+    // Convert to IST
+    return altDate.toLocaleString('en-IN', {
+      timeZone: 'Asia/Kolkata',
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: true
+    });
+  }
+
+  // Convert to IST
+  return date.toLocaleString('en-IN', {
+    timeZone: 'Asia/Kolkata',
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: true
+  });
+};
 
 const ActionButton = ({ onClick, disabled, loading, color, bgColor, borderColor, icon: Icon, children }) => (
   <button
@@ -413,26 +449,39 @@ const Form3View = () => {
         </div>
       </Card>
 
-      {/* Alerts */}
-      {(planStatus === 'REJECTED' || planStatus === 'CHANGE_REQUESTED') && (rejectionReason || planInfo.rejectionReason) && (
-        <AlertBanner 
-          type={planStatus === 'REJECTED' ? 'error' : 'warning'} 
-          icon={FiAlertCircle}
-          title={planStatus === 'REJECTED' ? 'Rejection Reason' : 'Change Request Reason'}
-          message={rejectionReason || planInfo.rejectionReason}
-          footer={planStatus === 'REJECTED' 
-            ? `Rejected by ${planInfo.rejectedBy} on ${planInfo.rejectedAt && new Date(planInfo.rejectedAt).toLocaleString()}` 
-            : 'Please review the requested changes and update the plan.'}
-        />
-      )}
 
+      {/* {planStatus === 'APPROVED' && planInfo.approvalComments && 
+      <AlertBanner type="success" icon={FiCheckCircle} title="Approval Comments" message={planInfo.approvalComments} 
+      footer={`Approved by: ${planInfo.approvedBy} | Date: ${formatLocalDateTime(planInfo.approvedAt)}`} />}
+       */}
+      {/* Alerts */}
+      {planStatus === 'CHANGE_REQUESTED' && (rejectionReason || planInfo.rejectionReason) && (
+          <AlertBanner 
+            type="warning" 
+            icon={FiAlertCircle}
+            title="Change Request Reason"
+            message={rejectionReason || planInfo.rejectionReason}
+            footer={`Requested by: ${planInfo.rejectedBy} | Date: ${formatLocalDateTime(planInfo.rejectedAt)}`}
+          />
+        )}
+
+
+          {planStatus === 'REJECTED' && (rejectionReason || planInfo.rejectionReason) && (
+            <AlertBanner 
+              type="error" 
+              icon={FiAlertCircle}
+              title="Rejection Reason"
+              message={rejectionReason || planInfo.rejectionReason}
+              footer={`Rejected by: ${planInfo.rejectedBy} | Date: ${formatLocalDateTime(planInfo.rejectedAt)}`}
+            />
+          )}
       {planStatus === 'APPROVED' && planInfo.approvalComments && (
         <AlertBanner 
           type="success" 
           icon={FiCheckCircle}
           title="Approval Comments"
           message={planInfo.approvalComments}
-          footer={`Approved by ${planInfo.approvedBy} on ${planInfo.approvedAt && new Date(planInfo.approvedAt).toLocaleString()}`}
+          footer={`Approved by: ${planInfo.approvedBy} | Date: ${formatLocalDateTime(planInfo.approvedAt)}`}
         />
       )}
 
@@ -576,15 +625,27 @@ const Form3View = () => {
               </div>
             )}
             {(rejectionReason || planInfo.rejectionReason) && planStatus === 'REJECTED' && (
-              <div style={{ paddingLeft: 16, borderLeft: `3px solid ${T.error}` }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
-                  <FiX size={14} color={T.error} />
-                  <span style={{ fontSize: 13, fontWeight: 600, color: '#991B1B' }}>Rejection Reason</span>
-                </div>
-                <p style={{ margin: '0 0 4px', fontSize: 14, color: T.textValue }}>{rejectionReason || planInfo.rejectionReason}</p>
-                {planInfo.rejectedBy && <p style={{ margin: 0, fontSize: 12, color: T.textMuted }}>By: {planInfo.rejectedBy} | Date: {planInfo.rejectedAt && new Date(planInfo.rejectedAt).toLocaleString()}</p>}
-              </div>
-            )}
+                  <div style={{ paddingLeft: 16, borderLeft: `3px solid ${T.error}` }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
+                      <FiX size={14} color={T.error} />
+                      <span style={{ fontSize: 13, fontWeight: 600, color: '#991B1B' }}>Rejection Reason</span>
+                    </div>
+                    <p style={{ margin: '0 0 4px', fontSize: 14, color: T.textValue }}>{rejectionReason || planInfo.rejectionReason}</p>
+                    {planInfo.rejectedBy && <p style={{ margin: 0, fontSize: 12, color: T.textMuted }}>By: {planInfo.rejectedBy} | Date: {formatLocalDateTime(planInfo.rejectedAt)}</p>}
+                  </div>
+                )}
+
+                {/* Add Change Request section if needed */}
+                {planStatus === 'CHANGE_REQUESTED' && planInfo.rejectionReason && (
+                  <div style={{ paddingLeft: 16, borderLeft: `3px solid ${T.warning}` }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
+                      <FiMessageSquare size={14} color={T.warning} />
+                      <span style={{ fontSize: 13, fontWeight: 600, color: '#92400E' }}>Change Request Reason</span>
+                    </div>
+                    <p style={{ margin: '0 0 4px', fontSize: 14, color: T.textValue }}>{planInfo.rejectionReason}</p>
+                    {planInfo.rejectedBy && <p style={{ margin: 0, fontSize: 12, color: T.textMuted }}>By: {planInfo.rejectedBy} | Date: {formatLocalDateTime(planInfo.rejectedAt)}</p>}
+                  </div>
+                )}
           </div>
         </Card>
       )}

@@ -11,7 +11,7 @@ import {
   FiCheckSquare, FiPlus, FiFilter, FiTrendingUp, FiArrowLeft // 👈 Added FiArrowLeft
 } from 'react-icons/fi';
 
-const API_BASE = 'https://internalaudit.hub.swajyot.co.in:8090/api';
+const API_BASE = 'http://localhost:8080/api';
 
 // ══════ MNC STANDARD PALETTE ══════
 const T = {
@@ -63,6 +63,45 @@ const getAuditElementsForMonth = (month) => {
 };
 
 const isRelevantForDemo = (auditElement) => auditElement.includes("IATF16949") || auditElement.includes("5S Audit");
+
+
+// Add this utility function
+
+const formatLocalDateTime = (utcDateStr) => {
+  if (!utcDateStr) return '-';
+
+  // Create date object - handle both with and without timezone info
+  const date = new Date(utcDateStr);
+  
+  // Check if date is valid
+  if (isNaN(date.getTime())) {
+    // If invalid, try appending 'Z' for UTC
+    const altDate = new Date(utcDateStr + 'Z');
+    if (isNaN(altDate.getTime())) return '-';
+    
+    // Convert to IST
+    return altDate.toLocaleString('en-IN', {
+      timeZone: 'Asia/Kolkata',
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: true
+    });
+  }
+
+  // Convert to IST
+  return date.toLocaleString('en-IN', {
+    timeZone: 'Asia/Kolkata',
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: true
+  });
+};
 
 /* ─── Reusable UI Components ────────────────────────────────────────────── */
 
@@ -288,55 +327,6 @@ const Form4View = () => {
   });
 
   // ─── ALL ORIGINAL HANDLERS RESTORED ──────────────────────────────────────
-
-   
-const formatLocalDateTime = (utcDateStr) => {
-  if (!utcDateStr) return '-';
-  
-  // Try parsing the date
-  let date;
-  
-  // Check if it's already an ISO string with timezone
-  if (utcDateStr.includes('T') || utcDateStr.includes('Z')) {
-    date = new Date(utcDateStr);
-  } else {
-    // Convert "yyyy-MM-dd HH:mm:ss" to ISO format with Z
-    const isoString = utcDateStr.replace(' ', 'T') + 'Z';
-    date = new Date(isoString);
-  }
-  
-  // Validate the date
-  if (isNaN(date.getTime())) {
-    // Try alternative parsing
-    const parts = utcDateStr.match(/(\d{4})-(\d{2})-(\d{2})\s+(\d{2}):(\d{2}):(\d{2})/);
-    if (parts) {
-      // Create UTC date manually
-      date = new Date(Date.UTC(
-        parseInt(parts[1]),  // year
-        parseInt(parts[2]) - 1, // month (0-indexed)
-        parseInt(parts[3]),  // day
-        parseInt(parts[4]),  // hour
-        parseInt(parts[5]),  // minute
-        parseInt(parts[6])   // second
-      ));
-    }
-  }
-  
-  if (isNaN(date.getTime())) return '-';
-  
-  // Format to IST
-  return date.toLocaleString('en-IN', {
-    timeZone: 'Asia/Kolkata',
-    day: '2-digit',
-    month: '2-digit',
-    year: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit',
-    hour12: true
-  });
-};
- 
- 
 
   const handleQuickPlanned = async () => {
     if (!canEdit) { addToast('You cannot modify this plan in its current status', 'warning'); return; }
@@ -767,20 +757,10 @@ const formatLocalDateTime = (utcDateStr) => {
       )}
 
       {/* Alerts */}
-       {planStatus === 'APPROVED' && planInfo.approvalComments && <AlertBanner type="success" icon={FiCheckCircle} title="Approval Comments" message={planInfo.approvalComments} footer={`Approved by: ${planInfo.approvedBy} | Date: ${formatLocalDateTime(planInfo.approvedAt)}`} />}
+     {planStatus === 'APPROVED' && planInfo.approvalComments && <AlertBanner type="success" icon={FiCheckCircle} title="Approval Comments" message={planInfo.approvalComments} footer={`Approved by: ${planInfo.approvedBy} | Date: ${formatLocalDateTime(planInfo.approvedAt)}`} />}
       {planStatus === 'CHANGE_REQUESTED' && planInfo.rejectionReason && <AlertBanner type="warning" icon={FiMessageSquare} title="Change Request Comments" message={planInfo.rejectionReason} footer={`Requested by: ${planInfo.rejectedBy} | Date: ${formatLocalDateTime(planInfo.rejectedAt)}`} />}
       {planStatus === 'REJECTED' && planInfo.rejectionReason && <AlertBanner type="error" icon={FiX} title="Rejection Reason" message={planInfo.rejectionReason} footer={`Rejected by: ${planInfo.rejectedBy} | Date: ${formatLocalDateTime(planInfo.rejectedAt)}`} />}
-     
- 
-      {/* Statistics Cards
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: 16, marginBottom: 24 }}>
-        <StatCard icon={FiFileText} label="Departments" value={departments.length} subValue={`${totalDepartmentsWithPlan} active`} color={T.textValue} bg="#F1F5F9" border={T.border} />
-        <StatCard icon={FiClock} label="Planned (P)" value={totalPlanned} color={T.accent} bg={T.accentLight} border={T.accentBorder} />
-        <StatCard icon={FiCheckCircle} label="Completed (C)" value={totalCompleted} color={T.success} bg={T.successLight} border={T.successBorder} />
-        <StatCard icon={FiRepeat} label="Rescheduled (R)" value={totalRescheduled} color={T.warning} bg={T.warningLight} border={T.warningBorder} />
-        <StatCard icon={FiAlertCircle} label="Pending" value={totalPlanned + totalRescheduled - totalCompleted} color="#D97706" bg="#FFFBEB" border="#FDE68A" />
-        <StatCard icon={FiTrendingUp} label="Completion Rate" value={`${completionRate}%`} color={T.purple} bg={T.purpleLight} border={T.purpleBorder} />
-      </div> */}
+      
 
       {/* Form 3 Summary Card (COLLAPSIBLE) */}
       <Card style={{ padding: 0, marginBottom: 24, overflow: 'hidden' }}>
