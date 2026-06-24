@@ -10,7 +10,7 @@ import {
   FiStar, FiCalendar, FiArrowLeft // 👈 Added FiArrowLeft
 } from 'react-icons/fi';
 
-const API_BASE = 'http://localhost:8080/api';
+const API_BASE = 'https://internalaudit.hub.swajyot.co.in:8090/api';
 
 // ══════ MNC STANDARD PALETTE ══════
 const T = {
