@@ -69,18 +69,41 @@ const isRelevantForDemo = (auditElement) => auditElement.includes("IATF16949") |
 
 const formatLocalDateTime = (utcDateStr) => {
   if (!utcDateStr) return '-';
-
-  // Create date object - handle both with and without timezone info
-  const date = new Date(utcDateStr);
   
-  // Check if date is valid
-  if (isNaN(date.getTime())) {
-    // If invalid, try appending 'Z' for UTC
-    const altDate = new Date(utcDateStr + 'Z');
-    if (isNaN(altDate.getTime())) return '-';
+  try {
+    // Clean the date string
+    let dateString = utcDateStr.trim();
     
-    // Convert to IST
-    return altDate.toLocaleString('en-IN', {
+    // Handle different formats
+    let date;
+    
+    // Format 1: "2026-06-24T09:53:29.547037" (ISO with T)
+    if (dateString.includes('T')) {
+      // If no Z at the end, add it to force UTC
+      if (!dateString.includes('Z') && !dateString.includes('+')) {
+        dateString = dateString + 'Z';
+      }
+      date = new Date(dateString);
+    }
+    // Format 2: "2026-06-24 09:53:29" (space format)
+    else if (dateString.includes(' ')) {
+      // Convert to ISO format with Z
+      const isoString = dateString.replace(' ', 'T') + 'Z';
+      date = new Date(isoString);
+    }
+    // Format 3: Already a Date object or timestamp
+    else {
+      date = new Date(dateString);
+    }
+    
+    // Check if date is valid
+    if (isNaN(date.getTime())) {
+      console.warn('Invalid date:', utcDateStr);
+      return '-';
+    }
+    
+    // Format to IST
+    return date.toLocaleString('en-IN', {
       timeZone: 'Asia/Kolkata',
       day: '2-digit',
       month: '2-digit',
@@ -89,18 +112,10 @@ const formatLocalDateTime = (utcDateStr) => {
       minute: '2-digit',
       hour12: true
     });
+  } catch (error) {
+    console.error('Date formatting error:', error);
+    return '-';
   }
-
-  // Convert to IST
-  return date.toLocaleString('en-IN', {
-    timeZone: 'Asia/Kolkata',
-    day: '2-digit',
-    month: '2-digit',
-    year: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit',
-    hour12: true
-  });
 };
 
 /* ─── Reusable UI Components ────────────────────────────────────────────── */
