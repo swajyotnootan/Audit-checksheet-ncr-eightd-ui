@@ -1739,7 +1739,7 @@ const shortType = getAuditTypeShort(actualEvent)
               {view === 'year' ? (
                 <YearView
                   date={date}
-                  events={events.filter(e => !e.isOriginal)}
+                  events={events.filter(e => e.isOriginal === true)}  // ✅ Show original events
                   onEventClick={handleEventClick}
                   onDateClick={handleDateClick}
                   onMonthClick={handleMonthClick}
