@@ -46,23 +46,21 @@ const fetchAllUsers = async () => {
   
   userCachePromise = (async () => {
     try {
+      const userEmail = localStorage.getItem('userEmail') || '';
       const userId = localStorage.getItem('userId') || '';
       
       console.log('📡 Fetching all users from backend...');
-      
-      // ✅ Pass userId as query parameter
-      const url = new URL(`${API_BASE}/users`);
-      url.searchParams.append('userId', userId);
-      
-      const response = await fetch(url, {
+      const response = await fetch(`${API_BASE}/users`, {
         headers: {
-          'Content-Type': 'application/json'
-          // ❌ 'User-ID' header REMOVED
+          'Content-Type': 'application/json',
+          // 'User-Email': userEmail,
+          'User-ID': userId
         }
       });
       
       if (response.ok) {
         const users = await response.json();
+        // Create maps for quick lookup
         userCache = {
           byId: new Map(),
           byName: new Map(),
@@ -71,13 +69,19 @@ const fetchAllUsers = async () => {
         
         users.forEach(user => {
           userCache.byId.set(user.id, user);
+          
+          // Store by full name
           if (user.name) {
             userCache.byName.set(user.name, user.id);
           }
+          
+          // Store by first + last name
           if (user.firstName && user.lastName) {
             const fullName = `${user.firstName} ${user.lastName}`;
             userCache.byName.set(fullName, user.id);
           }
+          
+          // Store by email
           if (user.email) {
             userCache.byEmail.set(user.email, user.id);
           }
@@ -118,14 +122,8 @@ function parseTimeString(timeStr) {
 }
 
 // Get short display for audit type
-function getAuditTypeShort(audit) {
-  if (!audit) return 'AUD'
-  
-  // Use title first (matching the popup)
-  const typeString = audit.title || audit.auditType || ''
-  
-  if (!typeString) return 'AUD'
-  
+function getAuditTypeShort(auditType) {
+  if (!auditType) return 'AUD'
   const types = {
     '5S Audit': '5S',
     'IATF 16949': 'IATF',
@@ -136,21 +134,9 @@ function getAuditTypeShort(audit) {
     'System Audit (IATF16949)': 'IATF',
     'Opening Meeting': 'OPN',
     'Closing Meeting': 'CLS',
-    'Lunch Break': 'LCH',
+    'Lunch Break': 'LCH'
   }
-  
-  // Check exact match
-  if (types[typeString]) return types[typeString]
-  
-  // Check if it contains any key
-  for (const [key, value] of Object.entries(types)) {
-    if (typeString.includes(key) || key.includes(typeString)) {
-      return value
-    }
-  }
-  
-  // Fallback: take first 3 chars
-  return typeString.substring(0, 3).toUpperCase() || 'AUD'
+  return types[auditType] || auditType?.substring(0, 3).toUpperCase() || 'AUD'
 }
 
 // Check if event is COMPLETED (from audit form)
@@ -578,7 +564,7 @@ const AuditDetailsPopup = ({ audit, onClose }) => {
           <div className="flex flex-wrap items-center justify-between gap-2">
             <div>
               <h2 className="text-lg font-bold text-gray-800">
-                {audit.title || 'Audit'} 
+                {audit.auditType || 'Audit'}
               </h2>
               {audit.auditNumber && (
                 <p className="text-xs font-mono text-gray-500 mt-0.5">{audit.auditNumber}</p>
@@ -635,34 +621,11 @@ const AuditDetailsPopup = ({ audit, onClose }) => {
             </div>
             
             {/* Time */}
-            {/* Time - Extract from description (handles bullet points) */}
-<div className="flex items-center gap-2 mt-2 text-sm">
-  <Clock className="w-4 h-4 text-gray-400" />
-  <span className="text-gray-600">Time:</span>
-  <span className="text-gray-700">
-    {audit.startTime && audit.endTime 
-      ? `${audit.startTime} - ${audit.endTime}`
-      : (audit.description 
-          ? (() => {
-              // Handle bullet point format: "• Time: 09:00 AM - 10:00 AM"
-              let match = audit.description.match(/[•●]\s*Time:\s*([^\n]+)/i);
-              if (match) return match[1].trim();
-              
-              // Handle regular format: "Time: 09:00 AM - 10:00 AM"
-              match = audit.description.match(/Time:\s*([^\n]+)/i);
-              if (match) return match[1].trim();
-              
-              // Handle direct time pattern
-              match = audit.description.match(/([0-9]{1,2}:[0-9]{2}\s*(?:AM|PM)\s*-\s*[0-9]{1,2}:[0-9]{2}\s*(?:AM|PM))/);
-              if (match) return match[1];
-              
-              return 'N/A';
-            })()
-          : 'N/A'
-        )
-    }
-  </span>
-</div>
+            <div className="flex items-center gap-2 mt-2 text-sm">
+              <Clock className="w-4 h-4 text-gray-400" />
+              <span className="text-gray-600">Time:</span>
+              <span className="text-gray-700">{formatTime(audit.startTime)} - {formatTime(audit.endTime)}</span>
+            </div>
 
             {/* Date Range Progress Bar */}
             {isDateRange && progress && (
@@ -774,12 +737,12 @@ const AuditDetailsPopup = ({ audit, onClose }) => {
 </div>
 
 
-          {/* {audit.description && (
+          {audit.description && (
             <div className="p-3 rounded-lg bg-gray-50">
               <p className="mb-1 text-xs text-gray-500">Objective / Description</p>
               <p className="text-sm text-gray-600">{audit.description}</p>
             </div>
-          )} */}
+          )}
 
           {/* Pending Request Status */}
           {(audit.pendingReschedule || audit.pendingExtension) && (
@@ -1013,16 +976,15 @@ const [userDepartment, setUserDepartment] = useState(null);
   }, [currentUser])
 
 
-// Helper function removed - no longer needed for Auditee
-
-/// UPDATED - ALL users use calendar-events endpoint
-/// UPDATED - ALL users use calendar-events endpoint
-const loadEvents = useCallback(async () => {
+  ///UPDATED
+ const loadEvents = useCallback(async () => {
   try {
     setIsLoading(true);
     setError(null);
 
+    // Load user cache first
     await fetchAllUsers();
+    const userCacheData = await fetchAllUsers();
 
     let userRoleForAPI = 'AUDITOR'
     if (userRole === 'AUDIT_MANAGER') userRoleForAPI = 'AUDIT_MANAGER'
@@ -1030,33 +992,35 @@ const loadEvents = useCallback(async () => {
     else if (userRole === 'LEAD_AUDITOR') userRoleForAPI = 'LEAD_AUDITOR'
     else if (userRole === 'AUDITEE') userRoleForAPI = 'AUDITEE'
 
-    // ✅ ALL users use calendar-events endpoint - including AUDITEE!
-    const url = `${API_BASE}/audit-schedule/calendar-events?userId=${currentUser?.id}&userRole=${userRoleForAPI}`;
-    console.log('📡 Using calendar-events endpoint with userRole:', userRoleForAPI);
-    console.log('📡 Fetching from URL:', url);
+    // Fetch schedules
+    let url;
+    if (userRoleForAPI === 'AUDITOR') {
+      url = `${API_BASE}/audit-schedule/auditor/${currentUser?.id}/schedules-with-status`;
+      console.log('📡 Using auditor endpoint (includes history)');
+    } else {
+      url = `${API_BASE}/audit-schedule/year/${new Date().getFullYear()}`;
+      console.log('📡 Using year endpoint');
+    }
     
     const response = await fetch(url, {
       headers: {
-        'Content-Type': 'application/json'
+        'Content-Type': 'application/json',
+        'User-Email': currentUser?.email || '',
+        'User-ID': currentUser?.id || ''
       }
     })
 
-    const responsesUrl = new URL(`${API_BASE}/templates/responses/all`);
-    responsesUrl.searchParams.append('userId', currentUser?.id || '');
-    
-    const responsesResponse = await fetch(responsesUrl, {
+    // Fetch responses for completion status
+    const responsesResponse = await fetch(`${API_BASE}/templates/responses/all`, {
       headers: {
-        'Content-Type': 'application/json'
+        'Content-Type': 'application/json',
+        'User-Email': currentUser?.email || '',
+        'User-ID': currentUser?.id || ''
       }
     })
-    
-    let allResponses = [];
-    try {
-      allResponses = await responsesResponse.json();
-    } catch (e) {
-      console.warn('Could not fetch responses:', e);
-    }
+    const allResponses = await responsesResponse.json()
 
+    // Create map of audit completion status by scheduleId
     const auditCompletionMap = new Map()
     allResponses.forEach(response => {
       if (response.auditScheduleId) {
@@ -1071,131 +1035,339 @@ const loadEvents = useCallback(async () => {
       }
     })
 
-    let eventsData = await response.json();
-    console.log('📊 Calendar events received:', eventsData.length);
-    
-    const formattedEvents = [];
-    
-    if (Array.isArray(eventsData) && eventsData.length > 0) {
-      console.log('📊 Processing events...');
+    if (response.ok) {
+      let allSchedules = await response.json();
       
-      for (const eventData of eventsData) {
-        // ✅ Skip events without a start date (week schedules)
-        if (!eventData.start) {
-          console.log(`⏭️ Skipping event without start date:`, {
-            id: eventData.id,
-            department: eventData.department,
-            month: eventData.month,
-            week: eventData.week
-          });
-          continue;
+      // Handle different response structures
+      if (userRoleForAPI === 'AUDITOR') {
+        // Check if allSchedules is an array and has the schedule property
+        if (Array.isArray(allSchedules) && allSchedules.length > 0 && allSchedules[0].schedule) {
+          allSchedules = allSchedules.map(item => item.schedule);
+          console.log('📊 Extracted schedules from auditor endpoint:', allSchedules.length);
+        } else if (Array.isArray(allSchedules)) {
+          console.log('📊 Schedules already in correct format:', allSchedules.length);
+        } else {
+          console.log('📊 Unexpected data format:', allSchedules);
+          allSchedules = [];
         }
-        
-        // ✅ Apply department filtering for Lead Auditor
-        if (userRoleForAPI === 'LEAD_AUDITOR' && leadAuditorDepartment) {
-          const eventDept = normalizeDepartmentForFilter(eventData.department);
-          if (eventDept !== leadAuditorDepartment) {
-            console.log(`⏭️ Skipping event: ${eventData.department} (expected: ${leadAuditorDepartment})`);
-            continue;
-          }
-        }
-        
-        // ✅ SAFELY create date objects
-        let startDate, endDate;
-        try {
-          startDate = new Date(eventData.start);
-          if (isNaN(startDate.getTime())) {
-            console.warn(`⚠️ Invalid start date for event ${eventData.id}: ${eventData.start}`);
-            continue;
-          }
-          endDate = eventData.end ? new Date(eventData.end) : new Date(startDate.getTime() + 3600000);
-          if (isNaN(endDate.getTime())) {
-            endDate = new Date(startDate.getTime() + 3600000);
-          }
-        } catch (dateErr) {
-          console.warn(`⚠️ Error parsing date for event ${eventData.id}:`, dateErr);
-          continue;
-        }
-        
-        const scheduleId = eventData.id;
-        const completionInfo = auditCompletionMap.get(scheduleId);
-        const isFullyCompleted = completionInfo?.isFullyCompleted || false;
-        const isSubmitted = completionInfo?.isSubmitted || false;
-        
-        let displayStatus = eventData.status || 'SCHEDULED';
-        if (isFullyCompleted) displayStatus = 'COMPLETED';
-        else if (isSubmitted) displayStatus = 'SUBMITTED';
-        
-        const isOwner = eventData.isOwner === true;
-        const isCoAuditor = eventData.isCoAuditor === true;
-        const isAttendee = eventData.isAttendee === true;
-        
-        let userRelationship = 'none';
-        if (isOwner) userRelationship = 'owner';
-        else if (isCoAuditor) userRelationship = 'co_auditor';
-        else if (isAttendee) userRelationship = 'attendee';
-        
-        const isDateRange = eventData.isDateRange || false;
-        const fromDate = eventData.fromDate || null;
-        const toDate = eventData.toDate || null;
-        
-        // ✅ REMOVED: Auditee filtering - backend already filters by role
-        // The backend /calendar-events endpoint already returns only events
-        // where the user is the auditee, so we don't need to filter here.
-        
-        formattedEvents.push({
-          id: eventData.id,
-          title: eventData.title || `${eventData.department || 'Audit'} - ${eventData.auditType || 'General'}`,
-          start: startDate,
-          end: endDate,
-          status: displayStatus,
-          auditType: eventData.auditType || 'Audit',
-          department: eventData.department || '',
-          isOwner: isOwner,
-          isCoAuditor: isCoAuditor,
-          isAttendee: isAttendee,
-          userRelationship: userRelationship,
-          auditorName: eventData.auditorName || '',
-          auditorId: eventData.auditorId || null,
-          auditeeName: eventData.auditeeName || '',
-          auditeeId: eventData.auditeeId || null,
-          description: eventData.description || '',
-          fromDate: fromDate,
-          toDate: toDate,
-          startTime: eventData.startTime || '',
-          endTime: eventData.endTime || '',
-          isDateRange: isDateRange,
-          isOriginal: true,
-          isFullyCompleted: isFullyCompleted,
-          isSubmitted: isSubmitted,
-          auditCompletionStatus: completionInfo?.status || null,
-          originalScheduledDate: eventData.originalScheduledDate || null,
-          originalStartTime: eventData.originalStartTime || null,
-          rescheduleHistory: eventData.rescheduleHistory || [],
-          extensionHistory: eventData.extensionHistory || [],
-          pendingReschedule: eventData.pendingReschedule || false,
-          pendingExtension: eventData.pendingExtension || false,
-          coAuditorNames: eventData.coAuditorNames || [],
-          coAuditorIdList: eventData.coAuditorIdList || []
-        });
-        
-        console.log('✅ Added event:', {
-          id: eventData.id,
-          title: eventData.title,
-          date: startDate.toISOString().split('T')[0],
-          department: eventData.department,
-          relationship: userRelationship,
-          startTime: eventData.startTime,
-          endTime: eventData.endTime
-        });
       }
+      
+      // ✅ ADD SAFETY CHECK - Make sure allSchedules is an array
+      if (!Array.isArray(allSchedules)) {
+        console.error('allSchedules is not an array:', allSchedules);
+        allSchedules = [];
+      }
+
+      // Filter by department for Lead Auditor
+      if (userRoleForAPI === 'LEAD_AUDITOR' && leadAuditorDepartment) {
+        const beforeCount = allSchedules.length;
+        allSchedules = allSchedules.filter(schedule => {
+          const scheduleDept = schedule.department;
+          const normalizedScheduleDept = normalizeDepartmentForFilter(scheduleDept);
+          const matches = normalizedScheduleDept === leadAuditorDepartment;
+          if (!matches && scheduleDept) {
+            console.log(`  Filtering out schedule dept "${scheduleDept}" → "${normalizedScheduleDept}" (expected: ${leadAuditorDepartment})`);
+          }
+          return matches;
+        });
+        console.log(`📊 Lead Auditor (${leadAuditorDepartment}): Filtered schedules from ${beforeCount} to ${allSchedules.length}`);
+      }
+
+      // Now filter schedules as before
+      let filteredSchedules = [];
+      
+      if (userRoleForAPI === 'AUDITOR') {
+        filteredSchedules = allSchedules;
+        console.log(`📊 Found ${filteredSchedules.length} total audits for user ${currentUser?.id}`);
+      } else if (userRoleForAPI === 'AUDITEE') {
+        filteredSchedules = allSchedules.filter(s => s && s.auditeeId === currentUser?.id);
+      } else {
+        filteredSchedules = allSchedules;
+      }
+  
+      const formattedEvents = []
+      
+      // ✅ ADD SAFETY CHECK - Make sure filteredSchedules is an array
+      if (!Array.isArray(filteredSchedules)) {
+        console.error('filteredSchedules is not an array:', filteredSchedules);
+        filteredSchedules = [];
+      }
+      
+      // Use for...of for async/await support
+      for (const audit of filteredSchedules) {
+        // ✅ ADD SAFETY CHECK - Skip if audit is undefined
+        if (!audit) {
+          console.warn('Skipping undefined audit');
+          continue;
+        }
+        
+        // ✅ POPULATE MISSING USER IDs FROM CACHE
+        if (userCacheData) {
+          // Map auditor name to ID if missing
+          if (!audit.auditorId && audit.auditorName) {
+            const mappedId = userCacheData.byName.get(audit.auditorName);
+            if (mappedId) {
+              audit.auditorId = mappedId;
+              console.log(`✅ Mapped auditor "${audit.auditorName}" to ID: ${mappedId}`);
+            } else {
+              console.warn(`⚠️ Could not find ID for auditor: "${audit.auditorName}"`);
+            }
+          }
+          
+          // Map auditee name to ID if missing
+          if (!audit.auditeeId && audit.auditeeName) {
+            const mappedId = userCacheData.byName.get(audit.auditeeName);
+            if (mappedId) {
+              audit.auditeeId = mappedId;
+              console.log(`✅ Mapped auditee "${audit.auditeeName}" to ID: ${mappedId}`);
+            } else {
+              console.warn(`⚠️ Could not find ID for auditee: "${audit.auditeeName}"`);
+            }
+          }
+          
+          // Map co-auditor names to IDs
+          if (audit.coAuditorNames && Array.isArray(audit.coAuditorNames) && audit.coAuditorNames.length > 0) {
+            const coAuditorIds = [];
+            for (const coName of audit.coAuditorNames) {
+              const coId = userCacheData.byName.get(coName);
+              if (coId) {
+                coAuditorIds.push(coId);
+              }
+            }
+            if (coAuditorIds.length > 0) {
+              audit.coAuditorIdList = coAuditorIds;
+              console.log(`✅ Mapped ${coAuditorIds.length} co-auditors to IDs`);
+            }
+          }
+        }
+        
+        const completionInfo = auditCompletionMap.get(audit.id)
+        const isFullyCompleted = completionInfo?.isFullyCompleted || false
+        const isSubmitted = completionInfo?.isSubmitted || false
+        
+        // Determine display status
+        let displayStatus
+        if (isFullyCompleted) {
+          displayStatus = 'COMPLETED'
+        } else if (isSubmitted) {
+          displayStatus = 'SUBMITTED'
+        } else {
+          displayStatus = audit.detailedApprovalStatus || audit.approvalStatus || 'SCHEDULED'
+        }
+        
+        const isDateRange = audit.fromDate && audit.toDate && audit.fromDate !== audit.toDate
+
+        // Fetch history for this audit
+        const history = {
+          originalScheduledDate: audit.originalScheduledDate || audit.previousScheduledDate || null,
+          originalStartTime: audit.originalStartTime || null,
+          rescheduleHistory: audit.rescheduleHistory || [],
+          extensionHistory: audit.extensionHistory || [],
+          pendingReschedule: audit.pendingReschedule || false,
+          pendingExtension: audit.pendingExtension || false
+        };
+        
+        // Determine co-auditor status
+        let isCoAuditor = false
+        let coAuditorNamesList = []
+        let coAuditorIdList = []
+
+        if (audit.coAuditorIds && audit.coAuditorIds !== 'null' && audit.coAuditorIds !== '[]') {
+          try {
+            let coIds = []
+            if (typeof audit.coAuditorIds === 'string') {
+              if (audit.coAuditorIds.startsWith('[')) {
+                coIds = JSON.parse(audit.coAuditorIds)
+              } else {
+                coIds = audit.coAuditorIds.split(',').map(id => parseInt(id.trim()))
+              }
+            } else if (Array.isArray(audit.coAuditorIds)) {
+              coIds = audit.coAuditorIds
+            }
+            
+            isCoAuditor = coIds.includes(currentUser?.id)
+            coAuditorIdList = coIds
+            
+            if (audit.coAuditorNames && Array.isArray(audit.coAuditorNames) && audit.coAuditorNames.length > 0) {
+              coAuditorNamesList = audit.coAuditorNames
+            } else {
+              coAuditorNamesList = coIds.map(id => `Co-Auditor ID: ${id}`)
+            }
+          } catch (e) {
+            console.error('Error parsing co-auditor IDs for schedule', audit.id, e)
+          }
+        }
+        
+        // Continue with your existing event creation code...
+        if (isDateRange) {
+          const fromDate = new Date(audit.fromDate)
+          const toDate = new Date(audit.toDate)
+          const { hours: startHours, minutes: startMinutes } = parseTimeString(audit.startTime || '09:00 AM')
+          const { hours: endHours, minutes: endMinutes } = parseTimeString(audit.endTime || '10:00 AM')
+          
+          const startDateTime = new Date(fromDate)
+          startDateTime.setHours(startHours, startMinutes)
+          const endDateTime = new Date(toDate)
+          endDateTime.setHours(endHours, endMinutes)
+          
+          formattedEvents.push({
+            id: audit.id,
+            title: audit.title || `${audit.department || 'Audit'} - ${audit.auditType || 'General'}`,
+            start: startDateTime,
+            end: endDateTime,
+            status: displayStatus,
+            auditType: audit.auditType,
+            department: audit.department,
+            isOwner: audit.auditorId === currentUser?.id,
+            isCoAuditor: isCoAuditor,
+            isAttendee: audit.auditeeId === currentUser?.id,
+            userRelationship: audit.auditorId === currentUser?.id ? 'owner' : (isCoAuditor ? 'co_auditor' : (audit.auditeeId === currentUser?.id ? 'attendee' : 'none')),
+            auditorName: audit.auditorName,
+            auditorId: audit.auditorId,
+            auditeeName: audit.auditeeName,
+            auditeeId: audit.auditeeId,
+            coAuditorIds: audit.coAuditorIds,
+            coAuditorNames: coAuditorNamesList,
+            coAuditorIdList: coAuditorIdList,
+            description: audit.auditObjective,
+            fromDate: audit.fromDate,
+            toDate: audit.toDate,
+            startTime: audit.startTime,
+            endTime: audit.endTime,
+            isDateRange: true,
+            isOriginal: true,
+            isFullyCompleted: isFullyCompleted,
+            isSubmitted: isSubmitted,
+            auditCompletionStatus: completionInfo?.status,
+            originalScheduledDate: history.originalScheduledDate,
+            originalStartTime: history.originalStartTime,
+            rescheduleHistory: history.rescheduleHistory,
+            extensionHistory: history.extensionHistory,
+            pendingReschedule: history.pendingReschedule,
+            pendingExtension: history.pendingExtension
+          })
+          
+          console.log('📅 Created date range event:', {
+            auditId: audit.id,
+            auditorId: audit.auditorId,
+            auditorName: audit.auditorName,
+            auditeeId: audit.auditeeId,
+            auditeeName: audit.auditeeName
+          });
+          
+          // Create display events for each day in range
+          const currentDate = new Date(fromDate)
+          while (currentDate <= toDate) {
+            const singleDate = new Date(currentDate)
+            const startDateTimeDisplay = new Date(singleDate)
+            startDateTimeDisplay.setHours(startHours, startMinutes)
+            const endDateTimeDisplay = new Date(singleDate)
+            endDateTimeDisplay.setHours(endHours, endMinutes)
+            
+            formattedEvents.push({
+              id: `${audit.id}_${currentDate.toISOString().split('T')[0]}`,
+              title: audit.title || `${audit.department || 'Audit'} - ${audit.auditType || 'General'}`,
+              start: startDateTimeDisplay,
+              end: endDateTimeDisplay,
+              status: displayStatus,
+              auditType: audit.auditType,
+              department: audit.department,
+              isOwner: audit.auditorId === currentUser?.id,
+              isCoAuditor: isCoAuditor,
+              isAttendee: audit.auditeeId === currentUser?.id,
+              userRelationship: audit.auditorId === currentUser?.id ? 'owner' : (isCoAuditor ? 'co_auditor' : (audit.auditeeId === currentUser?.id ? 'attendee' : 'none')),
+              auditorName: audit.auditorName,
+              auditorId: audit.auditorId,
+              auditeeName: audit.auditeeName,
+              auditeeId: audit.auditeeId,
+              coAuditorIds: audit.coAuditorIds,
+              coAuditorNames: coAuditorNamesList,
+              coAuditorIdList: coAuditorIdList,
+              description: audit.auditObjective,
+              fromDate: fromDate,
+              toDate: toDate,
+              startTime: audit.startTime,
+              endTime: audit.endTime,
+              isDateRange: true,
+              isDisplayEvent: true,
+              parentId: audit.id,
+              originalFromDate: fromDate,
+              originalToDate: toDate,
+              isFullyCompleted: isFullyCompleted,
+              isSubmitted: isSubmitted,
+              auditCompletionStatus: completionInfo?.status,
+              originalScheduledDate: history.originalScheduledDate,
+              originalStartTime: history.originalStartTime,
+              rescheduleHistory: history.rescheduleHistory,
+              extensionHistory: history.extensionHistory,
+              pendingReschedule: history.pendingReschedule,
+              pendingExtension: history.pendingExtension
+            })
+            
+            currentDate.setDate(currentDate.getDate() + 1)
+          }
+        } else if (audit.scheduledDate) {
+          const scheduledDate = new Date(audit.scheduledDate)
+          const { hours: startHours, minutes: startMinutes } = parseTimeString(audit.startTime || '09:00 AM')
+          const { hours: endHours, minutes: endMinutes } = parseTimeString(audit.endTime || '10:00 AM')
+          
+          const startDateTime = new Date(scheduledDate)
+          startDateTime.setHours(startHours, startMinutes)
+          const endDateTime = new Date(scheduledDate)
+          endDateTime.setHours(endHours, endMinutes)
+          
+          formattedEvents.push({
+            id: audit.id,
+            title: audit.title || `${audit.department || 'Audit'} - ${audit.auditType || 'General'}`,
+            start: startDateTime,
+            end: endDateTime,
+            status: displayStatus,
+            auditType: audit.auditType,
+            department: audit.department,
+            isOwner: audit.auditorId === currentUser?.id,
+            isCoAuditor: isCoAuditor,
+            isAttendee: audit.auditeeId === currentUser?.id,
+            userRelationship: audit.auditorId === currentUser?.id ? 'owner' : (isCoAuditor ? 'co_auditor' : (audit.auditeeId === currentUser?.id ? 'attendee' : 'none')),
+            auditorName: audit.auditorName,
+            auditorId: audit.auditorId,
+            auditeeName: audit.auditeeName,
+            auditeeId: audit.auditeeId,
+            coAuditorIds: audit.coAuditorIds,
+            coAuditorNames: coAuditorNamesList,
+            coAuditorIdList: coAuditorIdList,
+            description: audit.auditObjective,
+            fromDate: null,
+            toDate: null,
+            startTime: audit.startTime,
+            endTime: audit.endTime,
+            isDateRange: false,
+            isFullyCompleted: isFullyCompleted,
+            isSubmitted: isSubmitted,
+            auditCompletionStatus: completionInfo?.status,
+            originalScheduledDate: history.originalScheduledDate,
+            originalStartTime: history.originalStartTime,
+            rescheduleHistory: history.rescheduleHistory,
+            extensionHistory: history.extensionHistory,
+            pendingReschedule: history.pendingReschedule,
+            pendingExtension: history.pendingExtension
+          })
+          
+          console.log('📅 Created regular event:', {
+            auditId: audit.id,
+            auditorId: audit.auditorId,
+            auditorName: audit.auditorName,
+            auditeeId: audit.auditeeId,
+            auditeeName: audit.auditeeName
+          });
+        }
+      }
+      
+      setEvents(formattedEvents)
+      console.log('✅ Events loaded:', formattedEvents.filter(e => !e.isDisplayEvent && e.isOriginal !== false).length)
+      
     } else {
-      console.log('📊 No events received from calendar-events endpoint');
+      setError('Failed to load calendar data')
     }
-    
-    setEvents(formattedEvents);
-    console.log('✅ Total events loaded:', formattedEvents.length);
-    
   } catch (err) {
     console.error('Error loading events:', err);
     setError('Failed to connect to server');
@@ -1305,49 +1477,38 @@ useEffect(() => {
   }
 
   ///UPDATED
- const handleEventClick = async (event) => {
+  const handleEventClick = (event) => {
   console.log('=== CLICKED EVENT DEBUG ===');
   console.log('Event ID:', event.id);
   console.log('Event coAuditorNames:', event.coAuditorNames);
   console.log('Event coAuditorIdList:', event.coAuditorIdList);
+  console.log('Event isDisplayEvent:', event.isDisplayEvent);
+  console.log('Event parentId:', event.parentId);
   
-  // ✅ Ensure user cache is loaded
-  try {
-    await fetchAllUsers();
-    console.log('✅ User cache loaded for popup');
-  } catch (error) {
-    console.warn('Failed to load user cache:', error);
-  }
-  
-  // ✅ Get the full event data
-  let fullEvent = event;
-  
-  // If it's a display event, find the original
   if (event.isDisplayEvent && event.parentId) {
-    const originalEvent = events.find(e => e.id === event.parentId && e.isOriginal === true);
+    const originalEvent = events.find(e => e.id === event.parentId && e.isOriginal === true)
     if (originalEvent) {
-      fullEvent = originalEvent;
       console.log('Found original event with coAuditorNames:', originalEvent.coAuditorNames);
+      setSelectedAudit(originalEvent)
     } else {
+      // Try to find by id without isOriginal flag
       const anyEvent = events.find(e => e.id === event.parentId);
       if (anyEvent) {
-        fullEvent = anyEvent;
         console.log('Found any event with coAuditorNames:', anyEvent.coAuditorNames);
+        setSelectedAudit(anyEvent);
+      } else {
+        setSelectedAudit({
+          ...event,
+          fromDate: event.originalFromDate || event.fromDate,
+          toDate: event.originalToDate || event.toDate
+        })
       }
     }
+  } else {
+    setSelectedAudit(event)
   }
-  
-  console.log('✅ Selected audit:', {
-    id: fullEvent.id,
-    auditorId: fullEvent.auditorId,
-    auditorName: fullEvent.auditorName,
-    coAuditorNames: fullEvent.coAuditorNames,
-    coAuditorIdList: fullEvent.coAuditorIdList
-  });
-  
-  setSelectedAudit(fullEvent);
-  setShowAuditPopup(true);
-};
+  setShowAuditPopup(true)
+}
 
 
   const filteredEvents = events.filter(event => {
@@ -1390,7 +1551,7 @@ useEffect(() => {
         <div className="h-full p-4">
           <Calendar
             localizer={localizer}
-            events={events.filter(e => e.isOriginal === true)}  // ✅ Show original events
+            events={events.filter(e => !e.isOriginal)}
             startAccessor="start"
             endAccessor="end"
             view={view}
@@ -1411,7 +1572,7 @@ useEffect(() => {
     if (parentEvent) actualEvent = parentEvent;
   }
   
-const shortType = getAuditTypeShort(actualEvent)
+  const shortType = getAuditTypeShort(actualEvent.auditType)
   const dotColorRgb = getDotColor(actualEvent)  // Now returns RGB string
   const isOverdue = isEventOverdue(actualEvent)
   const isCompleted = isEventCompleted(actualEvent)
@@ -1750,7 +1911,7 @@ const shortType = getAuditTypeShort(actualEvent)
               {view === 'year' ? (
                 <YearView
                   date={date}
-                  events={events.filter(e => e.isOriginal === true)}  // ✅ Show original events
+                  events={events.filter(e => !e.isOriginal)}
                   onEventClick={handleEventClick}
                   onDateClick={handleDateClick}
                   onMonthClick={handleMonthClick}
@@ -1758,7 +1919,7 @@ const shortType = getAuditTypeShort(actualEvent)
               ) : (
                 <Calendar
                   localizer={localizer}
-                  events={events.filter(e => e.isOriginal === true)}  // ✅ Show original events
+                  events={events.filter(e => !e.isOriginal)}
                   startAccessor="start"
                   endAccessor="end"
                   view={view}
@@ -1779,7 +1940,7 @@ const shortType = getAuditTypeShort(actualEvent)
     if (parentEvent) actualEvent = parentEvent;
   }
   
-const shortType = getAuditTypeShort(actualEvent)
+  const shortType = getAuditTypeShort(actualEvent.auditType)
   const dotColorRgb = getDotColor(actualEvent)  // Now returns RGB string
   const isOverdue = isEventOverdue(actualEvent)
   const isCompleted = isEventCompleted(actualEvent)
