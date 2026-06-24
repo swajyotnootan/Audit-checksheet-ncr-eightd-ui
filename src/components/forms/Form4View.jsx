@@ -292,29 +292,39 @@ const Form4View = () => {
    
 const formatLocalDateTime = (utcDateStr) => {
   if (!utcDateStr) return '-';
- 
-  // Create date object - handle both with and without timezone info
-  const date = new Date(utcDateStr);
- 
-  // Check if date is valid
-  if (isNaN(date.getTime())) {
-    // If invalid, try appending 'Z' for UTC
-    const altDate = new Date(utcDateStr + 'Z');
-    if (isNaN(altDate.getTime())) return '-';
-   
-    // Convert to IST
-    return altDate.toLocaleString('en-IN', {
-      timeZone: 'Asia/Kolkata',
-      day: '2-digit',
-      month: '2-digit',
-      year: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
-      hour12: true
-    });
+  
+  // Try parsing the date
+  let date;
+  
+  // Check if it's already an ISO string with timezone
+  if (utcDateStr.includes('T') || utcDateStr.includes('Z')) {
+    date = new Date(utcDateStr);
+  } else {
+    // Convert "yyyy-MM-dd HH:mm:ss" to ISO format with Z
+    const isoString = utcDateStr.replace(' ', 'T') + 'Z';
+    date = new Date(isoString);
   }
- 
-  // Convert to IST
+  
+  // Validate the date
+  if (isNaN(date.getTime())) {
+    // Try alternative parsing
+    const parts = utcDateStr.match(/(\d{4})-(\d{2})-(\d{2})\s+(\d{2}):(\d{2}):(\d{2})/);
+    if (parts) {
+      // Create UTC date manually
+      date = new Date(Date.UTC(
+        parseInt(parts[1]),  // year
+        parseInt(parts[2]) - 1, // month (0-indexed)
+        parseInt(parts[3]),  // day
+        parseInt(parts[4]),  // hour
+        parseInt(parts[5]),  // minute
+        parseInt(parts[6])   // second
+      ));
+    }
+  }
+  
+  if (isNaN(date.getTime())) return '-';
+  
+  // Format to IST
   return date.toLocaleString('en-IN', {
     timeZone: 'Asia/Kolkata',
     day: '2-digit',
