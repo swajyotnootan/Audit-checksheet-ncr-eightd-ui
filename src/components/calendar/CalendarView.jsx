@@ -578,7 +578,7 @@ const AuditDetailsPopup = ({ audit, onClose }) => {
           <div className="flex flex-wrap items-center justify-between gap-2">
             <div>
               <h2 className="text-lg font-bold text-gray-800">
-                {audit.auditType || 'Audit'}
+                {audit.title || 'Audit'} 
               </h2>
               {audit.auditNumber && (
                 <p className="text-xs font-mono text-gray-500 mt-0.5">{audit.auditNumber}</p>
@@ -635,11 +635,34 @@ const AuditDetailsPopup = ({ audit, onClose }) => {
             </div>
             
             {/* Time */}
-            <div className="flex items-center gap-2 mt-2 text-sm">
-              <Clock className="w-4 h-4 text-gray-400" />
-              <span className="text-gray-600">Time:</span>
-              <span className="text-gray-700">{formatTime(audit.startTime)} - {formatTime(audit.endTime)}</span>
-            </div>
+            {/* Time - Extract from description (handles bullet points) */}
+<div className="flex items-center gap-2 mt-2 text-sm">
+  <Clock className="w-4 h-4 text-gray-400" />
+  <span className="text-gray-600">Time:</span>
+  <span className="text-gray-700">
+    {audit.startTime && audit.endTime 
+      ? `${audit.startTime} - ${audit.endTime}`
+      : (audit.description 
+          ? (() => {
+              // Handle bullet point format: "• Time: 09:00 AM - 10:00 AM"
+              let match = audit.description.match(/[•●]\s*Time:\s*([^\n]+)/i);
+              if (match) return match[1].trim();
+              
+              // Handle regular format: "Time: 09:00 AM - 10:00 AM"
+              match = audit.description.match(/Time:\s*([^\n]+)/i);
+              if (match) return match[1].trim();
+              
+              // Handle direct time pattern
+              match = audit.description.match(/([0-9]{1,2}:[0-9]{2}\s*(?:AM|PM)\s*-\s*[0-9]{1,2}:[0-9]{2}\s*(?:AM|PM))/);
+              if (match) return match[1];
+              
+              return 'N/A';
+            })()
+          : 'N/A'
+        )
+    }
+  </span>
+</div>
 
             {/* Date Range Progress Bar */}
             {isDateRange && progress && (
@@ -751,12 +774,12 @@ const AuditDetailsPopup = ({ audit, onClose }) => {
 </div>
 
 
-          {audit.description && (
+          {/* {audit.description && (
             <div className="p-3 rounded-lg bg-gray-50">
               <p className="mb-1 text-xs text-gray-500">Objective / Description</p>
               <p className="text-sm text-gray-600">{audit.description}</p>
             </div>
-          )}
+          )} */}
 
           {/* Pending Request Status */}
           {(audit.pendingReschedule || audit.pendingExtension) && (
@@ -1282,38 +1305,49 @@ useEffect(() => {
   }
 
   ///UPDATED
-  const handleEventClick = (event) => {
+ const handleEventClick = async (event) => {
   console.log('=== CLICKED EVENT DEBUG ===');
   console.log('Event ID:', event.id);
   console.log('Event coAuditorNames:', event.coAuditorNames);
   console.log('Event coAuditorIdList:', event.coAuditorIdList);
-  console.log('Event isDisplayEvent:', event.isDisplayEvent);
-  console.log('Event parentId:', event.parentId);
   
+  // ✅ Ensure user cache is loaded
+  try {
+    await fetchAllUsers();
+    console.log('✅ User cache loaded for popup');
+  } catch (error) {
+    console.warn('Failed to load user cache:', error);
+  }
+  
+  // ✅ Get the full event data
+  let fullEvent = event;
+  
+  // If it's a display event, find the original
   if (event.isDisplayEvent && event.parentId) {
-    const originalEvent = events.find(e => e.id === event.parentId && e.isOriginal === true)
+    const originalEvent = events.find(e => e.id === event.parentId && e.isOriginal === true);
     if (originalEvent) {
+      fullEvent = originalEvent;
       console.log('Found original event with coAuditorNames:', originalEvent.coAuditorNames);
-      setSelectedAudit(originalEvent)
     } else {
-      // Try to find by id without isOriginal flag
       const anyEvent = events.find(e => e.id === event.parentId);
       if (anyEvent) {
+        fullEvent = anyEvent;
         console.log('Found any event with coAuditorNames:', anyEvent.coAuditorNames);
-        setSelectedAudit(anyEvent);
-      } else {
-        setSelectedAudit({
-          ...event,
-          fromDate: event.originalFromDate || event.fromDate,
-          toDate: event.originalToDate || event.toDate
-        })
       }
     }
-  } else {
-    setSelectedAudit(event)
   }
-  setShowAuditPopup(true)
-}
+  
+  console.log('✅ Selected audit:', {
+    id: fullEvent.id,
+    auditorId: fullEvent.auditorId,
+    auditorName: fullEvent.auditorName,
+    coAuditorNames: fullEvent.coAuditorNames,
+    coAuditorIdList: fullEvent.coAuditorIdList
+  });
+  
+  setSelectedAudit(fullEvent);
+  setShowAuditPopup(true);
+};
 
 
   const filteredEvents = events.filter(event => {
