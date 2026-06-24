@@ -18,7 +18,7 @@ import logoUrl from '../assets/Stratum.png';
 import NotificationBell from './NotificationBell';
 import { useAuth } from '../components/context/AuthContext';
  
-const Navbar = ({ onLogout, children }) => {
+const Navbar = ({ onLogout, children,rightLogo }) => {
   const navigate = useNavigate();
   const location = useLocation();
   const [profileOpen, setProfileOpen] = useState(false);
@@ -59,27 +59,31 @@ const Navbar = ({ onLogout, children }) => {
 
 
             {/* Toggle Button for Audit Manager, Top Management, Lead Auditor & Auditor Dashboards */}
-            {(location.pathname.includes('audit-manager') || location.pathname.includes('top-management') || location.pathname.includes('lead-auditor') || location.pathname.includes('auditor')) && (
-                <button
-                    onClick={() => {
-                        if (location.pathname.includes('audit-manager')) {
-                            window.dispatchEvent(new CustomEvent('toggle-audit-sidebar'));
-                        } else if (location.pathname.includes('top-management')) {
-                            window.dispatchEvent(new CustomEvent('toggle-top-management-sidebar'));
-                        } else if (location.pathname.includes('lead-auditor')) {
-                            window.dispatchEvent(new CustomEvent('toggle-lead-auditor-sidebar'));
-                        } else if (location.pathname.includes('auditor')) {
-                            window.dispatchEvent(new CustomEvent('toggle-auditor-sidebar'));
-                        }
-                    }}
-                    className="p-2 mr-3 transition-colors rounded-lg text-white/80 hover:text-white hover:bg-white/10"
-                    title="Toggle Sidebar"
-                >
-                    <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-                    </svg>
-                </button>
-            )}
+{(location.pathname.includes('audit-manager') || location.pathname.includes('top-management') || location.pathname.includes('lead-auditor') || location.pathname.includes('auditor') || location.pathname.includes('auditee') || location.pathname.includes('master')) && (
+    <button
+        onClick={() => {
+            if (location.pathname.includes('audit-manager')) {
+                window.dispatchEvent(new CustomEvent('toggle-audit-sidebar'));
+            } else if (location.pathname.includes('top-management')) {
+                window.dispatchEvent(new CustomEvent('toggle-top-management-sidebar'));
+            } else if (location.pathname.includes('lead-auditor')) {
+                window.dispatchEvent(new CustomEvent('toggle-lead-auditor-sidebar'));
+            } else if (location.pathname.includes('auditor')) {
+                window.dispatchEvent(new CustomEvent('toggle-auditor-sidebar'));
+            } else if (location.pathname.includes('auditee')) {
+                window.dispatchEvent(new CustomEvent('toggle-auditee-sidebar')); 
+            } else if (location.pathname.includes('master')) {
+                window.dispatchEvent(new CustomEvent('toggle-master-sidebar')); // 👈 Added for Master Dashboard
+            }
+        }}
+        className="p-2 mr-3 transition-colors rounded-lg text-white/80 hover:text-white hover:bg-white/10"
+        title="Toggle Sidebar"
+    >
+        <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+        </svg>
+    </button>
+)}
                           
             <Link to="/" className="flex justify-center">
               <img alt="qsutra logo" className="h-8 mr-6 w-23" src={logo} />
@@ -101,7 +105,7 @@ const Navbar = ({ onLogout, children }) => {
             {/* API Logo - WHITE BACKGROUND REMOVED */}
             <div className="flex items-center justify-center px-1 rounded-lg">
               <img
-                src={logoUrl}
+                src={rightLogo || logoUrl}
                 alt="Stratum Logo"
                 className="h-9 max-w-[130px] rounded object-contain"
                 style={{ background: 'transparent' }}
@@ -130,7 +134,8 @@ const Navbar = ({ onLogout, children }) => {
             >
               {user?.id ? (
                 <img
-                  src={`https://internalaudit.hub.swajyot.co.in:8090/api/users/${user.id}/profile-photo`}
+                  src={`https://internalaudit.hub.swajyot.co.in:8090
+/api/users/${user.id}/profile-photo`}
                   alt="User Avatar"
                   className="object-cover w-8 h-8"
                   onError={e => { e.target.onerror = null; e.target.style.display = 'none'; }}

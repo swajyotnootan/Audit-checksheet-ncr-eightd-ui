@@ -3,6 +3,19 @@ import { useNavigate } from 'react-router-dom';
 import { ChevronRight, Plus, AlertTriangle, FileText, Zap } from 'lucide-react';
 import axios from 'axios';
 
+
+const NAVBAR_COLORS = {
+  primary1: "#005f9b",
+    primary: '#00799b',
+    secondary: '#3b82f6',
+    dark: '#1e3a8a',
+    light: '#60a5fa',
+    lighter: '#93c5fd',
+    bg: '#eff6ff',
+    white: '#ffffff',
+};
+
+
 // --- Badges (Kept for consistency if needed elsewhere, though not used in the new empty state) ---
 const StatusBadge = ({ status }) => {
   const getStatusConfig = (status) => {
@@ -132,51 +145,88 @@ const EightDCard = ({ report, onClick }) => {
   );
 };
 
-// Action Card Component (For Fresh & NCR)
+
 const ActionCard = ({ title, description, icon: Icon, colorTheme, onClick }) => {
+  const [isHovered, setIsHovered] = useState(false);
+
+  // Themes with added default subtle colors for badge and button
   const themes = {
-    purple: {
-      gradient: 'from-purple-50 to-pink-50',
-      iconBg: 'bg-gradient-to-br from-purple-100 to-pink-100',
-      iconColor: 'text-purple-600',
-      buttonGradient: 'from-purple-100 to-pink-100',
-      buttonHover: 'hover:from-purple-400 hover:to-pink-400',
-      borderHover: 'hover:border-purple-300',
-      titleHover: 'group-hover:text-purple-900'
+    primary: {
+      cardBg: `linear-gradient(135deg, ${NAVBAR_COLORS.bg} 0%, ${NAVBAR_COLORS.white} 100%)`,
+      iconOuterBg: `linear-gradient(135deg, ${NAVBAR_COLORS.bg} 0%, ${NAVBAR_COLORS.lighter}40 100%)`, // Subtle light blue bg
+      iconBg: `linear-gradient(135deg, ${NAVBAR_COLORS.lighter} 0%, ${NAVBAR_COLORS.light} 100%)`,
+      iconColor: NAVBAR_COLORS.white,
+      buttonBg: `linear-gradient(135deg, ${NAVBAR_COLORS.bg} 0%, ${NAVBAR_COLORS.lighter} 100%)`, // Subtle button bg
+      buttonText: NAVBAR_COLORS.primary, // Colored text when not hovered
+      buttonHoverBg: `linear-gradient(135deg, ${NAVBAR_COLORS.primary} 0%, ${NAVBAR_COLORS.secondary} 100%)`,
+      buttonHoverText: NAVBAR_COLORS.white,
+      borderColor: NAVBAR_COLORS.lighter,
+      borderHoverColor: NAVBAR_COLORS.secondary,
+      titleHoverColor: NAVBAR_COLORS.primary1,
+      accentGradient: `linear-gradient(135deg, ${NAVBAR_COLORS.primary} 0%, ${NAVBAR_COLORS.secondary} 50%, ${NAVBAR_COLORS.light} 100%)`,
     },
-    orange: {
-      gradient: 'from-orange-50 to-red-50',
-      iconBg: 'bg-gradient-to-br from-orange-100 to-red-100',
-      iconColor: 'text-orange-600',
-      buttonGradient: 'from-orange-100 to-red-100',
-      buttonHover: 'hover:from-orange-400 hover:to-red-400',
-      borderHover: 'hover:border-orange-300',
-      titleHover: 'group-hover:text-orange-900'
+    secondary: {
+      cardBg: `linear-gradient(135deg, ${NAVBAR_COLORS.white} 0%, ${NAVBAR_COLORS.bg} 100%)`,
+      iconOuterBg: `linear-gradient(135deg, ${NAVBAR_COLORS.bg} 0%, ${NAVBAR_COLORS.lighter}40 100%)`, // Subtle light blue bg
+      iconBg: `linear-gradient(135deg, ${NAVBAR_COLORS.secondary} 0%, ${NAVBAR_COLORS.primary} 100%)`,
+      iconColor: NAVBAR_COLORS.white,
+      buttonBg: `linear-gradient(135deg, ${NAVBAR_COLORS.lighter} 0%, ${NAVBAR_COLORS.bg} 100%)`, // Subtle button bg
+      buttonText: NAVBAR_COLORS.dark, // Colored text when not hovered
+      buttonHoverBg: `linear-gradient(135deg, ${NAVBAR_COLORS.dark} 0%, ${NAVBAR_COLORS.primary} 100%)`,
+      buttonHoverText: NAVBAR_COLORS.white,
+      borderColor: NAVBAR_COLORS.lighter,
+      borderHoverColor: NAVBAR_COLORS.primary,
+      titleHoverColor: NAVBAR_COLORS.primary1,
+      accentGradient: `linear-gradient(135deg, ${NAVBAR_COLORS.dark} 0%, ${NAVBAR_COLORS.primary} 50%, ${NAVBAR_COLORS.secondary} 100%)`,
     }
   };
 
-  const theme = themes[colorTheme] || themes.purple;
+  const theme = themes[colorTheme] || themes.primary;
 
   return (
     <div
       onClick={onClick}
-      className={`relative p-8 overflow-hidden transition-all duration-500 ease-out bg-white border border-gray-100 shadow-lg cursor-pointer rounded-3xl hover:shadow-2xl ${theme.borderHover} hover:-translate-y-2 group h-full flex flex-col`}
+      className="relative flex flex-col h-full p-8 overflow-hidden transition-all duration-500 ease-out bg-white border shadow-lg cursor-pointer rounded-3xl hover:shadow-2xl hover:-translate-y-2 group"
+      style={{
+        borderColor: isHovered ? theme.borderHoverColor : theme.borderColor,
+      }}
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
     >
-      <div className={`absolute inset-0 transition-all duration-500 pointer-events-none bg-gradient-to-br ${theme.gradient} opacity-0 group-hover:opacity-40 rounded-3xl`}></div>
-     
-      <div className={`absolute inset-0 rounded-3xl bg-gradient-to-r ${colorTheme === 'orange' ? 'from-orange-500 via-red-500 to-pink-500' : 'from-blue-500 via-purple-500 to-pink-500'} opacity-0 group-hover:opacity-100 transition-opacity duration-500 p-[2px]`}>
+      {/* Hover gradient overlay */}
+      <div
+        className="absolute inset-0 transition-all duration-500 opacity-0 pointer-events-none group-hover:opacity-40 rounded-3xl"
+        style={{ background: theme.cardBg }}
+      ></div>
+
+      {/* Animated border gradient on hover */}
+      <div
+        className="absolute inset-0 rounded-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-500 p-[2px]"
+        style={{ background: theme.accentGradient }}
+      >
         <div className="w-full h-full bg-white rounded-3xl"></div>
       </div>
 
       <div className="relative z-10 flex flex-col h-full">
-        <div className="flex items-center justify-center w-20 h-20 mb-6 transition-all duration-500 shadow-sm rounded-2xl group-hover:scale-110 group-hover:rotate-3 mx-auto bg-gradient-to-br from-gray-50 to-gray-100">
-           <div className={`w-16 h-16 flex items-center justify-center rounded-xl ${theme.iconBg}`}>
-             <Icon className={`w-8 h-8 ${theme.iconColor}`} />
-           </div>
+        {/* Icon / Badge with subtle default background */}
+        <div 
+          className="flex items-center justify-center w-20 h-20 mx-auto mb-6 transition-all duration-500 shadow-sm rounded-2xl group-hover:scale-110 group-hover:rotate-3"
+          style={{ background: theme.iconOuterBg }}
+        >
+          <div
+            className="flex items-center justify-center w-16 h-16 transition-all duration-500 rounded-xl"
+            style={{ background: theme.iconBg }}
+          >
+            <Icon className="w-8 h-8" style={{ color: theme.iconColor }} />
+          </div>
         </div>
 
-        <div className="text-center mb-8 flex-grow">
-          <h3 className={`text-2xl font-bold text-gray-900 mb-3 transition-colors ${theme.titleHover}`}>
+        {/* Title & Description */}
+        <div className="flex-grow mb-8 text-center">
+          <h3
+            className="mb-3 text-2xl font-bold transition-colors duration-300"
+            style={{ color: isHovered ? theme.titleHoverColor : '#111827' }} // #111827 is Tailwind's text-gray-900
+          >
             {title}
           </h3>
           <p className="text-sm leading-relaxed text-gray-600">
@@ -184,7 +234,14 @@ const ActionCard = ({ title, description, icon: Icon, colorTheme, onClick }) => 
           </p>
         </div>
 
-        <div className={`flex items-center justify-center w-full gap-2 px-4 py-4 font-medium transition-all duration-300 bg-gradient-to-r ${theme.buttonGradient} ${theme.buttonHover} text-slate-700 rounded-xl group-hover:shadow-md mt-auto`}>
+        {/* Button with subtle default background and colored text */}
+        <div
+          className="flex items-center justify-center w-full gap-2 px-4 py-4 mt-auto font-medium transition-all duration-300 rounded-xl group-hover:shadow-md"
+          style={{ 
+            background: isHovered ? theme.buttonHoverBg : theme.buttonBg,
+            color: isHovered ? theme.buttonHoverText : theme.buttonText
+          }}
+        >
           <span className="text-lg">Start Process</span>
           <ChevronRight className="w-5 h-5 transition-transform duration-300 group-hover:translate-x-1" />
         </div>
@@ -320,11 +377,11 @@ const InitiatorDashboard = ({ user, onLogout }) => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-50 via-purple-50/30 to-pink-50/20">
+      <div className="min-h-screen bg-blue-50 from-gray-50 via-purple-50/30 to-pink-50/20">
         <div className="flex items-center justify-center h-screen">
           <div className="text-center">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600 mx-auto"></div>
-            <p className="text-gray-500 mt-4">Loading 8D Reports...</p>
+            <div className="w-12 h-12 mx-auto border-b-2 border-purple-600 rounded-full animate-spin"></div>
+            <p className="mt-4 text-gray-500">Loading 8D Reports...</p>
           </div>
         </div>
       </div>
@@ -332,22 +389,25 @@ const InitiatorDashboard = ({ user, onLogout }) => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-purple-50/30 to-pink-50/20 pb-12">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+    <div className="min-h-screen pb-12 bg-blue-50 from-gray-50 via-purple-50/30 to-pink-50/20">
+      <div className="px-4 py-12 mx-auto max-w-7xl sm:px-6 lg:px-8">
         <div className="mb-10 text-center">
-          <h1 className="text-4xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent mb-2">
+          <h1 
+            className="p-2 text-4xl font-bold text-transparent bg-clip-text" 
+            style={{ backgroundImage: `linear-gradient(135deg, ${NAVBAR_COLORS.primary1} 0%, ${NAVBAR_COLORS.secondary} 100%)` }}
+          >
             8D Quality Management
           </h1>
           <p className="text-gray-500">Select an option below to start or continue a problem-solving process</p>
         </div>
 
         {/* Creation Options Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-12">
+        <div className="grid grid-cols-1 gap-8 mb-12 md:grid-cols-2">
           <ActionCard 
             title="Create Fresh 8D"
             description="Start a new 8D report from scratch for general quality issues, customer complaints, or internal improvements."
             icon={Zap}
-            colorTheme="purple"
+            colorTheme="primary"
             onClick={handleNewFreshReport}
           />
 
@@ -355,7 +415,7 @@ const InitiatorDashboard = ({ user, onLogout }) => {
             title="NCR Based 8D"
             description="Convert an existing Non-Conformance Report (NCR) into an 8D problem-solving workflow immediately."
             icon={AlertTriangle}
-            colorTheme="orange"
+            colorTheme="primary"
             onClick={handleNewNCRReport}
           />
         </div>

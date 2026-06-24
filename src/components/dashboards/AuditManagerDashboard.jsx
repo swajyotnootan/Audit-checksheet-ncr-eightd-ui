@@ -262,7 +262,23 @@ const BarChart = ({ data, title, subtitle, delay = 0 }) => {
           {data.map((item, idx) => {
             const height = (item.value / maxValue) * 100;
             return (
-              <div key={idx} className="flex flex-col items-center flex-1 gap-2 group">
+              <div key={idx} className="relative flex flex-col items-center flex-1 gap-2 group">
+                {/* Tooltip */}
+                <div 
+                  className="absolute -top-10 left-1/2 -translate-x-1/2 text-white text-xs px-3 py-1.5 rounded-lg opacity-0 group-hover:opacity-100 transition-all whitespace-nowrap font-bold shadow-lg z-20 pointer-events-none"
+                  style={{ 
+                    background: `linear-gradient(135deg, ${NAVBAR_COLORS.primary} 0%, ${NAVBAR_COLORS.secondary} 100%)`
+                  }}
+                >
+                  {item.value}
+                  <div 
+                    className="absolute w-2 h-2 -mt-1 rotate-45 -translate-x-1/2 top-full left-1/2"
+                    style={{ 
+                      background: NAVBAR_COLORS.secondary
+                    }}
+                  />
+                </div>
+
                 <div className="relative flex items-end w-full h-40">
                   <div 
                     className="relative w-full overflow-hidden transition-all duration-700 ease-out rounded-t-xl hover:opacity-80"
@@ -273,9 +289,6 @@ const BarChart = ({ data, title, subtitle, delay = 0 }) => {
                     }}
                   >
                     <div className="absolute inset-0 transition-opacity opacity-0 bg-white/10 group-hover:opacity-100" />
-                    <div className="absolute -top-8 left-1/2 -translate-x-1/2 bg-slate-800 text-white text-xs px-2.5 py-1 rounded-lg opacity-0 group-hover:opacity-100 transition-all whitespace-nowrap font-medium shadow-lg">
-                      {item.value}
-                    </div>
                   </div>
                 </div>
                 <span className="text-xs font-medium text-center text-slate-500">

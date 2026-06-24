@@ -568,6 +568,20 @@ const TopManagementDashboard = () => {
   useEffect(() => { fetchDashboardData(); fetchAllUsers(); }, []);
 
   useEffect(() => {
+    const handleToggleSidebar = () => {
+      setIsSidebarOpen(prev => !prev);
+    };
+
+    window.addEventListener('toggle-top-management-sidebar', handleToggleSidebar);
+
+    // Cleanup the event listener when the component unmounts
+    return () => {
+      window.removeEventListener('toggle-top-management-sidebar', handleToggleSidebar);
+    };
+  }, []);
+  
+
+  useEffect(() => {
     if (showDetailedDetails && selectedDetailedPlan) {
       const hasPendingSchedules = detailedSchedulesList.some(s => s.detailedApprovalStatus === 'PENDING_APPROVAL' || s.detailedApprovalStatus === 'CHANGE_REQUESTED');
       if (!hasPendingSchedules && activeTab === 'pending') setActiveTab('history');

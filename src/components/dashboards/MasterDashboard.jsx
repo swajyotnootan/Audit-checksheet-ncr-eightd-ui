@@ -11,12 +11,18 @@ import AboutUs from './admin/AboutUs';
 import LogoManagement from './admin/LogoManagement';
 import ListManagement from './admin/ListManagement';
 import LineManagement from '../forum/LineManagement';
-import { FaBars } from 'react-icons/fa';
-import { Avatar, Typography, Button } from '@mui/material';
-import LogoutIcon from '@mui/icons-material/Logout';
-import qlogo from '../../assets/QsutraMXLOGOMainWhite.png'; // Qsutra logo
+import Navbar from '../../components/Navbar'; 
 
-
+// Matching the Auditee Dashboard color palette
+const NAVBAR_COLORS = {
+    primary: '#00529B',
+    secondary: '#3b82f6',
+    dark: '#1e3a8a',
+    light: '#60a5fa',
+    lighter: '#93c5fd',
+    bg: '#eff6ff',
+    white: '#ffffff',
+};
 
 const MasterDashboard = ({ user, onLogout }) => {
   const navigate = useNavigate();
@@ -34,41 +40,49 @@ const MasterDashboard = ({ user, onLogout }) => {
   const [sidebarVisible, setSidebarVisible] = useState(true);
 
   const [dynamicLogo, setDynamicLogo] = useState(null);
-const [logoLoading, setLogoLoading] = useState(true);
+  const [logoLoading, setLogoLoading] = useState(true);
 
-// Fetch dynamic logo from backend
-useEffect(() => {
-  const fetchDynamicLogo = async () => {
-    try {
-      const response = await fetch('https://internalaudit.hub.swajyot.co.in:8090/api/logo');
-      if (response.ok) {
-        const blob = await response.blob();
-        const logoUrl = URL.createObjectURL(blob);
-        setDynamicLogo(logoUrl);
+  // Listen for sidebar toggle event dispatched by Navbar
+  useEffect(() => {
+    const handleToggleSidebar = () => {
+      setSidebarVisible(prev => !prev);
+    };
+    window.addEventListener('toggle-master-sidebar', handleToggleSidebar);
+    return () => {
+      window.removeEventListener('toggle-master-sidebar', handleToggleSidebar);
+    };
+  }, []);
+
+  // Fetch dynamic logo from backend
+  useEffect(() => {
+    const fetchDynamicLogo = async () => {
+      try {
+        const response = await fetch('https://internalaudit.hub.swajyot.co.in:8090/api/logo');
+        if (response.ok) {
+          const blob = await response.blob();
+          const logoUrl = URL.createObjectURL(blob);
+          setDynamicLogo(logoUrl);
+        }
+      } catch (err) {
+        console.warn('Failed to load dynamic logo, using default:', err);
+      } finally {
+        setLogoLoading(false);
       }
-      // If not ok, keep dynamicLogo as null → fallback to qlogo
-    } catch (err) {
-      console.warn('Failed to load dynamic logo, using default:', err);
-    } finally {
-      setLogoLoading(false);
-    }
-  };
+    };
 
-  fetchDynamicLogo();
+    fetchDynamicLogo();
 
-  // Cleanup URL object on unmount
-  return () => {
-    if (dynamicLogo) {
-      URL.revokeObjectURL(dynamicLogo);
-    }
-  };
-}, []);
+    return () => {
+      if (dynamicLogo) {
+        URL.revokeObjectURL(dynamicLogo);
+      }
+    };
+  }, []);
 
   useEffect(() => {
     fetchDashboardData();
   }, []);
 
-  // If the logged-in user is MASTER, default to the user-management section
   useEffect(() => {
     if (isMaster(user?.role)) {
       setActiveSection('user-management');
@@ -152,7 +166,6 @@ useEffect(() => {
       case 'logo-mgmt':
         return <LogoManagement />;
       case 'user-management':
-        // Extra guard: only render UserManagement for MASTER users
         return isMaster(user?.role) ? <UserManagement /> : <FormDashboard user={user} onLogout={onLogout} />;
       case 'list-mgmt':
         return <ListManagement />;
@@ -169,170 +182,42 @@ useEffect(() => {
     }
   };
 
-  // Utilities - FIXED: Use consistent property names
-  const userDisplayName = (user?.name || user?.username || 'User')
-    .replace(/^(Mr\.|Mrs\.|Ms\.|Dr\.|Miss|Shri|Smt)\s+/i, ''); // Remove prefixes like App.js
-
-  const profilePhotoUrl = user?.photoUrl || '';
-  const userInitials = userDisplayName
-    .split(' ')
-    .map(n => n[0])
-    .join('')
-    .toUpperCase();
-
-  const getRoleDisplayName = (role) => {
-    const upperRole = role?.toUpperCase();
-    const roles = {
-      SHIFT_INCHARGE: 'Shift Incharge',
-      QUALITY_ENGINEER: 'Quality Engineer',
-      QUALITY_HOD: 'Quality HOD',
-      MASTER: 'Administrator',
-      OPERATOR: 'Shift Incharge',
-      QA: 'Quality Manager',
-      AVP: 'Quality HOD',
-      ADMIN: 'Admin',
-      MANAGER: 'Manager'
-    };
-    return roles[upperRole] || (role ? role.charAt(0).toUpperCase() + role.slice(1).toLowerCase() : 'User');
-  };
-
-  const handleProfilePhotoError = (e) => {
-    e.target.onerror = null;
-    e.target.src = '';
-  };
-
   return (
-    <div className="flex flex-col h-screen bg-gray-100">
-      {/* Header */}
-      <header className="z-50 text-white shadow-md bg-background">
-        <div className="flex items-center justify-between max-w-full px-4 py-4 mx-auto sm:px-6 lg:px-8">
-          <div className="flex items-center">
-            {/* Sidebar Toggle Button */}
-            <button
-              onClick={() => setSidebarVisible(!sidebarVisible)}
-              className="mr-4 text-white hover:text-gray-200 focus:outline-none"
-              title="Toggle Sidebar"
-            >
-              <FaBars size={20} />
-            </button>
+    <Navbar onLogout={onLogout} rightLogo={dynamicLogo}>
+      {/* Background wrapper matching Auditee dashboard */}
+      <div className="min-h-screen m-0" style={{ backgroundColor: NAVBAR_COLORS.bg }}>
+        
+        {/* Sidebar is now fixed, so we don't wrap it in a flex container */}
+        <AdminSidebar
+          user={user}
+          activeSection={activeSection}
+          setActiveSection={setActiveSection}
+          isCollapsed={!sidebarVisible}
+        />
 
-            {/* Qsutra Logo */}
-            <img
-              src={qlogo}
-              alt="Qsutra logo"
-              className="h-8 mr-10 w-23"
-            />
+        {/* Main content shifts right (ml-64) when sidebar is open, matching Auditee layout */}
+        <main className={`transition-all duration-500 ease-out ${sidebarVisible ? 'ml-64' : 'ml-0'} pt-6`}>
+          <div className="px-6 pb-6">
+            <DashboardLayout title="Master Dashboard" subtitle="Manage system users and their permissions">
+              {loading ? (
+                <div className="flex items-center justify-center h-64">
+                  <div className="w-12 h-12 border-4 rounded-full animate-spin" style={{ borderColor: NAVBAR_COLORS.lighter, borderTopColor: NAVBAR_COLORS.primary }}></div>
+                  <p className="ml-4 text-sm font-medium text-slate-500">Loading dashboard data...</p>
+                </div>
+              ) : (
+                renderContent()
+              )}
+            </DashboardLayout>
           </div>
-
-          <div className="flex items-center gap-2">
-            <div className="flex items-center justify-center px-4 pt-1 pb-1 bg-white rounded">
-              <img
-  src={dynamicLogo || qlogo}
-  alt="Company Logo"
- className="h-12 max-w-[160px] object-contain"
-/>
-            </div>
-
-            {/* Avatar */}
-            {profilePhotoUrl ? (
-              <Avatar
-                alt={userDisplayName}
-                src={profilePhotoUrl}
-                onError={handleProfilePhotoError}
-                sx={{
-                  width: 40,
-                  height: 40,
-                  border: '2px solid white'
-                }}
-              />
-            ) : user?.id ? (
-              <Avatar
-                alt={userDisplayName}
-                src={`/api/users/${user.id}/profile-photo`}
-                onError={handleProfilePhotoError}
-                sx={{
-                  width: 40,
-                  height: 40,
-                  border: '2px solid white'
-                }}
-              />
-            ) : (
-              <Avatar
-                alt={userDisplayName}
-                sx={{
-                  width: 40,
-                  height: 40,
-                  bgcolor: 'primary.main',
-                  color: 'white',
-                  border: '2px solid white',
-                  fontWeight: 'bold'
-                }}
-              >
-                {userInitials}
-              </Avatar>
-            )}
-
-            <div className="flex flex-col mr-4 text-white">
-              <Typography variant="body2" className="font-medium text-white">
-                {userDisplayName}
-              </Typography>
-              <Typography variant="caption" className="text-white opacity-90">
-                {getRoleDisplayName(user?.role)}
-              </Typography>
-            </div>
-
-            <Button
-              onClick={onLogout}
-              variant="contained"
-              color="error"
-              size="small"
-              startIcon={<LogoutIcon />}
-            >
-              Logout
-            </Button>
-          </div>
-        </div>
-      </header>
-
-    
-{/* Body: Sidebar + Main */}
-<div className="flex flex-1 overflow-hidden">
-  {/* Sidebar with smooth transition */}
-  <div
-    className={`bg-white shadow-md border-r overflow-hidden transition-all duration-500 ease-in-out ${
-      sidebarVisible ? 'w-64 opacity-100' : 'w-0 opacity-0'
-    }`}
-  >
-    <AdminSidebar
-      user={user}
-      onLogout={onLogout}
-      activeSection={activeSection}
-      setActiveSection={setActiveSection}
-      isCollapsed={!sidebarVisible}
-    />
-  </div>
-
-  {/* Main Content */}
-  <main className="flex-1 p-4 overflow-y-auto bg-gray-100">
-    <DashboardLayout title="Master Dashboard" subtitle="Manage system users and their permissions">
-      {loading ? (
-        <div className="flex items-center justify-center h-64">
-          <div className="w-12 h-12 border-b-2 border-blue-600 rounded-full animate-spin"></div>
-          <p className="ml-4 text-gray-500">Loading dashboard data...</p>
-        </div>
-      ) : (
-        renderContent()
-      )}
-    </DashboardLayout>
-  </main>
-</div>
-    </div>
+        </main>
+      </div>
+    </Navbar>
   );
 };
 
 export default MasterDashboard;
 
-// ✅ FIXED: Removed centering — now left-aligned like a proper dashboard
+// ✅ Dashboard Layout
 export const DashboardLayout = ({ title, subtitle, children }) => {
   return (
     <div className="w-full">

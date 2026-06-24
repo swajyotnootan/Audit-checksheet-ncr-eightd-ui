@@ -278,10 +278,10 @@ const VerifyModal = ({ ncr, onClose, onVerify, loading }) => {
 
   return (
     <div onClick={onClose} style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(15, 23, 42, 0.3)', backdropFilter: 'blur(4px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000, padding: 20, fontFamily: FONT_FAMILY }}>
-      <div onClick={e => e.stopPropagation()} style={{ background: T.card, borderRadius: 16, width: '100%', maxWidth: 700, maxHeight: '90vh', display: 'flex', flexDirection: 'column', boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.05)', border: `1px solid ${T.border}`, overflow: 'hidden' }}>
+      <div onClick={e => e.stopPropagation()} style={{ background: T.card, borderRadius: 16, width: '100%', maxWidth: 700, maxHeight: '90vh', display: 'flex', flexDirection: 'column', boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.05)', border: `1px solid ${T.accentBorder}`, overflow: 'hidden' }}>
         
         {/* Header */}
-        <div style={{ padding: '24px 32px', borderBottom: `1px solid ${T.border}`, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <div style={{ padding: '24px 32px', background:T.accentLight, borderBottom: `1px solid ${T.border}`, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
             <div style={{ width: 44, height: 44, borderRadius: 12, background: T.purpleLight, border: `1px solid ${T.purpleBorder}`, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
               <FiEye size={22} color={T.purple} />
@@ -302,7 +302,7 @@ const VerifyModal = ({ ncr, onClose, onVerify, loading }) => {
         <div style={{ padding: '24px 32px', overflowY: 'auto', flex: 1, display: 'flex', flexDirection: 'column', gap: 20 }}>
           
           {/* NCR Summary */}
-          <div style={{ padding: 20, background: '#F8FAFC', border: `1px solid ${T.border}`, borderRadius: 12 }}>
+          <div style={{ padding: 20, background: T.accentLight, border: `1px solid ${T.border}`, borderRadius: 12 }}>
             <h4 style={{ margin: '0 0 12px', display: 'flex', alignItems: 'center', gap: 8, fontSize: 14, fontWeight: 700, color: T.text }}>
               <FiFileText size={16} color={T.accent} /> NCR Summary
             </h4>
@@ -318,8 +318,8 @@ const VerifyModal = ({ ncr, onClose, onVerify, loading }) => {
           </div>
 
           {/* Corrective Action Details */}
-          <div style={{ padding: 20, background: isNCR2 ? '#F5F3FF' : T.purpleLight, border: `1px solid ${isNCR2 ? '#DDD6FE' : T.purpleBorder}`, borderRadius: 12 }}>
-            <h4 style={{ margin: '0 0 16px', display: 'flex', alignItems: 'center', gap: 8, fontSize: 14, fontWeight: 700, color: isNCR2 ? '#5B21B6' : '#6D28D9' }}>
+          <div style={{ padding: 20, background: isNCR2 ? T.accentLight : T.accentLight, border: `1px solid ${isNCR2 ? '#DDD6FE' : T.purpleBorder}`, borderRadius: 12 }}>
+            <h4 style={{ margin: '0 0 16px', display: 'flex', alignItems: 'center', gap: 8, fontSize: 14, fontWeight: 700, color: isNCR2 ? '1E3A8A' : '#6D28D9' }}>
               <FiCheckCircle size={16} /> {isNCR2 ? 'NCR2 Corrective Action Details' : 'Corrective Action Details'}
             </h4>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
@@ -388,14 +388,14 @@ const VerifyModal = ({ ncr, onClose, onVerify, loading }) => {
               disabled={loading}
               style={{ height: 42, padding: '0 24px', borderRadius: 8, border: 'none', background: T.error, color: '#FFF', fontSize: 15, fontWeight: 600, cursor: loading ? 'not-allowed' : 'pointer', display: 'flex', alignItems: 'center', gap: 8, fontFamily: FONT_FAMILY, opacity: loading ? 0.7 : 1 }}
             >
-              {loading && decision === 'reject' ? <Spinner size={16} /> : <FiX size={16} />} Reject & Return
+              {loading && decision === 'reject' ? <Spinner size={16} /> : <FiX size={16} />} Reject
             </button>
             <button
               onClick={() => handleVerify(true)}
               disabled={loading}
-              style={{ height: 42, padding: '0 24px', borderRadius: 8, border: 'none', background: T.success, color: '#FFF', fontSize: 15, fontWeight: 600, cursor: loading ? 'not-allowed' : 'pointer', display: 'flex', alignItems: 'center', gap: 8, fontFamily: FONT_FAMILY, opacity: loading ? 0.7 : 1 }}
+              style={{ height: 42, padding: '0 24px', borderRadius: 8, border: 'none', background: T.accent, color: '#FFF', fontSize: 15, fontWeight: 600, cursor: loading ? 'not-allowed' : 'pointer', display: 'flex', alignItems: 'center', gap: 8, fontFamily: FONT_FAMILY, opacity: loading ? 0.7 : 1 }}
             >
-              {loading && decision === 'accept' ? <Spinner size={16} /> : <FiCheckCircle size={16} />} Accept & Close
+              {loading && decision === 'accept' ? <Spinner size={16} /> : <FiCheckCircle size={16} />} Accept
             </button>
           </div>
         </div>

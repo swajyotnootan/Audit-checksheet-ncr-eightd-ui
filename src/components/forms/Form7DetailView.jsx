@@ -1,17 +1,33 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { ArrowLeft, FileText, AlertCircle, Users, CheckCircle, Loader2, X, Download, Building, Calendar, Hash, User, Edit, Eye, ThumbsUp, ThumbsDown, Clock, FileBarChart } from 'lucide-react';
+import { ArrowLeft, FileText, AlertCircle, Users, CheckCircle,Info, Loader2, X, Download, Building, Calendar, Hash, User, Edit, Eye, ThumbsUp, ThumbsDown, Clock, FileBarChart } from 'lucide-react';
 import { ncrService } from '../services/ncrService';
 import { useAuth } from '../context/AuthContext';
 import { getDashboardPath, isAuditor } from '../utils/roleUtils';
 import FinalPreview from '../steps/FinalPreview';
 import BackButton from '../dashboards/leadAuditor/BackButton';
+import { Collapse } from '@mui/material';
 
 
 // ─────────────────────────────────────────────────────────────
 // Modern card-style form styling with Times New Roman
 // ─────────────────────────────────────────────────────────────
 const fontFamily = "inherit, 'Times New Roman', Times, serif";
+
+
+
+const COLORS = {
+  primary: '#00529B',
+  secondary: '#3b82f6',
+  dark: '#1e3a8a',
+  light: '#60a5fa',
+  lighter: '#93c5fd',
+  bg: '#eff6ff',
+  white: '#ffffff',
+  success: '#10b981',
+  warning: '#f59e0b',
+  danger: '#ef4444',
+};
 
 const formStyle = {
   container: 'max-w-5xl mx-auto bg-white rounded-2xl shadow-xl overflow-hidden print:shadow-none print:rounded-none',
@@ -45,12 +61,12 @@ const StatusBadge = ({ status }) => {
 };
 
 const InfoCard = ({ icon: Icon, label, value }) => (
-  <div className="flex items-start gap-3 p-3 bg-gray-50 rounded-xl border border-gray-100" style={{ fontFamily }}>
+  <div className="flex items-start gap-3 p-3 border border-gray-100 bg-gray-50 rounded-xl" style={{ fontFamily }}>
     <div className="p-2 bg-white rounded-lg shadow-sm">
       <Icon size={16} className="text-red-500" />
     </div>
     <div>
-      <p className="text-xs text-gray-500 uppercase tracking-wider" style={{ fontFamily }}>{label}</p>
+      <p className="text-xs tracking-wider text-gray-500 uppercase" style={{ fontFamily }}>{label}</p>
       <p className="text-sm font-semibold text-gray-800" style={{ fontFamily }}>{value || '—'}</p>
     </div>
   </div>
@@ -64,11 +80,11 @@ const FormSection = ({ title, children }) => (
 );
 
 const DetailRow = ({ label, value, multiline = false }) => (
-  <div className="mb-3 pb-2 border-b border-gray-50 last:border-0">
+  <div className="pb-2 mb-3 border-b border-gray-50 last:border-0">
     <p className={formStyle.label} style={{ fontFamily }}>{label}</p>
     <div className={formStyle.value} style={{ fontFamily }}>
       {multiline ? (
-        <div className="whitespace-pre-wrap bg-gray-50 p-3 rounded-lg" style={{ fontFamily }}>{value || '—'}</div>
+        <div className="p-3 whitespace-pre-wrap rounded-lg bg-gray-50" style={{ fontFamily }}>{value || '—'}</div>
       ) : (
         <span className="font-medium" style={{ fontFamily }}>{value || '—'}</span>
       )}
@@ -96,27 +112,27 @@ const SignatureField = ({ label, name, signature, pending = false, timestamp }) 
 
   return (
     <div className="text-center">
-      <p className="text-xs font-semibold text-gray-600 mb-2 uppercase tracking-wider" style={{ fontFamily }}>
+      <p className="mb-2 text-xs font-semibold tracking-wider text-gray-600 uppercase" style={{ fontFamily }}>
         {label}
       </p>
 
       {signature && (signature.startsWith('data:image') || signature.startsWith('http')) ? (
-        <div className="border border-gray-200 rounded-lg p-2 bg-gray-50">
-          <img src={signature} alt={label} className="h-12 mx-auto object-contain" />
+        <div className="p-2 border border-gray-200 rounded-lg bg-gray-50">
+          <img src={signature} alt={label} className="object-contain h-12 mx-auto" />
         </div>
       ) : pending ? (
-        <div className="border-2 border-dashed border-amber-300 rounded-lg h-20 bg-amber-50 flex flex-col items-center justify-center">
-          <Clock size={20} className="text-amber-500 mb-1" />
-          <p className="text-xs text-amber-600 font-medium" style={{ fontFamily }}>Pending Acknowledgement</p>
+        <div className="flex flex-col items-center justify-center h-20 border-2 border-dashed rounded-lg border-amber-300 bg-amber-50">
+          <Clock size={20} className="mb-1 text-amber-500" />
+          <p className="text-xs font-medium text-amber-600" style={{ fontFamily }}>Pending Acknowledgement</p>
         </div>
       ) : (
-        <div className="border-2 border-dashed border-gray-300 rounded-lg h-20 bg-gray-50" />
+        <div className="h-20 border-2 border-gray-300 border-dashed rounded-lg bg-gray-50" />
       )}
 
-      <p className="text-xs text-gray-500 mt-2 font-medium" style={{ fontFamily }}>{name || '—'}</p>
+      <p className="mt-2 text-xs font-medium text-gray-500" style={{ fontFamily }}>{name || '—'}</p>
 
       {formattedTimestamp && (
-        <p className="text-xs text-gray-400 mt-1 flex items-center justify-center gap-1" style={{ fontFamily }}>
+        <p className="flex items-center justify-center gap-1 mt-1 text-xs text-gray-400" style={{ fontFamily }}>
           <Clock size={11} />
           {formattedTimestamp}
         </p>
@@ -151,18 +167,18 @@ const ReviewModal = ({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
-      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md mx-4 overflow-hidden animate-in fade-in zoom-in duration-200">
-        <div className="flex justify-between items-center px-5 py-4" style={{ background: 'linear-gradient(135deg, rgba(220, 38, 38, 0.3), rgba(185, 28, 28, 0.3))' }}>
+      <div className="w-full max-w-md mx-4 overflow-hidden duration-200 bg-white shadow-2xl rounded-2xl animate-in fade-in zoom-in">
+        <div className="flex items-center justify-between px-5 py-4" style={{ background: 'linear-gradient(135deg, rgba(220, 38, 38, 0.3), rgba(185, 28, 28, 0.3))' }}>
           <h2 className="text-lg font-bold" style={{ fontFamily, color: 'rgba(220, 38, 38, 0.85)' }}>
             {decision === 'approve' ? 'Approving...' : decision === 'reject' ? 'Rejecting...' : title}
           </h2>
-          <button onClick={onClose} className="p-1 hover:bg-white/20 rounded-lg transition">
+          <button onClick={onClose} className="p-1 transition rounded-lg hover:bg-white/20">
             <X size={20} style={{ color: 'rgba(220, 38, 38, 0.7)' }} />
           </button>
         </div>
 
         <div className="p-5">
-          <div className="mb-4 p-3 rounded-lg" style={{ backgroundColor: 'rgba(220, 38, 38, 0.05)', border: '1px solid rgba(220, 38, 38, 0.1)' }}>
+          <div className="p-3 mb-4 rounded-lg" style={{ backgroundColor: 'rgba(220, 38, 38, 0.05)', border: '1px solid rgba(220, 38, 38, 0.1)' }}>
             <p className="text-sm" style={{ fontFamily, color: 'rgba(75, 85, 99, 0.9)' }}>
               <strong style={{ color: 'rgba(220, 38, 38, 0.8)' }}>NCR {ncr?.ncrNumber}</strong>
               <br />
@@ -171,12 +187,12 @@ const ReviewModal = ({
           </div>
 
           <div className="mb-5">
-            <label className="block text-sm font-medium mb-2" style={{ fontFamily, color: 'rgba(75, 85, 99, 0.8)' }}>
-              Comments {!decision && <span className="text-red-500 text-xs">(required for rejection)</span>}
+            <label className="block mb-2 text-sm font-medium" style={{ fontFamily, color: 'rgba(75, 85, 99, 0.8)' }}>
+              Comments {!decision && <span className="text-xs text-red-500">(required for rejection)</span>}
             </label>
             <textarea
               rows={4}
-              className="w-full p-3 border rounded-xl transition focus:ring-2 focus:ring-red-500/50 focus:border-red-500/50"
+              className="w-full p-3 transition border rounded-xl focus:ring-2 focus:ring-red-500/50 focus:border-red-500/50"
               style={{ fontFamily, borderColor: 'rgba(209, 213, 219, 0.5)', backgroundColor: 'rgba(255, 255, 255, 0.9)' }}
               value={comment}
               onChange={(e) => setComment(e.target.value)}
@@ -478,10 +494,10 @@ const handleReject = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 flex items-center justify-center">
+      <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
         <div className="text-center">
-          <Loader2 size={48} className="animate-spin text-red-500 mx-auto mb-4" />
-          <p className="text-gray-500 font-medium" style={{ fontFamily }}>Loading NCR details...</p>
+          <Loader2 size={48} className="mx-auto mb-4 text-red-500 animate-spin" />
+          <p className="font-medium text-gray-500" style={{ fontFamily }}>Loading NCR details...</p>
         </div>
       </div>
     );
@@ -489,10 +505,10 @@ const handleReject = () => {
 
   if (error || !ncr) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 flex items-center justify-center">
-        <div className="text-center bg-white p-8 rounded-2xl shadow-lg max-w-md">
-          <AlertCircle size={48} className="text-red-500 mx-auto mb-4" />
-          <p className="text-gray-600 mb-4" style={{ fontFamily }}>{error || 'NCR not found'}</p>
+      <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
+        <div className="max-w-md p-8 text-center bg-white shadow-lg rounded-2xl">
+          <AlertCircle size={48} className="mx-auto mb-4 text-red-500" />
+          <p className="mb-4 text-gray-600" style={{ fontFamily }}>{error || 'NCR not found'}</p>
           <button
             onClick={() => navigate(dashboardPath)}
             className="px-5 py-2.5 bg-red-500 text-white rounded-xl hover:bg-red-600 transition font-medium"
@@ -506,7 +522,7 @@ const handleReject = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 py-8 px-4 print:bg-white print:p-0">
+    <div className="min-h-screen px-4 py-8 bg-gradient-to-br from-gray-50 to-gray-100 print:bg-white print:p-0">
       
 
       {/* Top Action Bar */}
@@ -517,43 +533,55 @@ const handleReject = () => {
   />
 
   <div className="flex items-center gap-3">
-    <StatusBadge status={ncr.status} />
-    <button
-      onClick={downloadPDF}
-      disabled={pdfDownloading}
-      className="p-2.5 text-white bg-blue-500 hover:bg-blue-600 rounded-xl transition disabled:opacity-50 shadow-sm"
-      title="Download PDF"
-      style={{ fontFamily }}
-    >
-      {pdfDownloading ? <Loader2 size={18} className="animate-spin" /> : <Download size={18} />}
-    </button>
-  </div>
+  <StatusBadge status={ncr.status} />
+  <button
+    onClick={downloadPDF}
+    disabled={pdfDownloading}
+    className="flex items-center gap-2 px-2 py-2.5 text-white text-sm font-medium rounded-xl transition disabled:opacity-50 shadow-sm hover:shadow-md"
+    title="Download PDF"
+    style={{ fontFamily, background: COLORS.primary }}
+  >
+    {pdfDownloading ? <Loader2 size={18} className="animate-spin" /> : <Download size={18} />}
+    <span>Download PDF</span>
+  </button>
+</div>
 </div>
 
       {/* Main Form Card */}
       <div className={formStyle.container} id="ncr-form">
 
         {/* Header */}
-        <div className={formStyle.header}>
-          <div className="flex flex-wrap justify-between items-start gap-4">
-            <div>
-              <h1 className="text-xl font-bold text-white print:text-gray-900" style={{ fontFamily }}>Nonconformity Report (NCR)</h1>
-              <p className="text-sm text-gray-300 print:text-gray-500 mt-1" style={{ fontFamily }}>{ncr.companyName || 'Quality Management System'}</p>
-            </div>
-            <div className="text-right">
-              <p className="text-sm font-medium text-white/80 print:text-gray-600" style={{ fontFamily }}>
-                <span className="opacity-70">Audit Report:</span> {ncr.auditReportNumber || 'INT/20xx/01'}
-              </p>
-              <p className="text-lg font-bold text-white print:text-gray-800" style={{ fontFamily }}>
-                {ncr.ncrNumber || '03'}
-              </p>
-            </div>
-          </div>
-        </div>
+       <div 
+  className={formStyle.header}
+  style={{
+    background: COLORS.primary
+    // background: `linear-gradient(to bottom right, #60a5fa, ${COLORS.secondary})`,
+    // border: `1px solid ${COLORS.secondary}4D`
+  }}
+>
+  <div className="flex flex-wrap items-start justify-between gap-4">
+    <div>
+      <h1 className="text-xl font-bold text-white print:text-gray-900" style={{ fontFamily }}>
+        Nonconformity Report (NCR)
+      </h1>
+      <p className="mt-1 text-sm text-gray-300 print:text-gray-500" style={{ fontFamily }}>
+        {ncr.companyName || 'Quality Management System'}
+      </p>
+    </div>
+    <div className="text-right">
+      <p className="text-sm font-medium text-white/80 print:text-gray-600" style={{ fontFamily }}>
+        <span className="opacity-70">Audit Report:</span> {ncr.auditReportNumber || 'INT/20xx/01'}
+      </p>
+      <p className="text-lg font-bold text-white print:text-gray-800" style={{ fontFamily }}>
+        {ncr.ncrNumber || '03'}
+      </p>
+    </div>
+  </div>
+</div>
 
         {/* Info Cards Row */}
-        <div className="px-6 py-4 bg-gray-50 border-b border-gray-100 print:bg-white">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+        <div className="px-6 py-4 border-b border-gray-100 bg-gray-50 print:bg-white">
+          <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
             <InfoCard icon={Building} label="Department" value={ncr.department} />
             <InfoCard icon={User} label="Auditor" value={ncr.auditorName} />
             <InfoCard icon={Users} label="Auditee" value={ncr.auditeeName} />
@@ -572,7 +600,7 @@ const handleReject = () => {
         {/* Section 2: Acknowledgement & Signatures */}
        {/* Section 2: Acknowledgement & Signatures */}
 <FormSection title="✍️ Acknowledgement">
-  <div className="grid md:grid-cols-2 gap-8">
+  <div className="grid gap-8 md:grid-cols-2">
     <SignatureField
       label="Auditor Signature"
       name={ncr.auditorName}
@@ -591,14 +619,14 @@ const handleReject = () => {
 
         {/* Manager Comment Section */}
         {ncr.managerReviewComment && (
-          <div className="px-6 py-4 bg-blue-50 border-b border-blue-100 print:bg-gray-50">
+          <div className="px-6 py-4 border-b border-blue-100 bg-blue-50 print:bg-gray-50">
             <div className="flex gap-3">
               <div className="p-2 bg-blue-100 rounded-lg">
                 <AlertCircle size={18} className="text-blue-600" />
               </div>
               <div>
-                <p className="text-xs font-semibold text-blue-700 uppercase tracking-wider" style={{ fontFamily }}>Audit Manager Comment</p>
-                <p className="text-sm text-blue-900 mt-1" style={{ fontFamily }}>{ncr.managerReviewComment}</p>
+                <p className="text-xs font-semibold tracking-wider text-blue-700 uppercase" style={{ fontFamily }}>Audit Manager Comment</p>
+                <p className="mt-1 text-sm text-blue-900" style={{ fontFamily }}>{ncr.managerReviewComment}</p>
               </div>
             </div>
           </div>
@@ -609,13 +637,13 @@ const handleReject = () => {
           <div className="flex flex-wrap justify-center gap-4 text-xs" style={{ fontFamily }}>
             <span className="inline-flex items-center gap-1"><span className="w-2 h-2 bg-green-500 rounded-full"></span> (O+)Ve: Conformance</span>
             <span className="inline-flex items-center gap-1"><span className="w-2 h-2 bg-red-500 rounded-full"></span> (O-)Ve: Non Conformance</span>
-            <span className="inline-flex items-center gap-1"><span className="w-2 h-2 bg-amber-500 rounded-full"></span> (OI): Opportunity for Improvement</span>
+            <span className="inline-flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-amber-500"></span> (OI): Opportunity for Improvement</span>
           </div>
         </div>
       </div>
 
       {/* Action Buttons */}
-      <div className="max-w-5xl mx-auto mt-6 flex flex-wrap justify-end gap-3 print:hidden">
+      <div className="flex flex-wrap justify-end max-w-5xl gap-3 mx-auto mt-6 print:hidden">
        {/* Only show View Form 8 button if actual data exists */}
 {/* Only show View Form 8 button if actual data exists */}
 {(ncr?.rootCause?.trim() || ncr?.correction?.trim() || ncr?.correctiveAction?.trim() || 
@@ -623,7 +651,7 @@ const handleReject = () => {
   <button
     onClick={() => navigate(`/form8-view/${ncr.id}${isNcr2Flow ? '?type=ncr2' : ''}`)}
     className="px-5 py-2.5 text-sm font-medium text-white bg-orange-500 rounded-xl hover:bg-orange-600 transition shadow-sm flex items-center gap-2"
-    style={{ fontFamily }}
+    style={{ fontFamily ,  background: 'linear-gradient(135deg, #0ea5e9 50%, #3b82f6 100%)'}}
   >
     <Eye size={16} /> View Form 8
   </button>
@@ -634,7 +662,7 @@ const handleReject = () => {
     onClick={open8DReport}
     disabled={loading8DReport}
     className="px-5 py-2.5 text-sm font-medium text-white bg-indigo-600 rounded-xl hover:bg-indigo-700 transition shadow-sm flex items-center gap-2 disabled:opacity-60 disabled:cursor-not-allowed"
-    style={{ fontFamily }}
+    style={{ fontFamily, background: COLORS.primary }}
   >
     {loading8DReport ? <Loader2 size={16} className="animate-spin" /> : <FileBarChart size={16} />}
     View 8D Report
@@ -655,7 +683,7 @@ const handleReject = () => {
   <button
     onClick={() => setShowAuditeeReviewModal(true)}
     className="px-5 py-2.5 text-sm font-medium text-white bg-emerald-500 rounded-xl hover:bg-emerald-600 transition shadow-sm flex items-center gap-2"
-    style={{ fontFamily }}
+    style={{ fontFamily, background: ` linear-gradient(to bottom right, #60a5fa, ${COLORS.secondary})` }}
   >
     <ThumbsUp size={16} /> Accept / Reject
   </button>
@@ -675,7 +703,7 @@ const handleReject = () => {
   <button
     onClick={() => navigate(`/form8?id=${ncr.id}${ncr?.status === 'READY_FOR_NCR2' ? '&type=ncr2' : ''}`)}
     className="px-5 py-2.5 text-sm font-medium text-white bg-orange-500 rounded-xl hover:bg-orange-600 transition shadow-sm flex items-center gap-2"
-    style={{ fontFamily }}
+    style={{ fontFamily, background: ` linear-gradient(to bottom right, #60a5fa, ${COLORS.secondary})` }}
   >
     <FileText size={16} /> {ncr?.status === 'READY_FOR_NCR2' ? 'Submit NCR2' : 'Submit Corrective Action'}
   </button>
@@ -694,113 +722,227 @@ const handleReject = () => {
 
       {/* Review Modal */}
 {/* Review Modal */}
+{/* ============================================================================
+    REVIEW NCR MODAL - MNC Professional Style
+    ============================================================================ */}
 {showReviewModal && ncr && (
-  <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-    <div className="bg-white rounded-xl shadow-xl w-full max-w-md mx-4 p-6">
-      <div className="flex justify-between items-center mb-4">
-        <h3 className="text-lg font-semibold text-gray-900" style={{ fontFamily }}>Review NCR</h3>
-        <button onClick={() => setShowReviewModal(false)} className="text-gray-400 hover:text-gray-600">
-          <X size={20} />
+  <div
+    className="fixed inset-0 z-50 flex items-center justify-center p-4 animate-fadeIn"
+    style={{ backgroundColor: 'rgba(0,0,0,0.5)', backdropFilter: 'blur(4px)' }}
+  >
+    <div className="w-full max-w-md overflow-hidden bg-white shadow-2xl rounded-2xl animate-scaleIn">
+      
+      {/* Header with gradient */}
+      <div className="px-6 pt-8 pb-6 text-center" style={{ background: `linear-gradient(135deg, ${COLORS.bg}, #dbeafe)` }}>
+        <div className="flex items-center justify-center w-16 h-16 mx-auto mb-4 bg-white rounded-full shadow-lg">
+          <FileText size={32} style={{ color: COLORS.primary }} />
+        </div>
+        <h2 className="text-xl font-bold text-slate-800">Review NCR</h2>
+        <p className="mt-1 text-sm text-slate-600">
+          NCR Number: <span className="font-semibold" style={{ color: COLORS.primary }}>{ncr.ncrNumber || '—'}</span>
+        </p>
+        <button
+          onClick={() => setShowReviewModal(false)}
+          className="absolute p-2 transition-all rounded-lg top-4 right-4 text-slate-500 hover:bg-white/50"
+        >
+          <X size={18} />
         </button>
       </div>
-      
-      {/* Display Audit Score */}
-      {ncr.auditScore != null && (
-        <div className={`p-3 mb-4 rounded-lg ${ncr.auditScore >= 70 ? 'bg-green-50 border-green-200' : 'bg-red-50 border-red-200'} border`}>
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-xs text-gray-500" style={{ fontFamily }}>Audit Score</p>
-              <p className={`text-2xl font-bold ${ncr.auditScore >= 70 ? 'text-green-600' : 'text-red-600'}`} style={{ fontFamily }}>
-                {ncr.auditScore}%
-              </p>
+
+      {/* Content */}
+      <div className="px-6 py-5">
+        
+        {/* Display Audit Score */}
+        {ncr.auditScore != null && (
+          <div 
+            className="p-4 mb-4 border rounded-xl"
+            style={{
+              backgroundColor: ncr.auditScore >= 70 ? '#f0fdf4' : '#fef2f2',
+              borderColor: ncr.auditScore >= 70 ? '#bbf7d0' : '#fecaca'
+            }}
+          >
+            <div className="flex items-center justify-between mb-2">
+              <div>
+                <p className="text-xs font-medium text-slate-500">Audit Score</p>
+                <p 
+                  className="text-2xl font-bold"
+                  style={{ color: ncr.auditScore >= 70 ? COLORS.success : COLORS.danger }}
+                >
+                  {ncr.auditScore}%
+                </p>
+              </div>
+              <div className="text-right">
+                <p className="text-xs text-slate-600">
+                  {ncr.auditScore >= 70 
+                    ? '✅ Above threshold - Normal NCR flow' 
+                    : '⚠️ Below threshold - Requires 8D process'}
+                </p>
+              </div>
             </div>
-            <div className="text-right">
-              <p className="text-xs text-gray-500" style={{ fontFamily }}>
-                {ncr.auditScore >= 70 
-                  ? '✅ Score above threshold - Normal NCR flow' 
-                  : '⚠️ Score below threshold - Requires 8D process'}
-              </p>
+            <div className="w-full bg-white rounded-full h-1.5 overflow-hidden">
+              <div 
+                className="h-1.5 rounded-full transition-all duration-500"
+                style={{ 
+                  width: `${ncr.auditScore}%`,
+                  backgroundColor: ncr.auditScore >= 70 ? COLORS.success : COLORS.danger
+                }}
+              />
             </div>
           </div>
-          <div className="mt-2 w-full bg-gray-200 rounded-full h-1.5">
-            <div 
-              className={`h-1.5 rounded-full ${ncr.auditScore >= 70 ? 'bg-green-500' : 'bg-red-500'}`}
-              style={{ width: `${ncr.auditScore}%` }}
-            />
-          </div>
-        </div>
-      )}
-      
-      {/* 8D Option - Only shown when score < 70 */}
-      {ncr.auditScore != null && ncr.auditScore < 70 && (
-        <div className="mb-4 p-3 border border-purple-200 rounded-lg bg-purple-50">
-          <label className="flex items-center gap-2 cursor-pointer">
+        )}
+
+        {/* 8D Option - Only shown when score < 70 */}
+        {ncr.auditScore != null && ncr.auditScore < 70 && (
+          <div 
+            className="flex items-start gap-3 p-3 mb-4 border rounded-xl"
+            style={{ backgroundColor: '#faf5ff', borderColor: '#e9d5ff' }}
+          >
             <input
               type="checkbox"
               checked={sendTo8D}
               onChange={(e) => setSendTo8D(e.target.checked)}
-              className="w-4 h-4 text-purple-600 rounded"
+              className="w-4 h-4 mt-0.5 rounded"
+              style={{ accentColor: '#9333ea' }}
             />
-            <span className="text-sm font-medium text-gray-700" style={{ fontFamily }}>
-              Send to 8D Team for investigation
-            </span>
+            <div className="flex-1">
+              <p className="text-sm font-semibold text-slate-800">
+                Send to 8D Team for investigation
+              </p>
+              <p className="mt-1 text-xs text-slate-600">
+                Audit score ({ncr.auditScore}%) is below threshold (70%). 
+                Recommended to send to 8D instead of normal corrective action.
+              </p>
+            </div>
+          </div>
+        )}
+
+        {/* Comments Section */}
+        <div className="mb-5">
+          <label className="block mb-2 text-sm font-semibold text-slate-700">
+            Comments {!sendTo8D && <span className="ml-1 text-xs text-rose-500">(required for rejection)</span>}
           </label>
-          <p className="text-xs text-gray-500 mt-1 ml-6" style={{ fontFamily }}>
-            Audit score ({ncr.auditScore}%) is below threshold (70%). 
-            Recommended to send to 8D instead of normal corrective action.
-          </p>
+          <textarea
+            rows={4}
+            className="w-full px-4 py-2.5 text-sm border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all bg-white shadow-sm resize-none"
+            placeholder="Enter review comments..."
+            value={reviewComment}
+            onChange={(e) => setReviewComment(e.target.value)}
+          />
         </div>
-      )}
-      
-      <div className="mb-4">
-        <label className="block text-sm font-medium text-gray-700 mb-2" style={{ fontFamily }}>
-          Comments {!sendTo8D && <span className="text-red-500 text-xs">(required for rejection)</span>}
-        </label>
-        <textarea
-          rows={4}
-          className="w-full p-3 border rounded-lg focus:ring-2 focus:ring-red-500/50"
-          style={{ fontFamily }}
-          placeholder="Enter review comments..."
-          value={reviewComment}
-          onChange={(e) => setReviewComment(e.target.value)}
-        />
-      </div>
-      
-      <div className="flex gap-3">
-        <button
-          onClick={handleReject}
-          disabled={reviewLoading}
-          className="flex-1 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:opacity-50 flex items-center justify-center gap-2"
-          style={{ fontFamily }}
-        >
-          {reviewLoading && <Loader2 size={16} className="animate-spin" />}
-          <ThumbsDown size={16} /> Reject
-        </button>
-        <button
-          onClick={handleApprove}
-          disabled={reviewLoading}
-          className="flex-1 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50 flex items-center justify-center gap-2"
-          style={{ fontFamily }}
-        >
-          {reviewLoading && <Loader2 size={16} className="animate-spin" />}
-          <ThumbsUp size={16} /> {sendTo8D && ncr.auditScore < 70 ? 'Approve & Send to 8D' : 'Approve'}
-        </button>
+
+        {/* Action Buttons */}
+        <div className="flex gap-3">
+          <button
+            onClick={handleReject}
+            disabled={reviewLoading}
+            className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 text-sm font-semibold text-white rounded-xl transition-all disabled:opacity-50 shadow-md hover:shadow-lg"
+            style={{ backgroundColor: COLORS.danger }}
+          >
+            {reviewLoading ? <Loader2 size={16} className="animate-spin" /> : <ThumbsDown size={16} />}
+            Reject
+          </button>
+          <button
+            onClick={handleApprove}
+            disabled={reviewLoading}
+            className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 text-sm font-semibold text-white rounded-xl transition-all disabled:opacity-50 shadow-md hover:shadow-lg"
+            style={{
+              background: `linear-gradient(to bottom right, #60a5fa, ${COLORS.secondary})`,
+              border: `1px solid ${COLORS.secondary}4D`
+            }}
+          >
+            {reviewLoading ? <Loader2 size={16} className="animate-spin" /> : <ThumbsUp size={16} />}
+            {sendTo8D && ncr.auditScore < 70 ? 'Approve & Send to 8D' : 'Approve'}
+          </button>
+        </div>
       </div>
     </div>
   </div>
 )}
 
-      {showAuditeeReviewModal && (
-        <ReviewModal
-          ncr={ncr}
-          onClose={() => setShowAuditeeReviewModal(false)}
-          onReview={handleAuditeeReview}
-          loading={reviewLoading}
-          title="Auditee NCR Review"
-          approveLabel="Accept"
-          rejectLabel="Reject"
-        />
-      )}
+{/* ============================================================================
+    AUDITEE REVIEW MODAL
+    ============================================================================ */}
+{showAuditeeReviewModal && (
+  <div
+    className="fixed inset-0 z-50 flex items-center justify-center p-4 animate-fadeIn"
+    style={{ backgroundColor: 'rgba(0,0,0,0.5)', backdropFilter: 'blur(4px)' }}
+  >
+    <div className="w-full max-w-md overflow-hidden bg-white shadow-2xl rounded-2xl animate-scaleIn">
+      
+      {/* Header with gradient */}
+      <div className="px-6 pt-8 pb-6 text-center" style={{ background: `linear-gradient(135deg, ${COLORS.bg}, #dbeafe)` }}>
+        <div className="flex items-center justify-center w-16 h-16 mx-auto mb-4 bg-white rounded-full shadow-lg">
+          <Users size={32} style={{ color: COLORS.primary }} />
+        </div>
+        <h2 className="text-xl font-bold text-slate-800">Auditee NCR Review</h2>
+        <p className="mt-1 text-sm text-slate-600">
+          NCR Number: <span className="font-semibold" style={{ color: COLORS.primary }}>{ncr.ncrNumber || '—'}</span>
+        </p>
+        <button
+          onClick={() => setShowAuditeeReviewModal(false)}
+          className="absolute p-2 transition-all rounded-lg top-4 right-4 text-slate-500 hover:bg-white/50"
+        >
+          <X size={18} />
+        </button>
+      </div>
+
+      {/* Content */}
+      <div className="px-6 py-5">
+        
+        
+
+        {/* NCR Summary */}
+        <div className="mb-5 ">
+          <div className="p-3 text-center border rounded-xl bg-slate-50 border-slate-200">
+            <p className="mb-1 text-xs text-slate-500">Department</p>
+            <span className="text-sm font-semibold truncate text-slate-800">{ncr.department || '—'}</span>
+            {/* <p className="text-sm font-semibold truncate text-slate-800">{ncr.department || '—'}</p> */}
+          </div>
+          
+        </div>
+
+        {/* Comments Section */}
+        <div className="mb-5">
+          <label className="block mb-2 text-sm font-semibold text-slate-700">
+            Comments <span className="ml-1 text-xs text-rose-500">(required)</span>
+          </label>
+          <textarea
+            rows={4}
+            className="w-full px-4 py-2.5 text-sm border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all bg-white shadow-sm resize-none"
+            placeholder="Enter your review comments..."
+            value={reviewComment}
+            onChange={(e) => setReviewComment(e.target.value)}
+          />
+        </div>
+
+        {/* Action Buttons */}
+        <div className="flex gap-3">
+          <button
+            onClick={() =>  handleAuditeeReview(false, reviewComment)}
+            disabled={reviewLoading}
+            className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 text-sm font-semibold text-white rounded-xl transition-all disabled:opacity-50 shadow-md hover:shadow-lg"
+            style={{ backgroundColor: COLORS.danger }}
+          >
+            {reviewLoading ? <Loader2 size={16} className="animate-spin" /> : <ThumbsDown size={16} />}
+            Reject
+          </button>
+          <button
+            onClick={() =>  handleAuditeeReview(true, reviewComment)}
+            disabled={reviewLoading}
+            className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 text-sm font-semibold text-white rounded-xl transition-all disabled:opacity-50 shadow-md hover:shadow-lg"
+            style={{
+              background: `linear-gradient(to bottom right, #60a5fa, ${COLORS.secondary})`,
+              border: `1px solid ${COLORS.secondary}4D`
+            }}
+          >
+            {reviewLoading ? <Loader2 size={16} className="animate-spin" /> : <ThumbsUp size={16} />}
+            Accept
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+)}
 
       {show8DReportModal && selected8DEventId && (
         <div className="fixed inset-0 z-50 overflow-y-auto bg-black/50">
@@ -811,7 +953,7 @@ const handleReject = () => {
                   setShow8DReportModal(false);
                   setSelected8DEventId(null);
                 }}
-                className="absolute -top-2 -right-2 z-10 bg-red-500 text-white rounded-full p-2 hover:bg-red-600 transition-colors shadow-lg"
+                className="absolute z-10 p-2 text-white transition-colors bg-red-500 rounded-full shadow-lg -top-2 -right-2 hover:bg-red-600"
                 title="Close 8D report"
               >
                 <X size={24} />

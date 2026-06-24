@@ -2,40 +2,52 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import {
   ArrowLeft, FileText, AlertCircle, Users, CheckCircle,
-  Save, Download, Loader2, PlayCircle, ChevronRight, ChevronLeft
+  Save, Download, Loader2, ChevronRight, ChevronLeft,
+  User, Building, ClipboardList, PenTool,
+  Sparkles, Info
 } from 'lucide-react';
 import { ncrService } from '../services/ncrService';
 import { useAuth } from '../context/AuthContext';
 import { userAPI } from '../services/api';
 import { getDashboardPath } from '../utils/roleUtils';
 
-// Styles
-const inputStyle = {
-  base: "w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500/20 focus:border-red-500 transition-all bg-white",
-  textarea: "w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500/20 focus:border-red-500 transition-all bg-white resize-none",
-  label: "block text-xs font-medium text-gray-700 mb-1",
-  card: "bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden",
-  cardHeader: "px-5 py-3 border-b border-gray-200 bg-gray-50/50",
-  cardTitle: "text-sm font-semibold text-gray-800 flex items-center gap-2",
+// ============================================================================
+// COLOR PALETTE & ANIMATIONS (MNC Professional Style)
+// ============================================================================
+const COLORS = {
+  primary: '#00529B',
+  secondary: '#3b82f6',
+  dark: '#1e3a8a',
+  light: '#60a5fa',
+  lighter: '#93c5fd',
+  bg: '#eff6ff',
+  white: '#ffffff',
+  success: '#10b981',
+  warning: '#f59e0b',
+  danger: '#ef4444',
 };
 
-const FormCard = ({ title, children, icon: Icon }) => (
-  <div className={inputStyle.card}>
-    <div className={inputStyle.cardHeader}>
-      <div className={inputStyle.cardTitle}>
-        {Icon && <Icon size={18} className="text-gray-500" />}
-        {title}
-      </div>
-    </div>
-    <div className="p-5">{children}</div>
-  </div>
-);
+const animationStyles = `
+@keyframes fadeInUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+@keyframes scaleIn { from { opacity: 0; transform: scale(0.95); } to { opacity: 1; transform: scale(1); } }
+.animate-fadeInUp { animation: fadeInUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards; opacity: 0; }
+.animate-fadeIn { animation: fadeIn 0.5s ease-out forwards; opacity: 0; }
+.animate-scaleIn { animation: scaleIn 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards; opacity: 0; }
+`;
+
+// Styles
+const inputStyle = {
+  base: "w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all bg-white shadow-sm",
+  textarea: "w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all bg-white resize-none shadow-sm",
+  label: "block text-xs font-medium text-slate-700 mb-1",
+};
 
 const InputField = ({ label, value, onChange, placeholder, type = 'text', rows, required, disabled }) => (
   <div>
     <label className={inputStyle.label}>
       {label}
-      {required && <span className="text-red-500 ml-1">*</span>}
+      {required && <span className="ml-1 text-rose-500">*</span>}
     </label>
     {type === 'textarea' ? (
       <textarea
@@ -153,52 +165,35 @@ export default function Form7View() {
     }));
   };
 
+  // ============================================================================
+  // STEP NAVIGATION (Now 2 steps instead of 3)
+  // ============================================================================
   const validateStep = () => {
     if (currentStep === 1) {
+      // Validate combined step 1 (old steps 1 + 2)
       if (!formData.processDepartment) { setError('Process/Department is required'); return false; }
       if (!formData.clauseNumbers) { setError('Clause numbers are required'); return false; }
-    } else if (currentStep === 2) {
       if (!formData.objectiveEvidence) { setError('Objective evidence is required'); return false; }
       if (!formData.statement) { setError('Statement of nonconformity is required'); return false; }
-    } else if (currentStep === 3) {
+    } else if (currentStep === 2) {
+      // Validate step 2 (old step 3)
       if (!formData.auditeeId) { setError('Please select the auditee responsible for this NCR'); return false; }
     }
     return true;
   };
 
   const nextStep = () => {
-    if (validateStep()) { setError(null); setCurrentStep(currentStep + 1); }
+    if (validateStep()) { 
+      setError(null); 
+      setCurrentStep(currentStep + 1); 
+      window.scrollTo({ top: 0, behavior: 'smooth' }); 
+    }
   };
 
-  const prevStep = () => { setError(null); setCurrentStep(currentStep - 1); };
-
-  const fillDemoData = () => {
-    const defaultAuditee = auditeeOptions.find((option) => option.role === 'AUDITEE' || option.role === 'HOD') || auditeeOptions[0];
-    const defaultAuditeeName = defaultAuditee
-      ? (defaultAuditee.name || `${defaultAuditee.firstName || ''} ${defaultAuditee.lastName || ''}`.trim())
-      : '';
-
-    setFormData({
-      companyName: 'ABC Manufacturing Pvt Ltd',
-      auditReportNumber: sourceAuditReportNumber,
-      ncrNumber: '',
-      processDepartment: 'Production Department - Assembly Line A',
-      clauseNumbers: 'ISO 9001:2015 Clause 8.5.1 - Control of Production and Service Provision',
-      objectiveEvidence: 'During the audit of assembly line A, torque wrench calibration sticker was expired (dated 01/01/2024)',
-      statement: 'The organization failed to ensure that production processes are carried out under controlled conditions.',
-      dueDate: '2024-06-15',
-      auditorName: user?.name || 'Mr. Abhishek Kumar',
-      auditorSignature: formData.auditorSignature,
-      auditeeName: defaultAuditeeName,
-      auditeeSignature: '',
-      auditId: 101,
-      auditorId: user?.id || 1,
-      auditeeId: defaultAuditee?.id || null,
-      shift: 'Day',
-    });
-    
-    setSuccess('✅ Demo data loaded! You can edit before saving.');
-    setTimeout(() => setSuccess(null), 3000);
+  const prevStep = () => { 
+    setError(null); 
+    setCurrentStep(currentStep - 1); 
+    window.scrollTo({ top: 0, behavior: 'smooth' }); 
   };
 
   useEffect(() => {
@@ -332,7 +327,6 @@ export default function Form7View() {
     
     if (result.success) {
       setCreatedNcr(result.data);
-      // ✅ Show success modal instead of inline message + broken navigate
       setNcrResult(result.data);
       setShowSuccessModal(true);
     } else {
@@ -367,7 +361,7 @@ export default function Form7View() {
     }
   };
 
-  // ✅ Success Modal Component with reduced opacity for all colors
+  // ✅ Success Modal Component
   const SuccessModal = () => {
     if (!showSuccessModal || !ncrResult) return null;
 
@@ -387,70 +381,53 @@ export default function Form7View() {
 
     return (
       <div
-        className="fixed inset-0 z-50 flex items-center justify-center p-4"
+        className="fixed inset-0 z-50 flex items-center justify-center p-4 animate-fadeIn"
         style={{ backgroundColor: 'rgba(0,0,0,0.5)', backdropFilter: 'blur(4px)' }}
       >
-        <div className="w-full max-w-md overflow-hidden bg-white shadow-2xl rounded-2xl">
-          
-          {/* Header with low opacity orange gradient */}
-          <div className="px-6 pt-8 pb-6 text-center" style={{ background: 'linear-gradient(135deg, rgba(234, 128, 8, 0.3), rgba(231, 168, 105, 0.3))' }}>
+        <div className="w-full max-w-md overflow-hidden bg-white shadow-2xl rounded-2xl animate-scaleIn">
+          <div className="px-6 pt-8 pb-6 text-center" style={{ background: `linear-gradient(135deg, ${COLORS.bg}, #dbeafe)` }}>
             <div className="flex items-center justify-center w-16 h-16 mx-auto mb-4 bg-white rounded-full shadow-lg">
-              <CheckCircle size={32} className="text-green-500" style={{ opacity: 0.6 }} />
+              <CheckCircle size={32} style={{ color: COLORS.success }} />
             </div>
-            <h2 className="text-xl font-bold" style={{ color: 'rgba(34, 197, 94, 0.7)' }}>NCR Created Successfully!</h2>
-            <p className="mt-1 text-sm" style={{ color: 'rgba(34, 197, 94, 0.7)' }}>
-              NCR Number: <span className="font-semibold" style={{ color: 'rgba(34, 197, 94, 0.8)' }}>{ncrResult.ncrNumber}</span>
+            <h2 className="text-xl font-bold text-slate-800">NCR Created Successfully!</h2>
+            <p className="mt-1 text-sm text-slate-600">
+              NCR Number: <span className="font-semibold" style={{ color: COLORS.primary }}>{ncrResult.ncrNumber}</span>
             </p>
           </div>
 
-          {/* Details */}
           <div className="px-6 py-5">
-            {/* Info row */}
             <div className="grid grid-cols-2 gap-3 mb-5">
-              <div className="p-3 text-center rounded-xl bg-gray-50 border border-gray-100">
-                <p className="text-xs text-gray-500 mb-1">Department</p>
-                <p className="text-sm font-semibold text-gray-800 truncate">{formData.processDepartment || '—'}</p>
+              <div className="p-3 text-center border rounded-xl bg-slate-50 border-slate-100">
+                <p className="mb-1 text-xs text-slate-500">Department</p>
+                <p className="text-sm font-semibold truncate text-slate-800">{formData.processDepartment || '—'}</p>
               </div>
-              <div className="p-3 text-center rounded-xl bg-gray-50 border border-gray-100">
-                <p className="text-xs text-gray-500 mb-1">Auditee</p>
-                <p className="text-sm font-semibold text-gray-800 truncate">{formData.auditeeName || '—'}</p>
+              <div className="p-3 text-center border rounded-xl bg-slate-50 border-slate-100">
+                <p className="mb-1 text-xs text-slate-500">Auditee</p>
+                <p className="text-sm font-semibold truncate text-slate-800">{formData.auditeeName || '—'}</p>
               </div>
             </div>
 
-            {/* Note with low opacity blue */}
-            <div className="flex items-start gap-2 p-3 mb-5 border border-blue-200 rounded-xl" style={{ backgroundColor: 'rgba(59, 130, 246, 0.1)' }}>
-              <AlertCircle size={16} className="text-blue-600 mt-0.5 flex-shrink-0" style={{ opacity: 0.6 }} />
-              <p className="text-xs" style={{ color: 'rgba(29, 78, 216, 0.8)' }}>
+            <div className="flex items-start gap-2 p-3 mb-5 border rounded-xl" style={{ backgroundColor: COLORS.bg, borderColor: COLORS.lighter }}>
+              <Info size={16} style={{ color: COLORS.primary }} className="mt-0.5 flex-shrink-0" />
+              <p className="text-xs" style={{ color: COLORS.dark }}>
                 The auditee will review and sign this NCR in <strong>Form 8 (Corrective Action Report)</strong>.
               </p>
             </div>
 
-            {/* Action Buttons with low opacity */}
             <div className="flex flex-col gap-3">
               <div className="flex gap-3">
                 <button
                   onClick={handleDownloadPdf}
                   disabled={pdfDownloading}
-                  className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 text-sm font-semibold text-white rounded-xl transition-all disabled:opacity-50"
-                  style={{ backgroundColor: 'rgba(37, 99, 235, 0.7)', hover: { backgroundColor: 'rgba(29, 78, 216, 0.8)' } }}
-                  onMouseEnter={(e) => e.target.style.backgroundColor = 'rgba(29, 78, 216, 0.8)'}
-                  onMouseLeave={(e) => e.target.style.backgroundColor = 'rgba(37, 99, 235, 0.7)'}
+                  className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 text-sm font-semibold text-white rounded-xl transition-all disabled:opacity-50 shadow-md hover:shadow-lg"
+                  style={{ backgroundColor: COLORS.primary }}
                 >
                   {pdfDownloading ? <Loader2 size={16} className="animate-spin" /> : <Download size={16} />}
                   Download PDF
                 </button>
                 <button
                   onClick={handleViewNcr}
-                  className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 text-sm font-semibold rounded-xl transition-all border"
-                  style={{ color: 'rgba(55, 65, 81, 0.8)', backgroundColor: 'rgba(243, 244, 246, 0.8)', borderColor: 'rgba(209, 213, 219, 0.5)' }}
-                  onMouseEnter={(e) => {
-                    e.target.style.backgroundColor = 'rgba(229, 231, 235, 0.9)';
-                    e.target.style.borderColor = 'rgba(209, 213, 219, 0.7)';
-                  }}
-                  onMouseLeave={(e) => {
-                    e.target.style.backgroundColor = 'rgba(243, 244, 246, 0.8)';
-                    e.target.style.borderColor = 'rgba(209, 213, 219, 0.5)';
-                  }}
+                  className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 text-sm font-semibold rounded-xl transition-all border shadow-sm hover:shadow-md bg-white text-slate-700 border-slate-200"
                 >
                   <FileText size={16} />
                   View NCR
@@ -458,10 +435,13 @@ export default function Form7View() {
               </div>
               <button
                 onClick={handleGoToDashboard}
-                className="flex items-center justify-center w-full gap-2 px-5 py-3 font-semibold text-white rounded-xl transition-all"
-                style={{ backgroundColor: 'rgba(220, 38, 38, 0.7)' }}
-                onMouseEnter={(e) => e.target.style.backgroundColor = 'rgba(185, 28, 28, 0.8)'}
-                onMouseLeave={(e) => e.target.style.backgroundColor = 'rgba(220, 38, 38, 0.7)'}
+                className="flex items-center justify-center w-full gap-2 px-5 py-3 font-semibold text-white transition-all shadow-md rounded-xl hover:shadow-lg"
+                 style={{
+                  background: `linear-gradient(to bottom right, #60a5fa, ${COLORS.secondary})`,
+                  border: `1px solid ${COLORS.secondary}4D`,
+                  color: 'white'
+                }}
+
               >
                 <ArrowLeft size={18} />
                 Back to Dashboard
@@ -473,206 +453,233 @@ export default function Form7View() {
     );
   };
 
-  // Step indicator component
-  const StepIndicator = () => (
-    <div className="mb-8">
-      <div className="flex items-center justify-center gap-4">
-        <div className="flex items-center">
-          <div className={`w-10 h-10 rounded-full flex items-center justify-center font-semibold ${
-            currentStep >= 1 ? 'bg-red-600 text-white' : 'bg-gray-200 text-gray-600'
-          }`}>
-            1
-          </div>
-          <div className={`w-16 h-1 ${currentStep >= 2 ? 'bg-red-600' : 'bg-gray-200'}`} />
-        </div>
-        <div className="flex items-center">
-          <div className={`w-10 h-10 rounded-full flex items-center justify-center font-semibold ${
-            currentStep >= 2 ? 'bg-red-600 text-white' : 'bg-gray-200 text-gray-600'
-          }`}>
-            2
-          </div>
-          <div className={`w-16 h-1 ${currentStep >= 3 ? 'bg-red-600' : 'bg-gray-200'}`} />
-        </div>
-        <div>
-          <div className={`w-10 h-10 rounded-full flex items-center justify-center font-semibold ${
-            currentStep >= 3 ? 'bg-red-600 text-white' : 'bg-gray-200 text-gray-600'
-          }`}>
-            3
-          </div>
+  // ============================================================================
+  // STEP INDICATOR (Now 2 steps)
+  // ============================================================================
+  const StepIndicator = () => {
+    const steps = [
+      { number: 1, title: 'Nonconformity Details', subtitle: 'Evidence & Statement', icon: AlertCircle },
+      { number: 2, title: 'Acknowledgement', subtitle: 'Signatures', icon: PenTool }
+    ];
+
+    return (
+      <div className="mb-6 animate-fadeInUp">
+        <div className="flex items-center justify-between max-w-2xl mx-auto">
+          {steps.map((step, index) => {
+            const Icon = step.icon;
+            const isActive = currentStep === step.number;
+            const isCompleted = currentStep > step.number;
+            const isClickable = step.number < currentStep;
+            
+            return (
+              <React.Fragment key={step.number}>
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (isClickable) {
+                      setError(null);
+                      setCurrentStep(step.number);
+                      window.scrollTo({ top: 0, behavior: 'smooth' });
+                    }
+                  }}
+                  disabled={!isClickable}
+                  className={`flex items-center gap-3 transition-all duration-200 ${
+                    isClickable ? 'cursor-pointer hover:opacity-80' : 'cursor-default'
+                  }`}
+                >
+                  <div className={`flex items-center justify-center w-10 h-10 rounded-lg transition-all duration-300 shadow-sm ${
+                    isActive || isCompleted ? 'text-white' : 'bg-slate-400 text-black'
+                  }`} style={{ backgroundColor: isActive || isCompleted ? COLORS.primary : undefined }}>
+                    {isCompleted ? <CheckCircle size={20} /> : <Icon size={20} />}
+                  </div>
+                  <div className="text-left">
+                    <p className="text-xs font-medium" style={{ color: isActive ? COLORS.secondary : '#64748b' }}>Step {step.number}</p>
+                  </div>
+                </button>
+                {index < steps.length - 1 && (
+                  <div className={`flex-1 h-0.5 mx-4 transition-all duration-300 ${isCompleted ? 'bg-blue-500' : 'bg-slate-500'}`} style={{ backgroundColor: isCompleted ? COLORS.secondary : undefined }} />
+                )}
+              </React.Fragment>
+            );
+          })}
         </div>
       </div>
-      <div className="flex justify-center gap-16 mt-2">
-        <span className="text-xs text-gray-500">Nonconformity Details</span>
-        <span className="text-xs text-gray-500">Evidence & Statement</span>
-        <span className="text-xs text-gray-500">Acknowledgement</span>
-      </div>
-    </div>
-  );
+    );
+  };
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
-          <Loader2 className="w-12 h-12 animate-spin text-red-600 mx-auto mb-4" />
-          <p className="text-gray-600">Loading NCR data...</p>
+      <div className="flex items-center justify-center min-h-screen" style={{ backgroundColor: COLORS.bg }}>
+        <div className="p-8 text-center bg-white border shadow-sm border-slate-200 rounded-2xl">
+          <div className="w-12 h-12 mx-auto mb-4 border-4 rounded-full animate-spin" style={{ borderColor: COLORS.lighter, borderTopColor: COLORS.primary }}></div>
+          <p className="text-sm font-medium text-slate-500">Loading NCR data...</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* ✅ Success Modal */}
+    <div className="min-h-screen" style={{ backgroundColor: COLORS.bg }}>
+      <style>{animationStyles}</style>
+      
       <SuccessModal />
 
-      {/* Fixed Header */}
-      <div className="fixed top-0 left-0 right-0 z-20 bg-white border-b border-gray-200 shadow-sm">
-        <div className="max-w-[1400px] mx-auto px-4 py-3 sm:px-6">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <button
-                onClick={() => navigate(dashboardPath)}
-                className="flex items-center gap-2 px-3 py-2 text-sm font-medium text-gray-600 rounded-lg hover:bg-gray-100 transition"
-              >
-                <ArrowLeft size={16} />
-                Back
-              </button>
-              <div className="w-px h-6 bg-gray-200"></div>
-              <div className="p-2 rounded-lg bg-red-50 text-red-600">
-                <FileText size={18} />
-              </div>
-              <div>
-                <p className="text-sm font-semibold text-gray-900">Nonconformity Report</p>
-                <p className="text-xs text-gray-500">Form 7 - Create NCR</p>
-              </div>
-            </div>
-            <div className="flex items-center gap-2">
-              <button
-                onClick={downloadForm7Pdf}
-                disabled={pdfDownloading || (!createdNcr?.id && !searchParams.get('id'))}
-                className="px-3 py-2 bg-gray-100 text-gray-700 text-sm font-medium rounded-lg hover:bg-gray-200 transition flex items-center gap-2 border border-gray-300 disabled:opacity-50"
-              >
-                {pdfDownloading ? <Loader2 size={16} className="animate-spin" /> : <Download size={16} />}
-                Form 7 PDF
-              </button>
-            </div>
+       <div className="max-w-4xl px-4 py-8 mx-auto">
+        {/* Header */}
+        <div className="flex items-center justify-between mb-6 animate-fadeInUp">
+          <button
+            onClick={() => navigate(dashboardPath)}
+            className="flex items-center gap-2 px-4 py-2 text-sm font-medium transition-all bg-white border rounded-lg shadow-sm text-slate-700 border-slate-200 hover:shadow-md"
+          >
+            <ArrowLeft size={16} />
+            Back
+          </button>
+          <div className="flex items-center gap-3">
+            <button
+              onClick={downloadForm7Pdf}
+              disabled={pdfDownloading || (!createdNcr?.id && !searchParams.get('id'))}
+              className="flex items-center gap-2 px-4 py-2 text-sm font-medium transition-all bg-white border rounded-lg shadow-sm text-slate-700 border-slate-200 hover:shadow-md disabled:opacity-50"
+            >
+              {pdfDownloading ? <Loader2 size={16} className="animate-spin" /> : <Download size={16} />}
+              Form 7 PDF
+            </button>
           </div>
         </div>
-      </div>
 
-      {/* Form Name Banner */}
-      <div className="pt-20">
-        <div className="bg-white border-b border-gray-200 shadow-sm">
-          <div className="max-w-[1400px] mx-auto px-4 py-4 sm:px-6">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <div className="p-2 rounded-lg bg-red-50 text-red-600">
-                  <FileText size={20} />
-                </div>
-                <div>
-                  <h1 className="text-xl font-bold text-gray-900">Nonconformity Report</h1>
-                  <p className="text-sm text-gray-500">
-                    {formData.ncrNumber ? `NCR #: ${formData.ncrNumber}` : 'Create New Nonconformity Report'}
-                  </p>
-                </div>
-              </div>
-              {sourceAuditReportNumber && (
-                <div className="px-4 py-2 bg-red-50 border border-red-100 text-red-700 text-sm font-medium rounded-lg">
-                  Audit Report No: {sourceAuditReportNumber}
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Main Content */}
-      <div className="max-w-[1400px] mx-auto px-4 py-6 sm:px-6">
+        {/* Step Progress Bar */}
         <StepIndicator />
 
         {error && (
-          <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded-lg text-red-700">
-            <AlertCircle size={18} className="inline mr-2" />
+          <div className="p-3 mb-4 border rounded-lg bg-rose-50 border-rose-200 text-rose-700 animate-fadeIn">
+            <AlertCircle size={16} className="inline mr-2" />
             {error}
           </div>
         )}
 
-        <div className="space-y-5">
-          {/* Step 1: Nonconformity Details */}
+        {success && (
+          <div className="p-3 mb-4 border rounded-lg bg-emerald-50 border-emerald-200 text-emerald-700 animate-fadeIn">
+            <CheckCircle size={16} className="inline mr-2" />
+            {success}
+          </div>
+        )}
+
+        <div className="space-y-4">
+          {/* ============================================================================
+              STEP 1: Nonconformity Details + Evidence & Statement (Combined)
+              ============================================================================ */}
           {currentStep === 1 && (
-            <FormCard title="Step 1: Nonconformity Details" icon={AlertCircle}>
-              <div className="grid gap-4">
-                <InputField 
-                  label="Process / Department *" 
-                  type="textarea" 
-                  rows={3} 
-                  value={formData.processDepartment} 
-                  onChange={(v) => setValue('processDepartment', v)} 
-                  placeholder="Department - Production..." 
-                  required 
-                />
-                <InputField 
-                  label="Requirement / Clause numbers *" 
-                  type="textarea" 
-                  rows={3} 
-                  value={formData.clauseNumbers} 
-                  onChange={(v) => setValue('clauseNumbers', v)} 
-                  placeholder="Clause numbers..." 
-                  required 
-                />
-                <InputField 
-                  label="Due date" 
-                  type="date" 
-                  value={formData.dueDate} 
-                  onChange={(v) => setValue('dueDate', v)} 
-                />
-              </div>
-            </FormCard>
-          )}
-
-          {/* Step 2: Evidence & Statement */}
-          {currentStep === 2 && (
-            <FormCard title="Step 2: Evidence & Statement" icon={AlertCircle}>
-              <div className="grid gap-4">
-                <InputField 
-                  label="Objective evidence *" 
-                  type="textarea" 
-                  rows={5} 
-                  value={formData.objectiveEvidence} 
-                  onChange={(v) => setValue('objectiveEvidence', v)} 
-                  placeholder="Purchase order number..." 
-                  required 
-                />
-                <InputField 
-                  label="Statement of nonconformity *" 
-                  type="textarea" 
-                  rows={5} 
-                  value={formData.statement} 
-                  onChange={(v) => setValue('statement', v)} 
-                  placeholder="Statement of nonconformity..." 
-                  required 
-                />
-              </div>
-            </FormCard>
-          )}
-
-          {/* Step 3: Acknowledgement */}
-          {currentStep === 3 && (
-            <>
-              <FormCard title="Step 3: Header Information" icon={FileText}>
-                <div className="grid gap-4 md:grid-cols-2">
-                  <InputField label="Company Name" value={formData.companyName} onChange={(v) => setValue('companyName', v)} placeholder="Company name" />
-                  <InputField label="Audit report number" value={formData.auditReportNumber} onChange={(v) => setValue('auditReportNumber', v)} placeholder="From audit form" disabled />
+            <div className="bg-white border shadow-sm border-slate-200 rounded-xl animate-fadeInUp">
+              <div className="p-4 border-b border-slate-100" style={{ backgroundColor: COLORS.bg }}>
+                <div className="flex items-center gap-3">
+                  <div className="p-1.5 rounded-lg" style={{ backgroundColor: COLORS.lighter }}>
+                    <AlertCircle size={18} style={{ color: COLORS.primary }} />
+                  </div>
+                  <div>
+                    <h2 className="text-base font-bold text-slate-800">Step 1: Nonconformity Details</h2>
+                    <p className="text-xs text-slate-500">Enter nonconformity details, evidence, and statement</p>
+                  </div>
                 </div>
-                <p className="mt-3 text-xs text-gray-500">
-                  This number is locked from the submitted audit form. NCR can be created only for the same audit report number.
-                </p>
-              </FormCard>
-
-              <FormCard title="Acknowledgement" icon={Users}>
+              </div>
+              <div className="p-4">
+                {/* Two Column Layout */}
                 <div className="grid gap-4 md:grid-cols-2">
-                  <div className="space-y-4">
-                    <p className="text-sm font-semibold text-gray-800">Auditor</p>
+                  {/* Left Column */}
+                  <div className="space-y-3">
+                    <InputField 
+                      label="Process / Department" 
+                      type="text" 
+                      value={formData.processDepartment} 
+                      onChange={(v) => setValue('processDepartment', v)} 
+                      placeholder="Department - Production..." 
+                      required 
+                    />
+                    <InputField 
+                      label="Requirement / Clause numbers" 
+                      type="textarea" 
+                      rows={2} 
+                      value={formData.clauseNumbers} 
+                      onChange={(v) => setValue('clauseNumbers', v)} 
+                      placeholder="Clause numbers..." 
+                      required 
+                    />
+                  </div>
+
+                  {/* Right Column */}
+                  <div className="space-y-3">
+                    <InputField 
+                      label="Due date" 
+                      type="date" 
+                      value={formData.dueDate} 
+                      onChange={(v) => setValue('dueDate', v)} 
+                      required
+                    />
+                    <InputField 
+                      label="Objective evidence" 
+                      type="textarea" 
+                      rows={2} 
+                      value={formData.objectiveEvidence} 
+                      onChange={(v) => setValue('objectiveEvidence', v)} 
+                      placeholder="Purchase order number..." 
+                      required 
+                    />
+                  </div>
+                </div>
+                <div className="mt-3">
+                  <InputField 
+                    label="Statement of nonconformity" 
+                    type="textarea" 
+                    rows={3} 
+                    value={formData.statement} 
+                    onChange={(v) => setValue('statement', v)} 
+                    placeholder="Statement of nonconformity..." 
+                    required 
+                  />
+                </div>
+              </div>
+              <div className="flex justify-end p-4 pt-0">
+                <button onClick={nextStep} className="flex items-center gap-2 px-5 py-2 text-sm font-medium text-white transition-all rounded-lg shadow-md hover:shadow-lg" style={{ backgroundColor: COLORS.primary }}>
+                  Next Step <ChevronRight size={16} />
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* ============================================================================
+              STEP 2: Single Card with Header Info + Acknowledgement
+              ============================================================================ */}
+          {currentStep === 2 && (
+            <div className="bg-white border shadow-sm border-slate-200 rounded-xl animate-fadeInUp">
+              <div className="p-4 border-b border-slate-100" style={{ backgroundColor: COLORS.bg }}>
+                <div className="flex items-center gap-3">
+                  <div className="p-1.5 rounded-lg" style={{ backgroundColor: COLORS.lighter }}>
+                    <Users size={18} style={{ color: COLORS.primary }} />
+                  </div>
+                  <div>
+                    <h2 className="text-base font-bold text-slate-800">Step 2: Acknowledgement</h2>
+                    <p className="text-xs text-slate-500">Company details and signatures</p>
+                  </div>
+                </div>
+              </div>
+              <div className="p-4">
+                {/* Header Information Section */}
+                <div className="mb-4">
+                  <div className="grid gap-3 md:grid-cols-2">
+                    <InputField label="Company Name" value={formData.companyName} onChange={(v) => setValue('companyName', v)} placeholder="Company name" />
+                    <InputField label="Audit report number" value={formData.auditReportNumber} onChange={(v) => setValue('auditReportNumber', v)} placeholder="From audit form" disabled />
+                  </div>
+                </div>
+
+                {/* Divider */}
+                <div className="my-4 border-t border-slate-200"></div>
+
+                {/* Auditor and Auditee in Two Columns */}
+                <div className="grid gap-4 md:grid-cols-2">
+                  {/* Left Column - Auditor */}
+                  <div className="space-y-3">
+                    <p className="flex items-center gap-2 text-sm font-bold text-slate-800">
+                      <User size={14} style={{ color: COLORS.primary }} />
+                      Auditor
+                    </p>
                     <InputField 
                       label="Name" 
                       value={formData.auditorName} 
@@ -682,42 +689,25 @@ export default function Form7View() {
                     <div>
                       <label className={inputStyle.label}>Signature</label>
                       {formData.auditorSignature ? (
-                        <div className="mt-2 p-2 border rounded-lg bg-gray-50">
-                          <img src={formData.auditorSignature} alt="Auditor Signature" className="h-12 object-contain" />
+                        <div className="p-3 mt-1 border rounded-lg" style={{ backgroundColor: COLORS.bg, borderColor: COLORS.lighter }}>
+                          <img src={formData.auditorSignature} alt="Auditor Signature" className="object-contain h-10" />
+                          <p className="mt-1 text-xs font-medium" style={{ color: COLORS.secondary }}>✓ Loaded from profile</p>
                         </div>
                       ) : (
-                        <p className="text-sm text-gray-400 italic">Loading signature...</p>
+                        <div className="p-3 mt-1 border rounded-lg bg-slate-50 border-slate-200">
+                          <p className="text-xs italic text-slate-500">Loading signature...</p>
+                        </div>
                       )}
                     </div>
                   </div>
-                  <div className="space-y-4">
-                    <p className="text-sm font-semibold text-gray-800">Auditee representative acknowledgement</p>
-                    <div>
-                      <label className={inputStyle.label}>
-                        Select Auditee
-                        <span className="text-red-500 ml-1">*</span>
-                      </label>
-                      <select
-                        className={inputStyle.base}
-                        value={formData.auditeeId || ''}
-                        onChange={(e) => {
-                          const selected = auditeeOptions.find((option) => String(option.id) === e.target.value);
-                          if (selected) handleAuditeeSelect(selected);
-                        }}
-                      >
-                        <option value="">Select auditee</option>
-                        {auditeeOptions.map((option) => (
-                          <option key={option.id} value={option.id}>
-                            {option.name || `${option.firstName || ''} ${option.lastName || ''}`.trim()} ({option.role})
-                          </option>
-                        ))}
-                      </select>
-                      {formData.auditeeId && (
-                        <p className="mt-2 text-xs text-blue-600">
-                          Assigned auditee: {formData.auditeeName} (ID: {formData.auditeeId})
-                        </p>
-                      )}
-                    </div>
+
+                  {/* Right Column - Auditee */}
+                  <div className="space-y-3">
+                    <p className="flex items-center gap-2 text-sm font-bold text-slate-800">
+                      <Users size={14} style={{ color: COLORS.primary }} />
+                      Auditee
+                    </p>
+                   
                     <InputField 
                       label="Name" 
                       value={formData.auditeeName} 
@@ -726,58 +716,41 @@ export default function Form7View() {
                     />
                     <div>
                       <label className={inputStyle.label}>Signature</label>
-                      <div className="mt-2 p-2 border rounded-lg bg-yellow-50">
-                        <p className="text-sm text-yellow-600 italic">
-                          ⚠️ Auditee will sign in Form 8 (Corrective Action Report)
+                      <div className="p-3 mt-1 border rounded-lg" style={{ backgroundColor: '#fef3c7', borderColor: '#fde68a' }}>
+                        <p className="flex items-center gap-1 text-xs italic" style={{ color: '#92400e' }}>
+                          <Info size={12} />
+                          Will sign in Form 8
                         </p>
                       </div>
                     </div>
                   </div>
                 </div>
-              </FormCard>
-            </>
-          )}
-        </div>
+              </div>
 
-        {/* Navigation Buttons */}
-        <div className="mt-8 flex justify-between gap-3 pt-4 border-t border-gray-200">
-          <div>
-            {currentStep > 1 && (
-              <button
-                onClick={prevStep}
-                className="px-6 py-2.5 text-sm font-medium text-gray-700 rounded-lg border border-gray-300 hover:bg-gray-50 transition flex items-center gap-2"
-              >
-                <ChevronLeft size={16} />
-                Previous
-              </button>
-            )}
-          </div>
-          <div className="flex gap-3">
-            <button
-              onClick={() => navigate(dashboardPath)}
-              className="px-5 py-2.5 text-sm font-medium text-gray-700 rounded-lg border border-gray-300 hover:bg-gray-50 transition"
-            >
-              Cancel
-            </button>
-            {currentStep < 3 ? (
-              <button
-                onClick={nextStep}
-                className="px-6 py-2.5 text-sm font-medium text-white rounded-lg transition bg-red-600 hover:bg-red-700 flex items-center gap-2"
-              >
-                Next
-                <ChevronRight size={16} />
-              </button>
-            ) : (
-              <button
-                onClick={handleSave}
-                disabled={saving || !!createdNcr?.id}
-                className="px-6 py-2.5 text-sm font-medium text-white rounded-lg transition bg-green-600 hover:bg-green-700 disabled:opacity-50 flex items-center gap-2"
-              >
-                {saving ? <Loader2 size={16} className="animate-spin" /> : <Save size={16} />}
-                {saving ? 'Saving...' : 'Create NCR'}
-              </button>
-            )}
-          </div>
+              <div className="flex justify-between p-4 pt-0">
+                <button onClick={prevStep} className="flex items-center gap-2 px-4 py-2 text-sm font-medium transition-all bg-white border rounded-lg shadow-sm text-slate-700 border-slate-200 hover:bg-slate-50">
+                  <ChevronLeft size={16} /> Previous
+                </button>
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => navigate(dashboardPath)}
+                    className="px-4 py-2 text-sm font-medium transition-all bg-white border rounded-lg shadow-sm text-slate-700 border-slate-200 hover:bg-slate-50"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={handleSave}
+                    disabled={saving || !!createdNcr?.id}
+                    className="flex items-center gap-2 px-5 py-2 text-sm font-medium text-white transition-all rounded-lg shadow-md disabled:opacity-50 hover:shadow-lg"
+                    style={{ backgroundColor: COLORS.primary }}
+                  >
+                    {saving ? <Loader2 size={14} className="animate-spin" /> : <Save size={14} />}
+                    {saving ? 'Saving...' : 'Create NCR'}
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </div>

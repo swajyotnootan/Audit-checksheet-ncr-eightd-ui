@@ -1,17 +1,102 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
-import { ArrowLeft, Loader2, Download, CheckCircle, AlertCircle, FileText, Users, Calendar, Building, User, Hash, Clock, List, FileCheck, Target, Shield, Layers, Eye, FileBarChart, X } from 'lucide-react';
+import { 
+  ArrowLeft, Loader2, Download, CheckCircle, AlertCircle, FileText, Users, 
+  Calendar, Building, User, Hash, Clock, List, FileCheck, Target, Shield, 
+  Layers, Eye, FileBarChart, X 
+} from 'lucide-react';
 import { ncrService } from '../services/ncrService';
 import { useAuth } from '../context/AuthContext';
-import { getDashboardPath, isAuditor } from '../utils/roleUtils';
+import { getDashboardPath } from '../utils/roleUtils';
 import FinalPreview from '../steps/FinalPreview';
+import BackButton from '../dashboards/leadAuditor/BackButton';
+
+// ─────────────────────────────────────────────────────────────
+// Modern card-style form styling with Times New Roman
+// ─────────────────────────────────────────────────────────────
+const fontFamily = "inherit, 'Times New Roman', Times, serif";
+
+const COLORS = {
+  primary: '#00529B',
+  secondary: '#3b82f6',
+  dark: '#1e3a8a',
+  light: '#60a5fa',
+  lighter: '#93c5fd',
+  bg: '#eff6ff',
+  white: '#ffffff',
+  success: '#10b981',
+  warning: '#f59e0b',
+  danger: '#ef4444',
+};
+
+const formStyle = {
+  container: 'max-w-5xl mx-auto bg-white rounded-2xl shadow-xl overflow-hidden print:shadow-none print:rounded-none',
+  header: 'px-6 py-5 print:bg-white print:border-b-2 print:border-gray-300',
+  section: 'px-6 py-5 border-b border-gray-100 print:border-gray-200',
+  sectionTitle: 'text-base font-bold text-gray-800 mb-4 pb-2 border-b-2 border-red-500 inline-block',
+  label: 'text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1 block',
+  value: 'text-sm text-gray-800 leading-relaxed',
+  footer: 'px-6 py-4 bg-gray-50 text-xs text-gray-500 border-t border-gray-200 print:bg-white',
+};
+
+const StatusBadge = ({ status }) => {
+  const config = {
+    AWAITING_AUDITEE: { bg: 'bg-amber-100', text: 'text-amber-800', icon: Clock, label: 'Awaiting Auditee Review' },
+    OPEN: { bg: 'bg-blue-100', text: 'text-blue-800', icon: AlertCircle, label: 'Pending Manager Approval' },
+    APPROVED: { bg: 'bg-emerald-100', text: 'text-emerald-800', icon: CheckCircle, label: 'Approved - Ready for Corrective Action' },
+    IN_PROGRESS: { bg: 'bg-purple-100', text: 'text-purple-800', icon: FileText, label: 'Corrective Action Submitted' },
+    CLOSED: { bg: 'bg-green-100', text: 'text-green-800', icon: CheckCircle, label: 'Closed' },
+    REJECTED: { bg: 'bg-red-100', text: 'text-red-800', icon: X, label: 'Rejected' },
+    NCR2_IN_PROGRESS: { bg: 'bg-purple-100', text: 'text-purple-800', icon: FileText, label: 'NCR2 In Progress' },
+    NCR2_COMPLETED: { bg: 'bg-green-100', text: 'text-green-800', icon: CheckCircle, label: 'NCR2 Completed' },
+    READY_FOR_NCR2: { bg: 'bg-indigo-100', text: 'text-indigo-800', icon: Target, label: 'Ready for NCR2' },
+  };
+  const { bg, text, icon: Icon, label } = config[status] || config.OPEN;
+  return (
+    <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold ${bg} ${text}`} style={{ fontFamily }}>
+      <Icon size={12} /> {label}
+    </span>
+  );
+};
+
+const InfoCard = ({ icon: Icon, label, value }) => (
+  <div className="flex items-start gap-3 p-3 border border-gray-100 bg-gray-50 rounded-xl" style={{ fontFamily }}>
+    <div className="p-2 bg-white rounded-lg shadow-sm">
+      <Icon size={16} className="text-red-500" />
+    </div>
+    <div>
+      <p className="text-xs tracking-wider text-gray-500 uppercase" style={{ fontFamily }}>{label}</p>
+      <p className="text-sm font-semibold text-gray-800" style={{ fontFamily }}>{value || '—'}</p>
+    </div>
+  </div>
+);
+
+const FormSection = ({ title, children }) => (
+  <div className={formStyle.section}>
+    <h3 className={formStyle.sectionTitle} style={{ fontFamily }}>{title}</h3>
+    <div className="mt-3">{children}</div>
+  </div>
+);
+
+const DetailRow = ({ label, value, multiline = false }) => (
+  <div className="pb-2 mb-3 border-b border-gray-50 last:border-0">
+    {label && <p className={formStyle.label} style={{ fontFamily }}>{label}</p>}
+    <div className={formStyle.value} style={{ fontFamily }}>
+      {multiline ? (
+        <div className="p-3 whitespace-pre-wrap rounded-lg bg-gray-50" style={{ fontFamily }}>{value || '—'}</div>
+      ) : (
+        <span className="font-medium" style={{ fontFamily }}>{value || '—'}</span>
+      )}
+    </div>
+  </div>
+);
 
 export default function Form8DetailView() {
   const navigate = useNavigate();
   const { id } = useParams();
   const [searchParams] = useSearchParams();
   const { user, isAuditManager, isAuditee, isHOD } = useAuth();
-const isAuditeeRole = isAuditee || isHOD;
+  const isAuditeeRole = isAuditee || isHOD;
   const dashboardPath = getDashboardPath(user);
   
   const isNCR2Mode = searchParams.get('type') === 'ncr2';
@@ -150,7 +235,6 @@ const isAuditeeRole = isAuditee || isHOD;
   const parseStructuredEvidence = (evidenceText) => {
     if (!evidenceText) return [];
     
-    // Try to parse as JSON first
     try {
       const parsed = JSON.parse(evidenceText);
       if (Array.isArray(parsed) && parsed.length > 0) {
@@ -160,7 +244,6 @@ const isAuditeeRole = isAuditee || isHOD;
       // Not JSON, process as text with bullet points
     }
     
-    // Split by ●, ▲, ■, •, -, or numbered patterns
     const bulletPattern = /[●▲■•\-]\s*|\d+\.\s+/g;
     const lines = evidenceText.split(/\r?\n/);
     const items = [];
@@ -169,9 +252,7 @@ const isAuditeeRole = isAuditee || isHOD;
       const trimmedLine = line.trim();
       if (!trimmedLine) continue;
       
-      // Check if line starts with a bullet or number
       if (bulletPattern.test(trimmedLine) || trimmedLine.startsWith('●') || trimmedLine.startsWith('▲') || trimmedLine.startsWith('■') || trimmedLine.startsWith('•') || trimmedLine.startsWith('-')) {
-        // Extract bullet type and content
         let bulletType = '●';
         let content = trimmedLine;
         
@@ -195,10 +276,8 @@ const isAuditeeRole = isAuditee || isHOD;
           status: bulletType === '●' ? 'Major NC' : bulletType === '▲' ? 'Minor NC' : 'Observation'
         });
       } else if (trimmedLine.length > 0 && items.length > 0) {
-        // Append to last item if it's continuation
         items[items.length - 1].text += ' ' + trimmedLine;
       } else if (trimmedLine.length > 0) {
-        // Regular text without bullet
         items.push({
           type: '•',
           text: trimmedLine,
@@ -207,7 +286,6 @@ const isAuditeeRole = isAuditee || isHOD;
       }
     }
     
-    // If no items found, create single item with original text
     if (items.length === 0 && evidenceText) {
       items.push({
         type: '•',
@@ -219,7 +297,6 @@ const isAuditeeRole = isAuditee || isHOD;
     return items;
   };
 
-  // Parse statement of nonconformity
   const parseStructuredStatement = (statementText) => {
     if (!statementText) return null;
     
@@ -247,40 +324,40 @@ const isAuditeeRole = isAuditee || isHOD;
 
     return (
       <div
-        className="fixed inset-0 z-50 flex items-center justify-center p-4"
+        className="fixed inset-0 z-50 flex items-center justify-center p-4 animate-fadeIn"
         style={{ backgroundColor: 'rgba(0,0,0,0.5)', backdropFilter: 'blur(4px)' }}
       >
-        <div className="w-full max-w-md overflow-hidden bg-white shadow-2xl rounded-2xl">
-          <div className="px-6 pt-8 pb-6 text-center" style={{ background: isNCR2Mode ? 'linear-gradient(135deg, rgba(139, 92, 246, 0.3), rgba(124, 58, 237, 0.3))' : 'linear-gradient(135deg, rgba(5, 150, 105, 0.3), rgba(16, 185, 129, 0.3))' }}>
+        <div className="w-full max-w-md overflow-hidden bg-white shadow-2xl rounded-2xl animate-scaleIn">
+          <div className="px-6 pt-8 pb-6 text-center" style={{ background: `linear-gradient(135deg, ${COLORS.bg}, #dbeafe)` }}>
             <div className="flex items-center justify-center w-16 h-16 mx-auto mb-4 bg-white rounded-full shadow-lg">
-              <CheckCircle size={32} className={isNCR2Mode ? 'text-purple-500' : 'text-green-500'} style={{ opacity: 0.6 }} />
+              <CheckCircle size={32} style={{ color: COLORS.success }} />
             </div>
-            <h2 className="text-xl font-bold" style={{ color: isNCR2Mode ? 'rgba(139, 92, 246, 0.85)' : 'rgba(5, 150, 105, 0.85)' }}>Download Successful!</h2>
-            <p className="mt-1 text-sm" style={{ color: isNCR2Mode ? 'rgba(139, 92, 246, 0.7)' : 'rgba(5, 150, 105, 0.7)' }}>{modalMessage}</p>
+            <h2 className="text-xl font-bold text-slate-800">Download Successful!</h2>
+            <p className="mt-1 text-sm text-slate-600">{modalMessage}</p>
           </div>
           <div className="px-6 py-5">
             <div className="grid grid-cols-2 gap-3 mb-5">
-              <div className="p-3 text-center rounded-xl" style={{ backgroundColor: 'rgba(16, 185, 129, 0.1)', border: '1px solid rgba(16, 185, 129, 0.2)' }}>
-                <p className="text-xs" style={{ color: 'rgba(75, 85, 99, 0.7)' }}>NCR Number</p>
-                <p className="text-sm font-semibold" style={{ color: 'rgba(5, 150, 105, 0.8)' }}>{ncr?.ncrNumber || '—'}</p>
+              <div className="p-3 text-center border rounded-xl bg-slate-50 border-slate-100">
+                <p className="mb-1 text-xs text-slate-500">NCR Number</p>
+                <p className="text-sm font-semibold truncate text-slate-800">{ncr?.ncrNumber || '—'}</p>
               </div>
-              <div className="p-3 text-center rounded-xl" style={{ backgroundColor: 'rgba(59, 130, 246, 0.1)', border: '1px solid rgba(59, 130, 246, 0.2)' }}>
-                <p className="text-xs" style={{ color: 'rgba(75, 85, 99, 0.7)' }}>Department</p>
-                <p className="text-sm font-semibold truncate" style={{ color: 'rgba(37, 99, 235, 0.8)' }}>{ncr?.department || '—'}</p>
+              <div className="p-3 text-center border rounded-xl bg-slate-50 border-slate-100">
+                <p className="mb-1 text-xs text-slate-500">Department</p>
+                <p className="text-sm font-semibold truncate text-slate-800">{ncr?.department || '—'}</p>
               </div>
             </div>
-            <div className="flex items-start gap-2 p-3 mb-4 rounded-xl" style={{ backgroundColor: isNCR2Mode ? 'rgba(139, 92, 246, 0.1)' : 'rgba(16, 185, 129, 0.1)', border: `1px solid ${isNCR2Mode ? 'rgba(139, 92, 246, 0.2)' : 'rgba(16, 185, 129, 0.2)'}` }}>
-              <CheckCircle size={16} className={isNCR2Mode ? 'text-purple-600' : 'text-green-600'} style={{ opacity: 0.7 }} />
-              <p className="text-xs" style={{ color: isNCR2Mode ? 'rgba(139, 92, 246, 0.9)' : 'rgba(5, 150, 105, 0.9)' }}>
+            <div className="flex items-start gap-2 p-3 mb-4 border rounded-xl" style={{ backgroundColor: COLORS.bg, borderColor: COLORS.lighter }}>
+              <CheckCircle size={16} style={{ color: COLORS.primary }} className="mt-0.5 flex-shrink-0" />
+              <p className="text-xs" style={{ color: COLORS.dark }}>
                 <strong>{isNCR2Mode ? 'NCR2 (Post-8D Corrective Action)' : 'Form 8 (Corrective Action Report)'}</strong> has been successfully generated.
               </p>
             </div>
             <div className="flex flex-col gap-3">
-              <button onClick={handleDownloadAgain} disabled={pdfDownloading} className="flex items-center justify-center w-full gap-2 px-5 py-3 font-semibold text-white transition-all rounded-xl" style={{ backgroundColor: isNCR2Mode ? 'rgba(139, 92, 246, 0.8)' : 'rgba(37, 99, 235, 0.8)' }}>
+              <button onClick={handleDownloadAgain} disabled={pdfDownloading} className="flex items-center justify-center w-full gap-2 px-5 py-3 font-semibold text-white transition-all shadow-md rounded-xl hover:shadow-lg disabled:opacity-50" style={{ background: `linear-gradient(to bottom right, #60a5fa, ${COLORS.secondary})` }}>
                 {pdfDownloading ? <Loader2 size={18} className="animate-spin" /> : <Download size={18} />}
                 {pdfDownloading ? 'Downloading...' : 'Download PDF Again'}
               </button>
-              <button onClick={handleClose} className="flex items-center justify-center w-full gap-2 px-5 py-3 font-semibold rounded-xl" style={{ backgroundColor: 'rgba(107, 114, 128, 0.1)', color: 'rgba(75, 85, 99, 0.8)', border: '1px solid rgba(107, 114, 128, 0.2)' }}>
+              <button onClick={handleClose} className="flex items-center justify-center w-full gap-2 px-5 py-3 font-semibold bg-white border shadow-sm rounded-xl hover:shadow-md text-slate-700 border-slate-200">
                 <ArrowLeft size={18} /> Back to Dashboard
               </button>
             </div>
@@ -292,10 +369,10 @@ const isAuditeeRole = isAuditee || isHOD;
 
   if (loading) {
     return (
-      <div style={{ minHeight: '100vh', background: 'linear-gradient(135deg, #f0f4f8 0%, #e2e8f0 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-        <div style={{ textAlign: 'center' }}>
-          <Loader2 size={48} style={{ animation: 'spin 1s linear infinite', color: '#3b82f6' }} />
-          <p style={{ marginTop: 16, fontFamily: " 'inherit', Times, serif", color: '#64748b' }}>Loading NCR details...</p>
+      <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
+        <div className="text-center">
+          <Loader2 size={48} className="mx-auto mb-4 animate-spin" style={{ color: COLORS.primary }} />
+          <p className="font-medium text-gray-500" style={{ fontFamily }}>Loading NCR details...</p>
         </div>
       </div>
     );
@@ -303,16 +380,23 @@ const isAuditeeRole = isAuditee || isHOD;
 
   if (error || !ncr) {
     return (
-      <div style={{ minHeight: '100vh', background: 'linear-gradient(135deg, #f0f4f8 0%, #e2e8f0 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-        <div style={{ textAlign: 'center', background: 'white', padding: '40px', borderRadius: 16, boxShadow: '0 10px 25px -5px rgba(0,0,0,0.1)' }}>
-          <AlertCircle size={48} style={{ color: '#ef4444', marginBottom: 16 }} />
-          <p style={{ fontFamily: " 'inherit', 'Times New Roman', Times, serif", color: '#ef4444' }}>Error loading form. Please try again.</p>
+      <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
+        <div className="max-w-md p-8 text-center bg-white shadow-lg rounded-2xl">
+          <AlertCircle size={48} className="mx-auto mb-4 text-red-500" />
+          <p className="mb-4 text-gray-600" style={{ fontFamily }}>{error || 'NCR not found'}</p>
+          <button
+            onClick={() => navigate(dashboardPath)}
+            className="px-5 py-2.5 text-white rounded-xl hover:bg-red-600 transition font-medium"
+            style={{ fontFamily, backgroundColor: COLORS.danger }}
+          >
+            Back to Dashboard
+          </button>
         </div>
       </div>
     );
   }
 
-  /* ── Data ── */
+  /* ── Data (With Hardcoded Fallbacks so it always looks populated) ── */
   const auditorName       = ncr.auditorName        || 'J. Bloggs';
   const auditeeName       = ncr.auditeeName        || 'DV Singh';
   const department        = ncr.department         || 'Production - Supply Chain Management';
@@ -356,65 +440,30 @@ const isAuditeeRole = isAuditee || isHOD;
     'Corrective actions are adequate and have been verified. NCR can be closed.';
   const hodD0RejectionMessage = isNCR2Mode ? ncr.rejectionReason : '';
 
-const fontFamily = "inherit, 'Times New Roman', Times, serif";
-
-  const InfoCard = ({ icon: Icon, label, value }) => (
-    <div style={{ display: 'flex', alignItems: 'flex-start', gap: 12, padding: '12px 16px', background: '#f8fafc', borderRadius: 12, border: '1px solid #e2e8f0' }}>
-      <div style={{ padding: '8px', background: isNCR2Mode ? '#ede9fe' : '#e0e7ff', borderRadius: 10 }}>
-        <Icon size={18} color={isNCR2Mode ? '#8b5cf6' : '#4f46e5'} />
-      </div>
-      <div style={{ flex: 1 }}>
-        <p style={{ margin: 0, fontSize: 12, fontWeight: 500, color: '#64748b', letterSpacing: '0.3px', textTransform: 'uppercase', fontFamily }}>{label}</p>
-        <p style={{ margin: '4px 0 0 0', fontSize: 15, fontWeight: 600, color: '#0f172a', fontFamily }}>{value || '—'}</p>
-      </div>
-    </div>
-  );
-
-  const SectionHeader = ({ title, description, icon: Icon }) => (
-    <div style={{ marginBottom: 20 }}>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
-        {Icon && <Icon size={20} color={isNCR2Mode ? '#8b5cf6' : '#4f46e5'} />}
-        <h2 style={{ fontSize: 18, fontWeight: 700, color: '#0f172a', margin: 0, letterSpacing: '-0.3px', fontFamily }}>{title}</h2>
-      </div>
-      {description && <p style={{ fontSize: 13, color: '#64748b', margin: 0, fontFamily }}>{description}</p>}
-    </div>
-  );
-
-  // Bullet Point Evidence Component (no table, just bullet points)
+  // Bullet Point Evidence Component
   const BulletPointEvidence = ({ items }) => (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+    <div className="flex flex-col gap-3">
       {items.map((item, idx) => (
         <div 
           key={idx} 
-          style={{ 
-            display: 'flex', 
-            alignItems: 'flex-start', 
-            gap: '12px',
-            padding: '12px 16px',
-            background: item.type === '●' ? '#fef2f2' : item.type === '▲' ? '#fffbeb' : '#f8fafc',
-            borderRadius: '8px',
-            borderLeft: `3px solid ${item.type === '●' ? '#ef4444' : item.type === '▲' ? '#f59e0b' : '#3b82f6'}`
-          }}
+          className={`flex items-start gap-3 p-4 rounded-lg border-l-4 ${
+            item.type === '●' ? 'bg-red-50 border-red-500' : 
+            item.type === '▲' ? 'bg-amber-50 border-amber-500' : 
+            'bg-blue-50 border-blue-500'
+          }`}
         >
-          <span style={{ fontSize: '18px', fontWeight: 'bold' }}>{item.type}</span>
-          <div style={{ flex: 1 }}>
+          <span className="text-lg font-bold" style={{ color: item.type === '●' ? '#dc2626' : item.type === '▲' ? '#d97706' : '#2563eb' }}>{item.type}</span>
+          <div className="flex-1">
             {item.status && (
-              <span 
-                style={{ 
-                  display: 'inline-block',
-                  fontSize: '10px',
-                  fontWeight: 'bold',
-                  padding: '2px 8px',
-                  borderRadius: '12px',
-                  marginBottom: '6px',
-                  background: item.type === '●' ? '#fee2e2' : item.type === '▲' ? '#fef3c7' : '#dbeafe',
-                  color: item.type === '●' ? '#dc2626' : item.type === '▲' ? '#d97706' : '#2563eb'
-                }}
-              >
+              <span className={`inline-block px-2 py-0.5 mb-1.5 text-[10px] font-bold rounded-full ${
+                item.type === '●' ? 'bg-red-100 text-red-700' : 
+                item.type === '▲' ? 'bg-amber-100 text-amber-700' : 
+                'bg-blue-100 text-blue-700'
+              }`}>
                 {item.status}
               </span>
             )}
-            <p style={{ margin: '4px 0 0 0', fontSize: '14px', color: '#1e293b', lineHeight: '1.5', fontFamily }}>{item.text}</p>
+            <p className="m-0 text-sm leading-relaxed text-gray-800" style={{ fontFamily }}>{item.text}</p>
           </div>
         </div>
       ))}
@@ -423,284 +472,236 @@ const fontFamily = "inherit, 'Times New Roman', Times, serif";
 
   // Statement Component
   const StatementCard = ({ data }) => (
-    <div style={{ background: '#fef2f2', padding: '20px', borderRadius: 12, borderLeft: `3px solid ${isNCR2Mode ? '#8b5cf6' : '#ef4444'}` }}>
-      <p style={{ margin: 0, fontSize: 14, color: '#1e293b', lineHeight: 1.6, fontFamily }}>{data?.nonconformity || '—'}</p>
+    <div className="p-4 border-l-4 border-red-500 rounded-lg bg-red-50">
+      <p className="m-0 text-sm leading-relaxed text-gray-800" style={{ fontFamily }}>{data?.nonconformity || '—'}</p>
     </div>
   );
 
-  const getStatusColor = () => {
-    if (ncr.status === 'NCR2_COMPLETED') return '#16a34a';
-    if (ncr.status === 'NCR2_IN_PROGRESS') return '#8b5cf6';
-    if (ncr.status === 'READY_FOR_NCR2') return '#7c3aed';
-    return '#4f46e5';
-  };
-
   return (
-    <>
-     
+    <div className="min-h-screen px-4 py-8 bg-gradient-to-br from-gray-50 to-gray-100 print:bg-white print:p-0">
+      
+      {isNCR2Mode && (
+        <div className="max-w-5xl mx-auto mb-4 print:hidden">
+          <div className="flex items-center gap-3 p-3 text-white shadow-sm rounded-xl" style={{ background: 'linear-gradient(135deg, #0ea5e9 0%, #3b82f6 100%)' }}>
+            <CheckCircle size={20} className="opacity-90" />
+            <div>
+              <strong className="text-sm">NCR2 Mode - Corrective Action After 8D Investigation</strong>
+              <p className="m-0 text-xs opacity-90">This corrective action was submitted after 8D investigation completion</p>
+            </div>
+          </div>
+        </div>
+      )}
 
-      <div style={{ minHeight: '100vh', background: 'linear-gradient(135deg, #f0f4f8 0%, #e2e8f0 100%)', padding: '32px 24px' }}>
+      {/* Top Action Bar */}
+      <div className="flex flex-wrap items-center justify-between max-w-5xl gap-3 mx-auto mb-5 print:hidden">
+        <BackButton defaultTab="ncrs" label="Back to NCRs" />
+        <div className="flex items-center gap-3">
+          <StatusBadge status={ncr.status} />
+          <button
+            onClick={downloadPDF}
+            disabled={pdfDownloading}
+            className="flex items-center gap-2 px-4 py-2.5 text-white text-sm font-medium rounded-xl transition disabled:opacity-50 shadow-sm hover:shadow-md"
+            title="Download PDF"
+            style={{ fontFamily, background: COLORS.primary }}
+          >
+            {pdfDownloading ? <Loader2 size={18} className="animate-spin" /> : <Download size={18} />}
+            <span>Download PDF</span>
+          </button>
+        </div>
+      </div>
+
+      {/* Main Form Card */}
+      <div className={formStyle.container} id="form8-print">
         
-        {isNCR2Mode && (
-          <div className="no-print" style={{ maxWidth: 1000, margin: '0 auto 16px auto' }}>
-            <div style={{ background: 'linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%)', borderRadius: 12, padding: '12px 20px', display: 'flex', alignItems: 'center', gap: 12, color: 'white' }}>
-              <CheckCircle size={20} style={{ opacity: 0.9 }} />
+        {/* Header */}
+        <div className={formStyle.header} style={{ background: COLORS.primary }}>
+          <div className="flex flex-wrap items-start justify-between gap-4">
+            <div>
+              <h1 className="text-xl font-bold text-white print:text-gray-900" style={{ fontFamily }}>
+                {isNCR2Mode ? 'NCR2 - Corrective Action Report' : 'Corrective Action Report (Form 8)'}
+              </h1>
+              <p className="mt-1 text-sm text-gray-300 print:text-gray-500" style={{ fontFamily }}>
+                Quality Management System · {isNCR2Mode ? 'Post-8D Corrective Action' : 'Corrective Action Report'}
+              </p>
+            </div>
+            <div className="text-right">
+              <p className="text-sm font-medium text-white/80 print:text-gray-600" style={{ fontFamily }}>
+                <span className="opacity-70">Audit Report:</span> {auditReportNumber}
+              </p>
+              <p className="text-lg font-bold text-white print:text-gray-800" style={{ fontFamily }}>
+                {ncr.ncrNumber || '—'}
+              </p>
+            </div>
+          </div>
+        </div>
+
+        {/* Info Cards Row */}
+        <div className="px-6 py-4 border-b border-gray-100 bg-gray-50 print:bg-white">
+          <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
+            <InfoCard icon={Building} label="Department" value={department} />
+            <InfoCard icon={User} label="Auditor" value={auditorName} />
+            <InfoCard icon={Users} label="Auditee" value={auditeeName} />
+            <InfoCard icon={Calendar} label="Audit Date" value={auditDate} />
+          </div>
+          <div className="grid grid-cols-2 gap-3 mt-3 md:grid-cols-4">
+            <InfoCard icon={Hash} label="NCR Number" value={ncr.ncrNumber} />
+            <InfoCard icon={FileText} label="Audit Report No." value={auditReportNumber} />
+            <InfoCard icon={Calendar} label="Closure Date" value={closedDate} />
+            {isNCR2Mode && (
+              <InfoCard icon={Target} label="Status" value={ncr.status === 'NCR2_COMPLETED' ? 'Completed' : ncr.status === 'NCR2_IN_PROGRESS' ? 'Under Verification' : 'Ready'} />
+            )}
+          </div>
+        </div>
+
+        {/* Objective Evidence */}
+        <FormSection title="🔍 Objective Evidence / Observations">
+          <BulletPointEvidence items={evidenceItems} />
+        </FormSection>
+
+        {/* Statement of Nonconformity */}
+        <FormSection title="📋 Statement of Nonconformity">
+          <StatementCard data={statementData} />
+        </FormSection>
+
+        {/* Root Cause */}
+        <FormSection title="🌱 Root Cause Analysis">
+          <DetailRow label={isNCR2Mode ? "Based on 8D investigation findings" : "Why did the nonconformity occur?"} value={rootCause} multiline />
+        </FormSection>
+
+        {/* Correction */}
+        <FormSection title={isNCR2Mode ? "✨ NCR2 - Correction of Problem" : "✨ Correction of Problem"}>
+          <DetailRow label="Action Details" value={correction.action} multiline />
+          <div className="grid grid-cols-1 gap-4 mt-3 md:grid-cols-2">
+            <DetailRow label="Responsible Person/Dept" value={correction.resp} />
+            <DetailRow label="Target Completion Date" value={correction.target} />
+          </div>
+        </FormSection>
+
+        {/* Corrective Action */}
+        <FormSection title={isNCR2Mode ? "⚙️ NCR2 - Permanent Corrective Actions" : "⚙️ Corrective Actions"}>
+          <DetailRow label="Action Details" value={correctiveAction.action} multiline />
+          <div className="grid grid-cols-1 gap-4 mt-3 md:grid-cols-2">
+            <DetailRow label="Responsible Person/Dept" value={correctiveAction.resp} />
+            <DetailRow label="Target Completion Date" value={correctiveAction.target} />
+          </div>
+        </FormSection>
+
+        {/* Acceptability */}
+        <FormSection title="✅ Acceptability of Corrective Action">
+          <div className="p-4 border border-green-200 rounded-lg bg-green-50">
+            <p className="text-sm font-medium text-green-800" style={{ fontFamily }}>
+              Proposed Corrective actions are adequate to prevent the recurrence of the non-conformity
+            </p>
+            <div className="flex justify-between pt-3 mt-4 border-t border-green-200">
               <div>
-                <strong style={{ fontSize: 14 }}>NCR2 Mode - Corrective Action After 8D Investigation</strong>
-                <p style={{ margin: '4px 0 0 0', fontSize: 12, opacity: 0.9 }}>This corrective action was submitted after 8D investigation completion</p>
+                <p className="text-xs text-gray-500" style={{ fontFamily }}>Date</p>
+                <p className="text-sm font-medium text-gray-800" style={{ fontFamily }}>{closedDate}</p>
+              </div>
+              <div className="text-right">
+                <p className="text-xs text-gray-500" style={{ fontFamily }}>Auditor(s) / MR</p>
+                <p className="text-sm font-medium text-gray-800" style={{ fontFamily }}>{auditorName}</p>
               </div>
             </div>
           </div>
+        </FormSection>
+
+        {/* Horizontal Deployment */}
+        <FormSection title="🔄 Horizontal Deployment">
+          <DetailRow label="Applying corrective actions to similar processes or areas" value={hdData.action} multiline />
+          <div className="flex justify-end mt-3">
+            <div className="inline-flex items-center gap-2 px-4 py-2 border border-blue-200 rounded-full bg-blue-50">
+              <Calendar size={14} className="text-blue-600" />
+              <p className="m-0 text-xs font-semibold text-blue-700" style={{ fontFamily }}>Actual Completion Date: {hdData.actual}</p>
+            </div>
+          </div>
+        </FormSection>
+
+        {/* Verification */}
+        <FormSection title="📋 Verification of Effectiveness">
+          <DetailRow label="Objective evidence collected during follow-up audit" value={verificationComment} multiline />
+          <div className="flex justify-between pt-3 mt-3 border-t border-gray-100">
+            <div>
+              <p className="text-xs text-gray-500" style={{ fontFamily }}>Verification Date</p>
+              <p className="text-sm font-medium text-gray-800" style={{ fontFamily }}>{closedDate}</p>
+            </div>
+            <div className="text-right">
+              <p className="text-xs text-gray-500" style={{ fontFamily }}>Auditor(s) / MR</p>
+              <p className="text-sm font-medium text-gray-800" style={{ fontFamily }}>{auditorName}</p>
+            </div>
+          </div>
+        </FormSection>
+
+        {/* Remarks */}
+        {managerReviewComment && (
+          <FormSection title="📝 Management Remarks">
+            <DetailRow value={managerReviewComment} multiline />
+          </FormSection>
         )}
 
-        <div className="no-print" style={{ maxWidth: 1000, margin: '0 auto 24px auto', display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 16, flexWrap: 'wrap' }}>
+        {hodD0RejectionMessage && (
+          <FormSection title="HOD Rejection Message from 8D D0">
+            <div className="p-4 border border-red-200 rounded-lg bg-red-50">
+              <p className="m-0 text-sm leading-relaxed text-red-800 whitespace-pre-line" style={{ fontFamily }}>{hodD0RejectionMessage}</p>
+            </div>
+          </FormSection>
+        )}
+
+        {/* Footer */}
+        <div className={formStyle.footer}>
+          <div className="flex flex-wrap justify-center gap-4 text-xs" style={{ fontFamily }}>
+            <span className="inline-flex items-center gap-1"><span className="w-2 h-2 bg-green-500 rounded-full"></span> (O+)Ve: Conformance</span>
+            <span className="inline-flex items-center gap-1"><span className="w-2 h-2 bg-red-500 rounded-full"></span> (O-)Ve: Non Conformance</span>
+            <span className="inline-flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-amber-500"></span> (OI): Opportunity for Improvement</span>
+          </div>
+        </div>
+      </div>
+
+      {/* Bottom Action Buttons */}
+      <div className="flex flex-wrap justify-end max-w-5xl gap-3 mx-auto mt-6 print:hidden">
         <button
-  onClick={() => {
-    if (isAuditManager) {
-      navigate('/ncr-dashboard');
-    } else if (isAuditeeRole) {
-      navigate('/auditee');
-    } else {
-      navigate('/auditor');
-    }
-  }}
-  className="inline-flex items-center gap-2 px-3 py-1.5 text-sm font-medium text-gray-600 rounded-lg hover:bg-gray-100 transition-colors"
->
-  <ArrowLeft size={16} />
-  Back to NCR
-</button>
-          <button onClick={downloadPDF} disabled={pdfDownloading} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '10px 24px', fontSize: 14, fontWeight: 600, background: isNCR2Mode ? '#8b5cf6' : '#4f46e5', color: 'white', border: 'none', borderRadius: 12, cursor: 'pointer', fontFamily, opacity: pdfDownloading ? 0.7 : 1 }}>
-            {pdfDownloading ? <Loader2 size={18} className="animate-spin" /> : <Download size={18} />}
-            {pdfDownloading ? 'Generating PDF...' : 'Download PDF'}
-          </button>
-        </div>
-
-        <div id="form8-print" style={{ maxWidth: 1000, margin: '0 auto', background: 'white', borderRadius: 24, boxShadow: '0 20px 35px -10px rgba(0,0,0,0.15)', overflow: 'hidden' }}>
-          
-          <div style={{ background: 'linear-gradient(135deg, #1e293b 0%, #0f172a 100%)', padding: '28px 32px', textAlign: 'center', borderBottom: `4px solid ${getStatusColor()}` }}>
-            <h1 style={{ margin: 0, fontSize: 28, fontWeight: 800, color: 'white', letterSpacing: '-0.5px', fontFamily }}>
-              {isNCR2Mode ? 'NCR2 - Corrective Action Report' : 'Non-Conformance Report'}
-            </h1>
-            <p style={{ margin: '8px 0 0 0', fontSize: 14, color: '#94a3b8', fontFamily }}>
-              {isNCR2Mode ? 'Quality Management System · Post-8D Corrective Action Report' : 'Quality Management System · Corrective Action Report'}
-            </p>
-          </div>
-
-          <div style={{ padding: '32px' }}>
-            
-            {isNCR2Mode && ncr?.status && (
-              <div style={{ marginBottom: 24, textAlign: 'center' }}>
-                <span style={{ display: 'inline-flex', alignItems: 'center', gap: 8, padding: '6px 16px', borderRadius: 20, fontSize: 13, fontWeight: 600, background: ncr.status === 'NCR2_COMPLETED' ? '#dcfce7' : '#ede9fe', color: ncr.status === 'NCR2_COMPLETED' ? '#166534' : '#5b21b6' }}>
-                  {ncr.status === 'NCR2_COMPLETED' ? <CheckCircle size={14} /> : <Clock size={14} />}
-                  Status: {ncr.status === 'NCR2_COMPLETED' ? 'Completed' : ncr.status === 'NCR2_IN_PROGRESS' ? 'Under Verification' : 'Ready'}
-                </span>
-              </div>
-            )}
-            
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 16, marginBottom: 32 }}>
-              <InfoCard icon={Hash} label="NCR Number" value={ncr.ncrNumber || '—'} />
-              <InfoCard icon={FileText} label="Audit Report No." value={auditReportNumber} />
-              <InfoCard icon={Calendar} label="Audit Date" value={auditDate} />
-              <InfoCard icon={Calendar} label="Closure Date" value={closedDate} />
-            </div>
-
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 16, marginBottom: 32 }}>
-              <InfoCard icon={Building} label="Department / Area" value={department} />
-              <InfoCard icon={Users} label="Auditee(s)" value={auditeeName} />
-              <InfoCard icon={User} label="Auditor(s)" value={auditorName} />
-            </div>
-
-            {/* Objective Evidence - Bullet Points */}
-            <div style={{ marginBottom: 32, background: '#fefce8', borderRadius: 16, padding: '20px', border: '1px solid #fef08a' }}>
-              <SectionHeader title="🔍 Objective Evidence / Observations" icon={List} />
-              <BulletPointEvidence items={evidenceItems} />
-            </div>
-
-            {/* Statement of Nonconformity */}
-            <div style={{ marginBottom: 32, background: '#fef2f2', borderRadius: 16, padding: '20px', border: '1px solid #fecaca' }}>
-              <SectionHeader title="📋 Statement of Nonconformity" icon={FileCheck} />
-              <StatementCard data={statementData} />
-            </div>
-
-            {/* Root Cause */}
-            <div style={{ marginBottom: 32, background: isNCR2Mode ? '#f5f3ff' : '#fef2f2', borderRadius: 16, padding: '20px', border: `1px solid ${isNCR2Mode ? '#ddd6fe' : '#fecaca'}` }}>
-              <SectionHeader title="🌱 Root Cause Analysis" description={isNCR2Mode ? "Based on 8D investigation findings" : "Why did the nonconformity occur?"} icon={Target} />
-              <div style={{ background: 'white', padding: '14px 16px', borderRadius: 12 }}>
-                <p style={{ margin: 0, fontSize: 14, color: '#1e293b', lineHeight: 1.6, fontFamily }}>{rootCause}</p>
-              </div>
-            </div>
-
-            {/* Correction */}
-            <div style={{ background: '#ffffff', border: '1px solid #e2e8f0', borderRadius: 16, overflow: 'hidden', marginBottom: 24 }}>
-              <div style={{ padding: '16px 20px', background: isNCR2Mode ? '#f5f3ff' : '#f1f5f9', borderBottom: `1px solid ${isNCR2Mode ? '#ddd6fe' : '#e2e8f0'}` }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                  <Layers size={18} color={isNCR2Mode ? '#8b5cf6' : '#4f46e5'} />
-                  <h3 style={{ margin: 0, fontSize: 16, fontWeight: 700, color: '#0f172a', fontFamily }}>{isNCR2Mode ? "✨ NCR2 - Correction of Problem" : "✨ Correction of Problem"}</h3>
-                </div>
-              </div>
-              <div style={{ padding: '20px' }}>
-                <div style={{ marginBottom: 20 }}>
-                  <p style={{ margin: '0 0 8px 0', fontSize: 13, fontWeight: 600, color: '#475569', fontFamily }}>Action Details</p>
-                  <div style={{ background: '#f8fafc', padding: '14px 16px', borderRadius: 12 }}>
-                    <p style={{ margin: 0, fontSize: 14, color: '#334155', lineHeight: 1.6, fontFamily }}>{correction.action}</p>
-                  </div>
-                </div>
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20 }}>
-                  <div style={{ background: '#f8fafc', padding: '12px 16px', borderRadius: 12 }}>
-                    <p style={{ margin: 0, fontSize: 11, fontWeight: 600, color: '#64748b', textTransform: 'uppercase', fontFamily }}>Responsible Person/Dept</p>
-                    <p style={{ margin: '6px 0 0 0', fontSize: 14, fontWeight: 500, color: '#0f172a', fontFamily }}>{correction.resp}</p>
-                  </div>
-                  <div style={{ background: '#f8fafc', padding: '12px 16px', borderRadius: 12 }}>
-                    <p style={{ margin: 0, fontSize: 11, fontWeight: 600, color: '#64748b', textTransform: 'uppercase', fontFamily }}>Target Completion Date</p>
-                    <p style={{ margin: '6px 0 0 0', fontSize: 14, fontWeight: 500, color: '#0f172a', fontFamily }}>{correction.target}</p>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Corrective Action */}
-            <div style={{ background: '#ffffff', border: '1px solid #e2e8f0', borderRadius: 16, overflow: 'hidden', marginBottom: 24 }}>
-              <div style={{ padding: '16px 20px', background: isNCR2Mode ? '#f5f3ff' : '#f1f5f9', borderBottom: `1px solid ${isNCR2Mode ? '#ddd6fe' : '#e2e8f0'}` }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                  <Shield size={18} color={isNCR2Mode ? '#8b5cf6' : '#4f46e5'} />
-                  <h3 style={{ margin: 0, fontSize: 16, fontWeight: 700, color: '#0f172a', fontFamily }}>{isNCR2Mode ? "⚙️ NCR2 - Permanent Corrective Actions" : "⚙️ Corrective Actions"}</h3>
-                </div>
-              </div>
-              <div style={{ padding: '20px' }}>
-                <div style={{ marginBottom: 20 }}>
-                  <p style={{ margin: '0 0 8px 0', fontSize: 13, fontWeight: 600, color: '#475569', fontFamily }}>Action Details</p>
-                  <div style={{ background: '#f8fafc', padding: '14px 16px', borderRadius: 12 }}>
-                    <p style={{ margin: 0, fontSize: 14, color: '#334155', lineHeight: 1.6, fontFamily }}>{correctiveAction.action}</p>
-                  </div>
-                </div>
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20 }}>
-                  <div style={{ background: '#f8fafc', padding: '12px 16px', borderRadius: 12 }}>
-                    <p style={{ margin: 0, fontSize: 11, fontWeight: 600, color: '#64748b', textTransform: 'uppercase', fontFamily }}>Responsible Person/Dept</p>
-                    <p style={{ margin: '6px 0 0 0', fontSize: 14, fontWeight: 500, color: '#0f172a', fontFamily }}>{correctiveAction.resp}</p>
-                  </div>
-                  <div style={{ background: '#f8fafc', padding: '12px 16px', borderRadius: 12 }}>
-                    <p style={{ margin: 0, fontSize: 11, fontWeight: 600, color: '#64748b', textTransform: 'uppercase', fontFamily }}>Target Completion Date</p>
-                    <p style={{ margin: '6px 0 0 0', fontSize: 14, fontWeight: 500, color: '#0f172a', fontFamily }}>{correctiveAction.target}</p>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Acceptability */}
-            <div style={{ marginBottom: 24, background: '#f0fdf4', borderRadius: 16, padding: '20px', border: '1px solid #bbf7d0' }}>
-              <div style={{ display: 'flex', alignItems: 'flex-start', gap: 12, marginBottom: 20 }}>
-                <CheckCircle size={22} color='#22c55e' />
-                <div>
-                  <p style={{ margin: 0, fontWeight: 700, fontSize: 15, color: '#166534', fontFamily }}>Acceptability of Corrective Action</p>
-                  <p style={{ margin: '6px 0 0 0', fontSize: 14, color: '#1e293b', fontFamily }}>Proposed Corrective actions are adequate to prevent the recurrence of the non-conformity</p>
-                </div>
-              </div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', borderTop: '1px solid #dcfce7', paddingTop: 16, marginTop: 8 }}>
-                <div><p style={{ margin: 0, fontSize: 12, color: '#64748b', fontFamily }}>Date</p><p style={{ margin: '4px 0 0 0', fontSize: 14, fontWeight: 500, color: '#0f172a', fontFamily }}>{closedDate}</p></div>
-                <div style={{ textAlign: 'right' }}><p style={{ margin: 0, fontSize: 12, color: '#64748b', fontFamily }}>Auditor(s) / MR</p><p style={{ margin: '4px 0 0 0', fontSize: 14, fontWeight: 500, color: '#0f172a', fontFamily }}>{auditorName}</p></div>
-              </div>
-            </div>
-
-            {/* Horizontal Deployment */}
-            <div style={{ marginBottom: 24, background: '#f0f9ff', borderRadius: 16, padding: '20px', border: '1px solid #bae6fd' }}>
-              <SectionHeader title="🔄 Horizontal Deployment" description="Applying corrective actions to similar processes or areas" icon={Layers} />
-              <div style={{ background: '#e0f2fe', padding: '14px 16px', borderRadius: 12, marginBottom: 16 }}>
-                <p style={{ margin: 0, fontSize: 14, color: '#1e293b', lineHeight: 1.6, fontFamily }}>{hdData.action}</p>
-              </div>
-              <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
-                <div style={{ background: '#e0f2fe', padding: '8px 16px', borderRadius: 20, display: 'inline-flex', alignItems: 'center', gap: 8 }}>
-                  <Calendar size={14} color="#0369a1" />
-                  <p style={{ margin: 0, fontSize: 12, fontWeight: 600, color: '#0369a1', fontFamily }}>Actual Completion Date: {hdData.actual}</p>
-                </div>
-              </div>
-            </div>
-
-            {/* Verification */}
-            <div style={{ marginBottom: 24, background: isNCR2Mode ? '#f5f3ff' : '#f0fdf4', borderRadius: 16, padding: '20px', border: `1px solid ${isNCR2Mode ? '#ddd6fe' : '#bbf7d0'}` }}>
-              <SectionHeader title="📋 Verification of Effectiveness" description="Objective evidence collected during follow-up audit" icon={Target} />
-              <div style={{ background: 'white', padding: '14px 16px', borderRadius: 12, marginBottom: 20 }}>
-                <p style={{ margin: 0, fontSize: 14, color: '#1e293b', lineHeight: 1.6, fontFamily }}>{verificationComment}</p>
-              </div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', borderTop: `1px solid ${isNCR2Mode ? '#e9d5ff' : '#dcfce7'}`, paddingTop: 16 }}>
-                <div><p style={{ margin: 0, fontSize: 12, color: '#64748b', fontFamily }}>Verification Date</p><p style={{ margin: '4px 0 0 0', fontSize: 14, fontWeight: 500, color: '#0f172a', fontFamily }}>{closedDate}</p></div>
-                <div style={{ textAlign: 'right' }}><p style={{ margin: 0, fontSize: 12, color: '#64748b', fontFamily }}>Auditor(s) / MR</p><p style={{ margin: '4px 0 0 0', fontSize: 14, fontWeight: 500, color: '#0f172a', fontFamily }}>{auditorName}</p></div>
-              </div>
-            </div>
-
-            {/* Remarks */}
-            {managerReviewComment && (
-              <div style={{ marginBottom: 24, background: '#fff7ed', borderRadius: 16, padding: '20px', border: '1px solid #fed7aa' }}>
-                <SectionHeader title="📝 Management Remarks" />
-                <div style={{ background: 'white', padding: '14px 16px', borderRadius: 12 }}>
-                  <p style={{ margin: 0, fontSize: 14, color: '#1e293b', lineHeight: 1.6, fontFamily }}>{managerReviewComment}</p>
-                </div>
-              </div>
-            )}
-
-            {hodD0RejectionMessage && (
-              <div style={{ marginBottom: 24, background: '#fef2f2', borderRadius: 16, padding: '20px', border: '1px solid #fecaca' }}>
-                <SectionHeader title="HOD Rejection Message from 8D D0" icon={AlertCircle} />
-                <div style={{ background: 'white', padding: '14px 16px', borderRadius: 12 }}>
-                  <p style={{ margin: 0, fontSize: 14, color: '#991b1b', lineHeight: 1.6, fontFamily, whiteSpace: 'pre-line' }}>{hodD0RejectionMessage}</p>
-                </div>
-              </div>
-            )}
-
-            <div style={{ marginTop: 40, paddingTop: 20, borderTop: '2px solid #e2e8f0', textAlign: 'center' }}>
-              <div style={{ display: 'flex', justifyContent: 'center', gap: 32, flexWrap: 'wrap', fontSize: 12, fontWeight: 600, color: '#475569', fontFamily }}>
-                <span><span style={{ display: 'inline-block', width: 12, height: 12, background: '#22c55e', borderRadius: 2, marginRight: 6 }}></span> (O+)Ve: Conformance</span>
-                <span><span style={{ display: 'inline-block', width: 12, height: 12, background: '#ef4444', borderRadius: 2, marginRight: 6 }}></span> (O-)Ve: Non-Conformance</span>
-                <span><span style={{ display: 'inline-block', width: 12, height: 12, background: '#f59e0b', borderRadius: 2, marginRight: 6 }}></span> (OI): Opportunity for Improvement</span>
-              </div>
-              <p style={{ margin: '16px 0 0 0', fontSize: 11, color: '#94a3b8', fontFamily }}>This report is generated based on the Quality Management System requirements</p>
-            </div>
-          </div>
-        </div>
-
-        <div className="no-print" style={{ maxWidth: 1000, margin: '24px auto 0 auto', display: 'flex', justifyContent: 'flex-end', gap: 12, flexWrap: 'wrap' }}>
+          onClick={() => navigate(`/ncr-view/${ncr.id}`)}
+          className="px-5 py-2.5 text-sm font-medium text-white rounded-xl transition shadow-sm flex items-center gap-2"
+          style={{ fontFamily, background: 'linear-gradient(135deg, #0ea5e9 50%, #3b82f6 100%)' }}
+        >
+          <Eye size={16} /> View Form 7
+        </button>
+        {is8DRelated && (
           <button
-            onClick={() => navigate(`/ncr-view/${ncr.id}`)}
-            style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '10px 20px', fontSize: 14, fontWeight: 600, background: '#0ea5e9', color: 'white', border: 'none', borderRadius: 12, cursor: 'pointer', fontFamily }}
+            onClick={open8DReport}
+            disabled={loading8DReport}
+            className="px-5 py-2.5 text-sm font-medium text-white rounded-xl transition shadow-sm flex items-center gap-2 disabled:opacity-60 disabled:cursor-not-allowed"
+            style={{ fontFamily, background: COLORS.primary }}
           >
-            <Eye size={16} /> View Form 7
+            {loading8DReport ? <Loader2 size={16} className="animate-spin" /> : <FileBarChart size={16} />}
+            View 8D Report
           </button>
-          {is8DRelated && (
-            <button
-              onClick={open8DReport}
-              disabled={loading8DReport}
-              style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '10px 20px', fontSize: 14, fontWeight: 600, background: '#4f46e5', color: 'white', border: 'none', borderRadius: 12, cursor: loading8DReport ? 'not-allowed' : 'pointer', fontFamily, opacity: loading8DReport ? 0.7 : 1 }}
-            >
-              {loading8DReport ? <Loader2 size={16} className="animate-spin" /> : <FileBarChart size={16} />}
-              View 8D Report
-            </button>
-          )}
-        </div>
-        
-        <SuccessModal />
-
-        {show8DReportModal && selected8DEventId && (
-          <div className="fixed inset-0 z-50 overflow-y-auto bg-black/50">
-            <div className="min-h-screen px-4 py-6">
-              <div className="relative max-w-6xl mx-auto">
-                <button
-                  onClick={() => {
-                    setShow8DReportModal(false);
-                    setSelected8DEventId(null);
-                  }}
-                  className="absolute -top-2 -right-2 z-10 bg-red-500 text-white rounded-full p-2 hover:bg-red-600 transition-colors shadow-lg"
-                  title="Close 8D report"
-                >
-                  <X size={24} />
-                </button>
-                <FinalPreview
-                  eventId={selected8DEventId}
-                  isHOD={user?.role === 'AUDIT_MANAGER' || user?.role === 'HOD'}
-                />
-              </div>
-            </div>
-          </div>
         )}
       </div>
-    </>
+      
+      <SuccessModal />
+
+      {show8DReportModal && selected8DEventId && (
+        <div className="fixed inset-0 z-50 overflow-y-auto bg-black/50">
+          <div className="min-h-screen px-4 py-6">
+            <div className="relative max-w-6xl mx-auto">
+              <button
+                onClick={() => {
+                  setShow8DReportModal(false);
+                  setSelected8DEventId(null);
+                }}
+                className="absolute z-10 p-2 text-white transition-colors bg-red-500 rounded-full shadow-lg -top-2 -right-2 hover:bg-red-600"
+                title="Close 8D report"
+              >
+                <X size={24} />
+              </button>
+              <FinalPreview
+                eventId={selected8DEventId}
+                isHOD={user?.role === 'AUDIT_MANAGER' || user?.role === 'HOD'}
+              />
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
   );
 }
