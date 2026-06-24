@@ -526,7 +526,7 @@ const ScheduleModal = ({
                 <select 
                   value={formData.department || ''} 
                   onChange={e => handleDepartmentChange(e.target.value)}
-                  disabled={!!editingSchedule}
+                  disabled={true}
                   style={{...selectStyle(errors.department, true), opacity: editingSchedule ? 0.7 : 1, cursor: editingSchedule ? 'not-allowed' : 'pointer'}}
                 >
                   <option value="">Select a department…</option>
