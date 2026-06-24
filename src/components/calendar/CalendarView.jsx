@@ -1015,8 +1015,8 @@ const [userDepartment, setUserDepartment] = useState(null);
     const responsesResponse = await fetch(`${API_BASE}/templates/responses/all`, {
       headers: {
         'Content-Type': 'application/json',
-        'User-Email': currentUser?.email || '',
-        'User-ID': currentUser?.id || ''
+        // 'User-Email': currentUser?.email || '',
+        // 'User-ID': currentUser?.id || ''
       }
     })
     const allResponses = await responsesResponse.json()
