@@ -289,6 +289,45 @@ const Form4View = () => {
 
   // ─── ALL ORIGINAL HANDLERS RESTORED ──────────────────────────────────────
 
+   
+const formatLocalDateTime = (utcDateStr) => {
+  if (!utcDateStr) return '-';
+ 
+  // Create date object - handle both with and without timezone info
+  const date = new Date(utcDateStr);
+ 
+  // Check if date is valid
+  if (isNaN(date.getTime())) {
+    // If invalid, try appending 'Z' for UTC
+    const altDate = new Date(utcDateStr + 'Z');
+    if (isNaN(altDate.getTime())) return '-';
+   
+    // Convert to IST
+    return altDate.toLocaleString('en-IN', {
+      timeZone: 'Asia/Kolkata',
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: true
+    });
+  }
+ 
+  // Convert to IST
+  return date.toLocaleString('en-IN', {
+    timeZone: 'Asia/Kolkata',
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: true
+  });
+};
+ 
+ 
+
   const handleQuickPlanned = async () => {
     if (!canEdit) { addToast('You cannot modify this plan in its current status', 'warning'); return; }
     setDemoLoading(true);
@@ -718,10 +757,11 @@ const Form4View = () => {
       )}
 
       {/* Alerts */}
-      {planStatus === 'APPROVED' && planInfo.approvalComments && <AlertBanner type="success" icon={FiCheckCircle} title="Approval Comments" message={planInfo.approvalComments} footer={`Approved by: ${planInfo.approvedBy} | Date: ${planInfo.approvedAt && new Date(planInfo.approvedAt).toLocaleString()}`} />}
-      {planStatus === 'CHANGE_REQUESTED' && planInfo.rejectionReason && <AlertBanner type="warning" icon={FiMessageSquare} title="Change Request Comments" message={planInfo.rejectionReason} footer={`Requested by: ${planInfo.rejectedBy} | Date: ${planInfo.rejectedAt && new Date(planInfo.rejectedAt).toLocaleString()}`} />}
-      {planStatus === 'REJECTED' && planInfo.rejectionReason && <AlertBanner type="error" icon={FiX} title="Rejection Reason" message={planInfo.rejectionReason} footer={`Rejected by: ${planInfo.rejectedBy} | Date: ${planInfo.rejectedAt && new Date(planInfo.rejectedAt).toLocaleString()}`} />}
-
+       {planStatus === 'APPROVED' && planInfo.approvalComments && <AlertBanner type="success" icon={FiCheckCircle} title="Approval Comments" message={planInfo.approvalComments} footer={`Approved by: ${planInfo.approvedBy} | Date: ${formatLocalDateTime(planInfo.approvedAt)}`} />}
+      {planStatus === 'CHANGE_REQUESTED' && planInfo.rejectionReason && <AlertBanner type="warning" icon={FiMessageSquare} title="Change Request Comments" message={planInfo.rejectionReason} footer={`Requested by: ${planInfo.rejectedBy} | Date: ${formatLocalDateTime(planInfo.rejectedAt)}`} />}
+      {planStatus === 'REJECTED' && planInfo.rejectionReason && <AlertBanner type="error" icon={FiX} title="Rejection Reason" message={planInfo.rejectionReason} footer={`Rejected by: ${planInfo.rejectedBy} | Date: ${formatLocalDateTime(planInfo.rejectedAt)}`} />}
+     
+ 
       {/* Statistics Cards
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: 16, marginBottom: 24 }}>
         <StatCard icon={FiFileText} label="Departments" value={departments.length} subValue={`${totalDepartmentsWithPlan} active`} color={T.textValue} bg="#F1F5F9" border={T.border} />
