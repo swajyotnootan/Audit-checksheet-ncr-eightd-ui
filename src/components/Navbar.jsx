@@ -134,8 +134,7 @@ const Navbar = ({ onLogout, children,rightLogo }) => {
             >
               {user?.id ? (
                 <img
-                  src={`https://internalaudit.hub.swajyot.co.in:8090
-/api/users/${user.id}/profile-photo`}
+                  src={`https://internalaudit.hub.swajyot.co.in:8090/api/users/${user.id}/profile-photo`}
                   alt="User Avatar"
                   className="object-cover w-8 h-8"
                   onError={e => { e.target.onerror = null; e.target.style.display = 'none'; }}

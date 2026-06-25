@@ -528,11 +528,11 @@ export default function IATFInternalView() {
                   let complianceBadgeClass = 'bg-slate-50 text-slate-700 border-slate-200';
                   
                   if (response === 'MAJOR_NC') {
-                    ma = '✓'; complianceText = 'No'; complianceBadgeClass = 'bg-rose-50 text-rose-700 border-rose-200';
+                    ma = '✓'; complianceText = 'MAJOR_NC'; complianceBadgeClass = 'bg-rose-50 text-rose-700 border-rose-200';
                   } else if (response === 'MINOR_NC') {
-                    mi = '✓'; complianceText = 'No'; complianceBadgeClass = 'bg-amber-50 text-amber-700 border-amber-200';
+                    mi = '✓'; complianceText = 'MINOR_NC'; complianceBadgeClass = 'bg-amber-50 text-amber-700 border-amber-200';
                   } else if (response === 'COMPLIANT') {
-                    o = '✓'; complianceText = 'Yes'; complianceBadgeClass = 'bg-emerald-50 text-emerald-700 border-emerald-200';
+                    o = '✓'; complianceText = 'COMPLIANT'; complianceBadgeClass = 'bg-emerald-50 text-emerald-700 border-emerald-200';
                   } else {
                     complianceText = response || 'Pending';
                   }
