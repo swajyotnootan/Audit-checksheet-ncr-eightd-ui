@@ -1504,7 +1504,7 @@ const overduePartialWork = enhancedData.filter(s => {
                                     <AuditCard
                                         key={item.schedule?.id || index}
                                         audit={item.schedule}
-                                        displayTimeStatus={item.timeStatus}
+                                        timeStatus={item.timeStatus}   // ← Pass the original timeStatus
                                         canStart={item.canStart}
                                         hasFormData={item.schedule.hasFormData}
                                         totalForms={item.schedule.totalForms || 1}
