@@ -488,7 +488,7 @@ const buildPendingNcrQuery = (item) => {
                             <div className="mt-2 space-y-2">
                                 {formDetails.map((form, idx) => {
                                     const isFormOverdue = isExpired && !form.completed;
-                                    const canFill = (timeStatus === 'ACTIVE' || canStart) && !hasPendingReschedule && !hasPendingExtension && !isOverdueNoWork && !isOverduePartialWork;
+                                    const canFill = (displayTimeStatus === 'ACTIVE' || canStart) && !hasPendingReschedule && !hasPendingExtension && !isOverdueNoWork && !isOverduePartialWork;
                                     return (
                                         <div key={idx} className={`flex items-center justify-between p-3 text-xs border rounded-lg ${
                                             hasPendingReschedule || hasPendingExtension ? 'bg-blue-50/50 border-blue-200' :
@@ -593,7 +593,7 @@ const buildPendingNcrQuery = (item) => {
                         <button
                             onClick={() => onViewForm(audit, nextPendingForm)}
                             className="px-3 py-1.5 text-xs font-medium text-blue-700 bg-blue-50 rounded-lg hover:bg-blue-100 transition-all border border-blue-200"
-                            disabled={timeStatus !== 'ACTIVE' && !canStart}
+                            disabled={displayTimeStatus !== 'ACTIVE' && !canStart}
                         >
                             Fill Next ({pendingForms})
                         </button>
@@ -621,7 +621,7 @@ const buildPendingNcrQuery = (item) => {
                         <button
                             onClick={() => { const first = formDetails?.[0]; if (first) onViewForm(audit, first); }}
                             className="px-3 py-1.5 text-xs font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-all shadow-sm"
-                            disabled={timeStatus !== 'ACTIVE' && !canStart}
+                            disabled={displayTimeStatus !== 'ACTIVE' && !canStart}
                         >
                             Start Audit
                         </button>
@@ -642,7 +642,7 @@ const AuditListItem = ({
     const audit = item.schedule;
     const displayTimeStatus = getCorrectTimeStatus(audit, item.timeStatus);
     const canStart = item.canStart;
-    const isExpired = timeStatus === 'EXPIRED' || isAuditExpired(audit);
+    const isExpired = displayTimeStatus === 'EXPIRED' || isAuditExpired(audit);
     const isDateRange = audit.fromDate && audit.toDate && audit.fromDate !== audit.toDate;
     const isMultiForm = audit.totalForms > 1;
     const allFormsCompleted = audit.allFormsCompleted;
@@ -779,7 +779,7 @@ const AuditListItem = ({
                         <button
                             onClick={() => handleViewForm(audit, nextPendingForm)}
                             className="px-3 py-1.5 text-xs font-medium text-blue-700 bg-blue-50 rounded-lg hover:bg-blue-100 transition-all border border-blue-200"
-                            disabled={timeStatus !== 'ACTIVE' && !canStart}
+                            disabled={displayTimeStatus !== 'ACTIVE' && !canStart}
                         >
                             Fill Next ({audit.pendingForms})
                         </button>
@@ -807,7 +807,7 @@ const AuditListItem = ({
                         <button
                             onClick={() => { const first = audit.formDetails?.[0]; if (first) handleViewForm(audit, first); }}
                             className="px-3 py-1.5 text-xs font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-all shadow-sm"
-                            disabled={timeStatus !== 'ACTIVE' && !canStart}
+                            disabled={displayTimeStatus !== 'ACTIVE' && !canStart}
                         >
                             Start Audit
                         </button>
@@ -1504,7 +1504,7 @@ const overduePartialWork = enhancedData.filter(s => {
                                     <AuditCard
                                         key={item.schedule?.id || index}
                                         audit={item.schedule}
-                                        timeStatus={item.timeStatus}
+                                        displayTimeStatus={item.timeStatus}
                                         canStart={item.canStart}
                                         hasFormData={item.schedule.hasFormData}
                                         totalForms={item.schedule.totalForms || 1}
