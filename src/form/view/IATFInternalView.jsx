@@ -257,8 +257,36 @@ export default function IATFInternalView() {
 
   const formatDateTime = (dateString) => {
     if (!dateString) return '—';
-    return new Date(dateString).toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' });
-  };
+    
+    try {
+        // ✅ Clean and parse the date
+        let dateStr = dateString.trim();
+        
+        // ✅ If it's already in ISO format, append 'Z' if missing
+        if (dateStr.includes('T') && !dateStr.includes('Z') && !dateStr.includes('+')) {
+            dateStr = dateStr + 'Z';
+        }
+        
+        const date = new Date(dateStr);
+        
+        // ✅ Validate
+        if (isNaN(date.getTime())) return '—';
+        
+        // ✅ Format to IST
+        return date.toLocaleString('en-GB', {
+            timeZone: 'Asia/Kolkata',
+            day: '2-digit',
+            month: '2-digit',
+            year: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit',
+            hour12: true
+        });
+    } catch (error) {
+        console.warn('Date formatting error:', error);
+        return '—';
+    }
+};
 
   const handleDownloadPDF = async () => {
     if (!audit || !audit.id) { addToast('Audit data not available', 'error'); return; }
