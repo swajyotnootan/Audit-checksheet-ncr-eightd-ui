@@ -119,10 +119,10 @@ const Navbar = ({ onLogout, children,rightLogo }) => {
 {!shouldHideCalendar() && (
   <button
     onClick={() => navigate('/calendar')}
-    className="relative p-1.5 rounded-lg hover:bg-white/80 text-black duration-200"
+    className="relative p-2 text-white transition-all duration-200 rounded-lg hover:text-gray-800 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-400"
     title="Calendar"
   >
-    <Calendar className="w-6 h-6 text-white/80 hover:text-black" />
+    <Calendar className="w-6 h-6" />
   </button>
 )}
  
