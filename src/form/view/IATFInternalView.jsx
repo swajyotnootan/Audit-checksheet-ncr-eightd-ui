@@ -120,7 +120,7 @@ export default function IATFInternalView() {
     try {
       let response;
       if (userId) {
-        response = await axios.get(`https://internalaudit.hub.swajyot.co.in:8090/api/users/${userId}/signature`, { responseType: 'blob',  headers: { 'X-Timezone': userTimezone },
+        response = await axios.get(`https://internalaudit.hub.swajyot.co.in:8090/api/users/${userId}/signature`, { responseType: 'blob',  
  withCredentials: true });
       } else if (fullName && fullName !== 'Not specified' && fullName !== 'N/A' && fullName !== 'Unknown') {
         const nameParts = fullName.trim().split(' ', 2);
