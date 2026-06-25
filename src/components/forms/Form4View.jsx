@@ -67,44 +67,39 @@ const isRelevantForDemo = (auditElement) => auditElement.includes("IATF16949") |
 
 // Add this utility function
 
+// ✅ DETECT USER TIMEZONE (Add this at the top of your component or globally)
+const userTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+console.log('User timezone:', userTimezone); // "Asia/Kolkata" or "America/New_York"
+
 const formatLocalDateTime = (utcDateStr) => {
   if (!utcDateStr) return '-';
   
   try {
-    // Clean the date string
     let dateString = utcDateStr.trim();
-    
-    // Handle different formats
     let date;
     
-    // Format 1: "2026-06-24T09:53:29.547037" (ISO with T)
     if (dateString.includes('T')) {
-      // If no Z at the end, add it to force UTC
       if (!dateString.includes('Z') && !dateString.includes('+')) {
         dateString = dateString + 'Z';
       }
       date = new Date(dateString);
     }
-    // Format 2: "2026-06-24 09:53:29" (space format)
     else if (dateString.includes(' ')) {
-      // Convert to ISO format with Z
       const isoString = dateString.replace(' ', 'T') + 'Z';
       date = new Date(isoString);
     }
-    // Format 3: Already a Date object or timestamp
     else {
       date = new Date(dateString);
     }
     
-    // Check if date is valid
     if (isNaN(date.getTime())) {
       console.warn('Invalid date:', utcDateStr);
       return '-';
     }
     
-    // Format to IST
+    // ✅ USE DYNAMIC TIMEZONE
     return date.toLocaleString('en-IN', {
-      timeZone: 'Asia/Kolkata',
+      timeZone: userTimezone,  // ✅ Dynamic - uses user's timezone
       day: '2-digit',
       month: '2-digit',
       year: 'numeric',
@@ -575,30 +570,64 @@ const Form4View = () => {
   };
 
   const handleApprove = async () => {
-    if (!tempApprovalComment.trim()) { addToast('Please provide approval comments', 'warning'); return; }
-    setSubmitting(true);
-    try {
-      await axios.post(`${API_BASE}/department-plan/${selectedYear}/approve?userId=${user?.id}`, { comments: tempApprovalComment }, { withCredentials: true });
-      setPlanStatus('APPROVED');
-      setPlanInfo(prev => ({ ...prev, approvalComments: tempApprovalComment, approvedBy: user?.name || user?.username, approvedAt: new Date().toISOString() }));
-      setShowApproveModal(false); setTempApprovalComment('');
-      addToast('Plan approved successfully!', 'success');
-      fetchPlanData();
-    } catch (error) { addToast('Failed to approve plan', 'error'); } finally { setSubmitting(false); }
-  };
+  if (!tempApprovalComment.trim()) { 
+    addToast('Please provide approval comments', 'warning'); 
+    return; 
+  }
+  setSubmitting(true);
+  try {
+    await axios.post(`${API_BASE}/department-plan/${selectedYear}/approve?userId=${user?.id}`, 
+      { comments: tempApprovalComment }, 
+      { withCredentials: true }
+    );
+    setPlanStatus('APPROVED');
+    // ✅ Don't set approvedAt here - fetch from backend
+    setPlanInfo(prev => ({ 
+      ...prev, 
+      approvalComments: tempApprovalComment, 
+      approvedBy: user?.name || user?.username
+      // ❌ REMOVE: approvedAt: new Date().toISOString()
+    }));
+    setShowApproveModal(false);
+    setTempApprovalComment('');
+    addToast('Plan approved successfully!', 'success');
+    fetchPlanData(); // ✅ Fetch fresh data from backend
+  } catch (error) { 
+    addToast('Failed to approve plan', 'error'); 
+  } finally { 
+    setSubmitting(false); 
+  }
+};
 
   const handleReject = async () => {
-    if (!tempRejectionReason.trim()) { addToast('Please provide a rejection reason', 'error'); return; }
-    setSubmitting(true);
-    try {
-      await axios.post(`${API_BASE}/department-plan/${selectedYear}/reject?userId=${user?.id}`, { reason: tempRejectionReason }, { withCredentials: true });
-      setPlanStatus('REJECTED'); setRejectionReason(tempRejectionReason);
-      setPlanInfo(prev => ({ ...prev, rejectionReason: tempRejectionReason, rejectedBy: user?.name || user?.username, rejectedAt: new Date().toISOString() }));
-      setShowRejectModal(false); setTempRejectionReason('');
-      addToast('Plan rejected', 'error');
-      fetchPlanData();
-    } catch (error) { addToast('Failed to reject plan', 'error'); } finally { setSubmitting(false); }
-  };
+  if (!tempRejectionReason.trim()) { 
+    addToast('Please provide a rejection reason', 'error'); 
+    return; 
+  }
+  setSubmitting(true);
+  try {
+    await axios.post(`${API_BASE}/department-plan/${selectedYear}/reject?userId=${user?.id}`, 
+      { reason: tempRejectionReason }, 
+      { withCredentials: true }
+    );
+    setPlanStatus('REJECTED');
+    setRejectionReason(tempRejectionReason);
+    setPlanInfo(prev => ({ 
+      ...prev, 
+      rejectionReason: tempRejectionReason, 
+      rejectedBy: user?.name || user?.username
+      // ❌ REMOVE: rejectedAt: new Date().toISOString()
+    }));
+    setShowRejectModal(false);
+    setTempRejectionReason('');
+    addToast('Plan rejected', 'error');
+    fetchPlanData(); // ✅ Fetch fresh data from backend
+  } catch (error) { 
+    addToast('Failed to reject plan', 'error'); 
+  } finally { 
+    setSubmitting(false); 
+  }
+};
 
   const handleRequestChanges = async () => {
     if (!changeRequestReason.trim()) { addToast('Please provide a reason', 'error'); return; }
@@ -612,15 +641,31 @@ const Form4View = () => {
   };
 
   const handleDownloadPDF = async () => {
-    try {
-      setLoading(true);
-      const response = await axios.get(`${API_BASE}/department-plan/${selectedYear}/download`, { withCredentials: true, responseType: 'blob' });
-      const url = window.URL.createObjectURL(new Blob([response.data]));
-      const link = document.createElement('a'); link.href = url; link.setAttribute('download', `Form4_Internal_Quality_Audit_Plan_${selectedYear}.pdf`);
-      document.body.appendChild(link); link.click(); link.remove(); window.URL.revokeObjectURL(url);
-      addToast('PDF downloaded successfully!', 'success');
-    } catch (error) { addToast('Failed to download PDF', 'error'); } finally { setLoading(false); }
-  };
+  try {
+    setLoading(true);
+    // ✅ Send user timezone to backend
+    const response = await axios.get(`${API_BASE}/department-plan/${selectedYear}/download`, { 
+      headers: {
+        'X-Timezone': userTimezone  // ✅ Send timezone
+      },
+      withCredentials: true, 
+      responseType: 'blob' 
+    });
+    const url = window.URL.createObjectURL(new Blob([response.data]));
+    const link = document.createElement('a');
+    link.href = url;
+    link.setAttribute('download', `Form4_Internal_Quality_Audit_Plan_${selectedYear}.pdf`);
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    window.URL.revokeObjectURL(url);
+    addToast('PDF downloaded successfully!', 'success');
+  } catch (error) {
+    addToast('Failed to download PDF', 'error');
+  } finally {
+    setLoading(false);
+  }
+};
 
   const getMonthStatusBadge = (status, hasElements) => {
     const baseStyle = { display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: 28, height: 28, borderRadius: '50%', fontSize: 11, fontWeight: 700, transition: 'all 0.2s' };

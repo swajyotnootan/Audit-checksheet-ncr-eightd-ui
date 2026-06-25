@@ -123,6 +123,8 @@ export default function FiveSView() {
   const navigate = useNavigate();
   const { addToast } = useToast();
   const { user } = useAuth();
+  const userTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+
   
   const [loading, setLoading] = useState(true);
   const [downloading, setDownloading] = useState(false);
@@ -388,7 +390,10 @@ export default function FiveSView() {
         method: 'get',
         url: endpoint,
         responseType: 'blob',
-        headers: { 'Accept': 'application/pdf' },
+        headers: { 'Accept': 'application/pdf',
+                'X-Timezone': userTimezone  // ✅ ADD THIS LINE
+
+         },
         withCredentials: true
       });
       
@@ -450,7 +455,9 @@ export default function FiveSView() {
           signature: signatureToSave,
           comment: auditeeComment || 'No comments provided'
         },
-        { withCredentials: true }
+        { 
+                headers: { 'X-Timezone': userTimezone },  // ✅ ADD THIS
+                withCredentials: true }
       );
       
       console.log('Approve response:', response.data);
@@ -484,7 +491,9 @@ export default function FiveSView() {
       const response = await axios.put(
         `${API_URL}/api/templates/responses/${audit.id}/reject`,
         { comment: auditeeComment },
-        { withCredentials: true }
+        { 
+                headers: { 'X-Timezone': userTimezone },  // ✅ ADD THIS
+                withCredentials: true }
       );
       
       console.log('Reject response:', response.data);
