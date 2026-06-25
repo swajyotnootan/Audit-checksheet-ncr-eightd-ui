@@ -81,6 +81,7 @@ const MANUFACTURING_CHECK_SHEET_ID = 1;
 
 export default function ManufacturingProcessAuditForm() {
   const { user } = useAuth();
+  const userTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
   const navigate = useNavigate();
   const { addToast } = useToast();
   const [searchParams] = useSearchParams();
@@ -137,7 +138,10 @@ export default function ManufacturingProcessAuditForm() {
   const fetchQuestionsFromBackend = async () => {
     setLoadingQuestions(true);
     try {
-      const response = await axios.get(`${API_BASE}/templates/${MANUFACTURING_CHECK_SHEET_ID}`);
+      const response = await axios.get(`${API_BASE}/templates/${MANUFACTURING_CHECK_SHEET_ID}`, {
+  headers: { 'X-Timezone': userTimezone },  // ✅ ADD THIS
+  withCredentials: true
+});
       const checkSheet = response.data;
       setSheetConfig(checkSheet);
       let parsedQuestions = [];
