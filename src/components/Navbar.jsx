@@ -122,7 +122,7 @@ const Navbar = ({ onLogout, children,rightLogo }) => {
     className="relative p-1.5 rounded-lg hover:bg-white/80 duration-200"
     title="Calendar"
   >
-    <Calendar className="w-6 h-6 transition-colors text-white/80 hover:text-black" />
+    <Calendar className="w-6 h-6 text-white/80 hover:text-black" />
   </button>
 )}
  
