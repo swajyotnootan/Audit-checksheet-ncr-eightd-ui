@@ -85,6 +85,8 @@ export default function IATFInternalView() {
   const navigate = useNavigate();
   const { user } = useAuth();
   const { addToast } = useToast();
+  const userTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+
   
   const [loading, setLoading] = useState(true);
   const [downloading, setDownloading] = useState(false);
@@ -118,12 +120,14 @@ export default function IATFInternalView() {
     try {
       let response;
       if (userId) {
-        response = await axios.get(`https://internalaudit.hub.swajyot.co.in:8090/api/users/${userId}/signature`, { responseType: 'blob', withCredentials: true });
+        response = await axios.get(`https://internalaudit.hub.swajyot.co.in:8090/api/users/${userId}/signature`, { responseType: 'blob',  headers: { 'X-Timezone': userTimezone },
+ withCredentials: true });
       } else if (fullName && fullName !== 'Not specified' && fullName !== 'N/A' && fullName !== 'Unknown') {
         const nameParts = fullName.trim().split(' ', 2);
         response = await axios.get('https://internalaudit.hub.swajyot.co.in:8090/api/users/signature', {
           params: { firstName: nameParts[0], lastName: nameParts.length > 1 ? nameParts[1] : '' },
-          responseType: 'blob', withCredentials: true
+          responseType: 'blob',   headers: { 'X-Timezone': userTimezone },
+withCredentials: true
         });
       } else return null;
       if (response.data && response.data.size > 0) return URL.createObjectURL(response.data);
@@ -296,7 +300,8 @@ export default function IATFInternalView() {
     setDownloading(true);
     try {
       const API_URL = import.meta.env.VITE_API_URL || 'https://internalaudit.hub.swajyot.co.in:8090';
-      const response = await axios({ method: 'get', url: `${API_URL}/api/iatf-audits/${audit.id}/pdf`, responseType: 'blob', headers: { 'Accept': 'application/pdf' }, withCredentials: true });
+      const response = await axios({ method: 'get', url: `${API_URL}/api/iatf-audits/${audit.id}/pdf`, responseType: 'blob', headers: { 'Accept': 'application/pdf' ,  'X-Timezone': userTimezone  // For PDF downloads
+}, withCredentials: true });
       const blob = new Blob([response.data], { type: 'application/pdf' });
       const downloadUrl = window.URL.createObjectURL(blob);
       const link = document.createElement('a');
@@ -325,7 +330,8 @@ export default function IATFInternalView() {
     setSubmitting(true);
     try {
       const API_URL = import.meta.env.VITE_API_URL || 'https://internalaudit.hub.swajyot.co.in:8090';
-      const response = await axios.put(`${API_URL}/api/templates/responses/${audit.id}/approve`, { signature: signatureToSave, comment: auditeeComment || 'No comments provided' }, { withCredentials: true });
+      const response = await axios.put(`${API_URL}/api/templates/responses/${audit.id}/approve`, { signature: signatureToSave, comment: auditeeComment || 'No comments provided' }, {   headers: { 'X-Timezone': userTimezone },
+withCredentials: true });
       if (response.data) { addToast('✓ Audit approved successfully!', 'success'); await fetchAuditDetails(); }
     } catch (error) { addToast(`Failed to approve: ${error.response?.data?.message || error.message}`, 'error'); } 
     finally { setSubmitting(false); }
@@ -336,7 +342,8 @@ export default function IATFInternalView() {
     setSubmitting(true);
     try {
       const API_URL = import.meta.env.VITE_API_URL || 'https://internalaudit.hub.swajyot.co.in:8090';
-      const response = await axios.put(`${API_URL}/api/templates/responses/${audit.id}/reject`, { comment: auditeeComment }, { withCredentials: true });
+      const response = await axios.put(`${API_URL}/api/templates/responses/${audit.id}/reject`, { comment: auditeeComment }, {   headers: { 'X-Timezone': userTimezone },
+withCredentials: true });
       if (response.data) { addToast('✗ Audit rejected.', 'warning'); await fetchAuditDetails(); }
     } catch (error) { addToast(`Failed to reject: ${error.response?.data?.message || error.message}`, 'error'); } 
     finally { setSubmitting(false); }

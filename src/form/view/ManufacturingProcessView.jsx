@@ -42,6 +42,8 @@ export default function ManufacturingProcessView() {
   const { user } = useAuth();
   const navigate = useNavigate();
   const { addToast } = useToast();
+    const userTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+
   
   const [loading, setLoading] = useState(true);
   const [downloading, setDownloading] = useState(false);
@@ -69,23 +71,29 @@ export default function ManufacturingProcessView() {
     };
   }, [id]);
 
-  const fetchSignatureAsImageUrl = async (userId, fullName) => {
-    try {
-      let response;
-      if (userId) {
-        response = await axios.get(`https://internalaudit.hub.swajyot.co.in:8090/api/users/${userId}/signature`, { responseType: 'blob', withCredentials: true });
-      } else if (fullName && fullName !== 'Not specified' && fullName !== 'N/A' && fullName !== 'Unknown') {
-        const nameParts = fullName.trim().split(' ', 2);
-        response = await axios.get('https://internalaudit.hub.swajyot.co.in:8090/api/users/signature', {
-          params: { firstName: nameParts[0], lastName: nameParts.length > 1 ? nameParts[1] : '' },
-          responseType: 'blob', withCredentials: true
-        });
-      } else return null;
-      
-      if (response.data && response.data.size > 0) return URL.createObjectURL(response.data);
-      return null;
-    } catch (error) { return null; }
-  };
+ const fetchSignatureAsImageUrl = async (userId, fullName) => {
+  try {
+    let response;
+    if (userId) {
+      response = await axios.get(`https://internalaudit.hub.swajyot.co.in:8090/api/users/${userId}/signature`, { 
+        responseType: 'blob', 
+        headers: { 'X-Timezone': userTimezone },  // ✅ ADD THIS
+        withCredentials: true 
+      });
+    } else if (fullName && fullName !== 'Not specified' && fullName !== 'N/A' && fullName !== 'Unknown') {
+      const nameParts = fullName.trim().split(' ', 2);
+      response = await axios.get('https://internalaudit.hub.swajyot.co.in:8090/api/users/signature', {
+        params: { firstName: nameParts[0], lastName: nameParts.length > 1 ? nameParts[1] : '' },
+        responseType: 'blob', 
+        headers: { 'X-Timezone': userTimezone },  // ✅ ADD THIS
+        withCredentials: true
+      });
+    } else return null;
+    
+    if (response.data && response.data.size > 0) return URL.createObjectURL(response.data);
+    return null;
+  } catch (error) { return null; }
+};
 
   const getSignatureFromBase64 = (base64String) => {
     if (base64String && (base64String.startsWith('data:image') || base64String.includes('base64'))) return base64String;
@@ -175,9 +183,44 @@ export default function ManufacturingProcessView() {
   };
 
   const formatDate = (dateString) => {
-    if (!dateString) return '—';
-    return new Date(dateString).toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' });
-  };
+  if (!dateString) return '—';
+  return new Date(dateString).toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' });
+};
+
+// ✅ ADD THIS FUNCTION
+const formatLocalDateTime = (utcDateStr) => {
+  if (!utcDateStr) return '—';
+  
+  try {
+    let dateString = utcDateStr.trim();
+    let date;
+    
+    if (dateString.includes('T')) {
+      if (!dateString.includes('Z') && !dateString.includes('+')) {
+        dateString = dateString + 'Z';
+      }
+      date = new Date(dateString);
+    } else if (dateString.includes(' ')) {
+      date = new Date(dateString.replace(' ', 'T') + 'Z');
+    } else {
+      date = new Date(dateString);
+    }
+    
+    if (isNaN(date.getTime())) return '—';
+    
+    return date.toLocaleString('en-IN', {
+      timeZone: 'Asia/Kolkata',
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: true
+    });
+  } catch (error) {
+    return '—';
+  }
+};
 
   const formatDateTime = (dateString) => {
     if (!dateString) return '—';
@@ -191,7 +234,9 @@ export default function ManufacturingProcessView() {
       const API_URL = import.meta.env.VITE_API_URL || 'https://internalaudit.hub.swajyot.co.in:8090';
       const response = await axios({
         method: 'get', url: `${API_URL}/api/manufacturing-audits/${audit.id}/pdf`,
-        responseType: 'blob', headers: { 'Accept': 'application/pdf' }, withCredentials: true
+        responseType: 'blob', headers: { 'Accept': 'application/pdf' }, 
+               'X-Timezone': userTimezone , // ✅ ADD THIS
+              withCredentials: true
       });
       const blob = new Blob([response.data], { type: 'application/pdf' });
       const downloadUrl = window.URL.createObjectURL(blob);
@@ -225,7 +270,8 @@ export default function ManufacturingProcessView() {
     setSubmitting(true);
     try {
       const API_URL = import.meta.env.VITE_API_URL || 'https://internalaudit.hub.swajyot.co.in:8090';
-      const response = await axios.put(`${API_URL}/api/templates/responses/${audit.id}/approve`, { signature: signatureToSave, comment: auditeeComment || 'No comments provided' }, { withCredentials: true });
+      const response = await axios.put(`${API_URL}/api/templates/responses/${audit.id}/approve`, { signature: signatureToSave, comment: auditeeComment || 'No comments provided' }, {       headers: { 'X-Timezone': userTimezone },  // ✅ ADD THIS
+withCredentials: true });
       if (response.data) { addToast('✓ Audit approved successfully!', 'success'); await fetchAuditDetails(); }
     } catch (error) { addToast(`Failed to approve: ${error.response?.data?.message || error.message}`, 'error'); } 
     finally { setSubmitting(false); }
@@ -236,7 +282,8 @@ export default function ManufacturingProcessView() {
     setSubmitting(true);
     try {
       const API_URL = import.meta.env.VITE_API_URL || 'https://internalaudit.hub.swajyot.co.in:8090';
-      const response = await axios.put(`${API_URL}/api/templates/responses/${audit.id}/reject`, { comment: auditeeComment }, { withCredentials: true });
+      const response = await axios.put(`${API_URL}/api/templates/responses/${audit.id}/reject`, { comment: auditeeComment }, {      headers: { 'X-Timezone': userTimezone },  // ✅ ADD THIS
+ withCredentials: true });
       if (response.data) { addToast('✗ Audit rejected.', 'warning'); await fetchAuditDetails(); }
     } catch (error) { addToast(`Failed to reject: ${error.response?.data?.message || error.message}`, 'error'); } 
     finally { setSubmitting(false); }
@@ -565,7 +612,7 @@ export default function ManufacturingProcessView() {
                 )}
               </div>
               <p className="mt-3 text-sm font-semibold text-slate-700">Name: {auditorName}</p>
-              <p className="text-xs text-slate-500 mt-0.5">Date: {auditorSignedAt ? formatDateTime(auditorSignedAt) : (answers.date || formatDate(audit.auditDate) || '-')}</p>
+              <p className="text-xs text-slate-500 mt-0.5">Date: {auditorSignedAt ? formatLocalDateTime(auditorSignedAt) : (answers.date || formatDate(audit.auditDate) || '-')}</p>
               {answers.auditorComment && (
                 <div className="p-3 mt-3 text-xs bg-white border rounded-lg text-slate-600 border-slate-200">
                   <span className="font-bold">Comment:</span> {answers.auditorComment}
@@ -664,7 +711,7 @@ export default function ManufacturingProcessView() {
                     )}
                   </div>
                   <p className="mt-3 text-sm font-semibold text-slate-700">Name: {auditeeName}</p>
-                  <p className="text-xs text-slate-500 mt-0.5">Date: {auditeeSignedAt ? formatDateTime(auditeeSignedAt) : ((isApproved || isRejected) ? formatDateTime(audit.updatedAt) : '-')}</p>
+                  <p className="text-xs text-slate-500 mt-0.5">Date: {auditeeSignedAt ? formatLocalDateTime(auditeeSignedAt) : ((isApproved || isRejected) ? formatLocalDateTime(audit.updatedAt) : '-')}</p>
                   
                   {(answers.auditeeComment || auditeeComment) && (isApproved || isRejected) && (
                     <div className="p-3 mt-3 text-xs bg-white border rounded-lg text-slate-600 border-slate-200">

@@ -76,6 +76,7 @@ const getStatusStyle = (status) => {
 
 export default function IATFInternalAuditForm() {
   const { user } = useAuth();
+    const userTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
   const navigate = useNavigate();
   const { addToast } = useToast();
   const [searchParams] = useSearchParams();
@@ -150,8 +151,10 @@ export default function IATFInternalAuditForm() {
   const fetchScheduleDetails = async () => {
     if (!scheduleId) return;
     try {
-      const response = await axios.get(`${API_BASE}/audit-schedule/${scheduleId}`, { withCredentials: true });
-      if (response?.data) {
+const response = await axios.get(`${API_BASE}/audit-schedule/${scheduleId}`, { 
+  headers: { 'X-Timezone': userTimezone },
+  withCredentials: true 
+});      if (response?.data) {
         const schedule = response.data;
         if (schedule.auditeeName && !editId) {
           setFormData(prev => ({
@@ -175,13 +178,15 @@ export default function IATFInternalAuditForm() {
     const deptUpper = department.toUpperCase().trim();
     if (deptUpper === 'QA/QC' || deptUpper === 'QC' || deptUpper === 'Q.C') {
       try {
-        const allFormsRes = await axios.get(`${API_BASE}/templates/type/IATF_16949`, { withCredentials: true });
+        const allFormsRes = await axios.get(`${API_BASE}/templates/type/IATF_16949`, {   headers: { 'X-Timezone': userTimezone },  // ✅ ADD THIS
+withCredentials: true });
         const allForms = allFormsRes.data || [];
         return allForms.filter(form => form.department === 'QA');
       } catch (error) { return []; }
     }
     try {
-      const response = await axios.get(`${API_BASE}/templates/iatf/by-department/${encodeURIComponent(department)}`, { withCredentials: true });
+      const response = await axios.get(`${API_BASE}/templates/iatf/by-department/${encodeURIComponent(department)}`, {   headers: { 'X-Timezone': userTimezone },  // ✅ ADD THIS
+withCredentials: true });
       return response.data || [];
     } catch (error) { return []; }
   };
@@ -189,7 +194,8 @@ export default function IATFInternalAuditForm() {
   const loadSheetQuestions = async (sheet) => {
     setLoading(true);
     try {
-      const response = await axios.get(`${API_BASE}/templates/${sheet.id}`, { withCredentials: true });
+      const response = await axios.get(`${API_BASE}/templates/${sheet.id}`, {   headers: { 'X-Timezone': userTimezone },  // ✅ ADD THIS
+withCredentials: true });
       const fullSheet = response.data;
       setCurrentCheckSheet(fullSheet);
       let parsedQuestions = [];
