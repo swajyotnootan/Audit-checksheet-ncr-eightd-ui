@@ -21,6 +21,87 @@ const TIME_OPTIONS = [
 ];
 
 // ============================================================================
+// TIME STATUS HELPER (Fixes UTC vs IST issue)
+// ============================================================================
+
+const parseTime = (timeStr) => {
+    if (!timeStr) return { hours: 9, minutes: 0 };
+    const match = timeStr.match(/(\d+):(\d+)\s*(AM|PM)/i);
+    if (!match) return { hours: 9, minutes: 0 };
+    let hours = parseInt(match[1]);
+    const minutes = parseInt(match[2]);
+    const meridian = match[3].toUpperCase();
+    if (meridian === 'PM' && hours !== 12) hours += 12;
+    if (meridian === 'AM' && hours === 12) hours = 0;
+    return { hours, minutes };
+};
+
+const getCorrectTimeStatus = (audit, backendStatus) => {
+    if (!audit) return backendStatus;
+    
+    // Don't override if already completed or has pending requests
+    if (audit.allFormsCompleted) return 'COMPLETED';
+    if (audit.rescheduleRequested || audit.extensionRequested) return backendStatus;
+    
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    
+    // Handle date range audits
+    const isDateRange = audit.fromDate && audit.toDate && audit.fromDate !== audit.toDate;
+    if (isDateRange) {
+        const fromDate = new Date(audit.fromDate);
+        const toDate = new Date(audit.toDate);
+        fromDate.setHours(0, 0, 0, 0);
+        toDate.setHours(0, 0, 0, 0);
+        
+        if (today >= fromDate && today <= toDate) {
+            const now = new Date();
+            const currentMinutes = now.getHours() * 60 + now.getMinutes();
+            const startTime = parseTime(audit.startTime);
+            const endTime = parseTime(audit.endTime);
+            const startMinutes = startTime.hours * 60 + startTime.minutes;
+            const endMinutes = endTime.hours * 60 + endTime.minutes;
+            
+            if (currentMinutes >= startMinutes && currentMinutes <= endMinutes) {
+                return 'ACTIVE';
+            } else if (currentMinutes < startMinutes) {
+                return 'UPCOMING';
+            } else {
+                return 'EXPIRED';
+            }
+        } else if (today < fromDate) {
+            return 'UPCOMING';
+        } else {
+            return 'EXPIRED';
+        }
+    }
+    
+    // Single day audit
+    const scheduleDate = audit.scheduledDate ? new Date(audit.scheduledDate) : null;
+    if (!scheduleDate) return backendStatus;
+    scheduleDate.setHours(0, 0, 0, 0);
+    
+    // If not today, use backend status
+    if (scheduleDate.getTime() !== today.getTime()) return backendStatus;
+    
+    // Same day - check time
+    const now = new Date();
+    const currentMinutes = now.getHours() * 60 + now.getMinutes();
+    const startTime = parseTime(audit.startTime);
+    const endTime = parseTime(audit.endTime);
+    const startMinutes = startTime.hours * 60 + startTime.minutes;
+    const endMinutes = endTime.hours * 60 + endTime.minutes;
+    
+    if (currentMinutes >= startMinutes && currentMinutes <= endMinutes) {
+        return 'ACTIVE';
+    } else if (currentMinutes < startMinutes) {
+        return 'UPCOMING';
+    } else {
+        return 'EXPIRED';
+    }
+};
+
+// ============================================================================
 // COLOR PALETTE & ANIMATIONS (Matching Audit Manager Dashboard)
 // ============================================================================
 const NAVBAR_COLORS = {
@@ -244,7 +325,7 @@ const buildPendingNcrQuery = (item) => {
 // ============================================================================
 // AUDIT CARD (Clean Professional Look)
 // ============================================================================
-const AuditCard = ({
+ const AuditCard = ({
     audit, timeStatus, canStart,
     onRequestReschedule, onRequestExtension,
     onViewForm, onViewReport,
@@ -252,7 +333,12 @@ const AuditCard = ({
     isRescheduleRequested, isExtensionRequested , onOpenForum
 }) => {
     const [expanded, setExpanded] = useState(false);
-    const isExpired = timeStatus === 'EXPIRED' || isAuditExpired(audit);
+    
+    // ✅ FIX: Override timeStatus with correct time
+    const displayTimeStatus = getCorrectTimeStatus(audit, timeStatus);
+    
+    // ✅ Use displayTimeStatus instead of timeStatus
+    const isExpired = displayTimeStatus === 'EXPIRED' || isAuditExpired(audit);
     const isDateRange = audit.fromDate && audit.toDate && audit.fromDate !== audit.toDate;
     const isMultiForm = totalForms > 1;
     const allFormsCompleted = completedForms === totalForms && totalForms > 0;
@@ -278,8 +364,8 @@ const AuditCard = ({
         if (isOverdueNoWork) return <span className={`${baseClass} bg-rose-50 text-rose-700 border-rose-200`}><AlertCircle size={12} /> Overdue (Not Started)</span>;
         if (hasFormData && hasPendingForms) return <span className={`${baseClass} bg-indigo-50 text-indigo-700 border-indigo-200`}><Edit size={12} /> In Progress</span>;
         if (audit.status === 'IN_PROGRESS') return <span className={`${baseClass} bg-amber-50 text-amber-700 border-amber-200`}><Play size={12} /> In Progress</span>;
-        if (timeStatus === 'UPCOMING') return <span className={`${baseClass} bg-slate-50 text-slate-700 border-slate-200`}><Calendar size={12} /> Upcoming</span>;
-        if (timeStatus === 'ACTIVE' && canStart) return <span className={`${baseClass} bg-emerald-50 text-emerald-700 border-emerald-200`}><Play size={12} /> Ready to Start</span>;
+        if (displayTimeStatus  === 'UPCOMING') return <span className={`${baseClass} bg-slate-50 text-slate-700 border-slate-200`}><Calendar size={12} /> Upcoming</span>;
+        if (displayTimeStatus  === 'ACTIVE' && canStart) return <span className={`${baseClass} bg-emerald-50 text-emerald-700 border-emerald-200`}><Play size={12} /> Ready to Start</span>;
         return <span className={`${baseClass} bg-slate-50 text-slate-700 border-slate-200`}><Calendar size={12} /> Scheduled</span>;
     };
 
@@ -554,7 +640,7 @@ const AuditListItem = ({
     setShowRescheduleModal, setSelectedAudit, setSelectedForm, setShowExtensionModal
 }) => {
     const audit = item.schedule;
-    const timeStatus = item.timeStatus;
+    const displayTimeStatus = getCorrectTimeStatus(audit, item.timeStatus);
     const canStart = item.canStart;
     const isExpired = timeStatus === 'EXPIRED' || isAuditExpired(audit);
     const isDateRange = audit.fromDate && audit.toDate && audit.fromDate !== audit.toDate;
@@ -577,8 +663,8 @@ const AuditListItem = ({
         if (isOverduePartialWork) return <span className={`${baseClass} bg-amber-50 text-amber-700 border-amber-200`}><AlertCircle size={12} /> Overdue (In Progress)</span>;
         if (isOverdueNoWork) return <span className={`${baseClass} bg-rose-50 text-rose-700 border-rose-200`}><AlertCircle size={12} /> Overdue</span>;
         if (audit.hasFormData && audit.pendingForms > 0) return <span className={`${baseClass} bg-indigo-50 text-indigo-700 border-indigo-200`}><Edit size={12} /> In Progress</span>;
-        if (timeStatus === 'UPCOMING') return <span className={`${baseClass} bg-slate-50 text-slate-700 border-slate-200`}><Calendar size={12} /> Upcoming</span>;
-        if (timeStatus === 'ACTIVE' && canStart) return <span className={`${baseClass} bg-emerald-50 text-emerald-700 border-emerald-200`}><Play size={12} /> Ready</span>;
+        if (displayTimeStatus  === 'UPCOMING') return <span className={`${baseClass} bg-slate-50 text-slate-700 border-slate-200`}><Calendar size={12} /> Upcoming</span>;
+        if (displayTimeStatus  === 'ACTIVE' && canStart) return <span className={`${baseClass} bg-emerald-50 text-emerald-700 border-emerald-200`}><Play size={12} /> Ready</span>;
         return <span className={`${baseClass} bg-slate-50 text-slate-700 border-slate-200`}><Calendar size={12} /> Scheduled</span>;
     };
 
@@ -1119,27 +1205,42 @@ export default function AuditorDashboard() {
 
             const partiallyCompletedAudits = enhancedData.filter(s => s.schedule.hasFormData && !s.schedule.allFormsCompleted);
             const overdueNoWork = enhancedData.filter(s => {
-                const isExpired = s.timeStatus === 'EXPIRED' || isAuditExpired(s.schedule);
-                const hasStartedWork = s.schedule.hasFormData && s.schedule.completedForms > 0;
-                return isExpired && !hasStartedWork;
-            });
-            const overduePartialWork = enhancedData.filter(s => {
-                const isExpired = s.timeStatus === 'EXPIRED' || isAuditExpired(s.schedule);
-                const hasStartedWork = s.schedule.hasFormData && s.schedule.completedForms > 0;
-                const hasPending = s.schedule.pendingForms > 0;
-                return isExpired && hasStartedWork && hasPending;
-            });
+    const status = getCorrectTimeStatus(s.schedule, s.timeStatus);
+    const isExpired = status === 'EXPIRED' || isAuditExpired(s.schedule);
+    const hasStartedWork = s.schedule.hasFormData && s.schedule.completedForms > 0;
+    return isExpired && !hasStartedWork;
+});
+
+const overduePartialWork = enhancedData.filter(s => {
+    const status = getCorrectTimeStatus(s.schedule, s.timeStatus);
+    const isExpired = status === 'EXPIRED' || isAuditExpired(s.schedule);
+    const hasStartedWork = s.schedule.hasFormData && s.schedule.completedForms > 0;
+    const hasPending = s.schedule.pendingForms > 0;
+    return isExpired && hasStartedWork && hasPending;
+});
 
             setStats({
-                upcoming: enhancedData.filter(s => s.timeStatus === 'UPCOMING' && !s.schedule.hasFormData).length,
-                active: enhancedData.filter(s => s.timeStatus === 'ACTIVE' && s.canStart && !s.schedule.hasFormData).length,
-                inProgress: enhancedData.filter(s => s.schedule.hasFormData && !s.schedule.allFormsCompleted && s.timeStatus !== 'EXPIRED' && !isAuditExpired(s.schedule)).length,
-                expired: enhancedData.filter(s => s.timeStatus === 'EXPIRED' && !s.schedule.hasFormData).length,
-                partiallyCompleted: partiallyCompletedAudits.length,
-                completed: enhancedData.filter(s => s.schedule.allFormsCompleted).length,
-                overdueNoWork: overdueNoWork.length,
-                overduePartialWork: overduePartialWork.length,
-            });
+    upcoming: enhancedData.filter(s => {
+        const status = getCorrectTimeStatus(s.schedule, s.timeStatus);
+        return status === 'UPCOMING' && !s.schedule.hasFormData;
+    }).length,
+    active: enhancedData.filter(s => {
+        const status = getCorrectTimeStatus(s.schedule, s.timeStatus);
+        return status === 'ACTIVE' && s.canStart && !s.schedule.hasFormData;
+    }).length,
+    inProgress: enhancedData.filter(s => {
+        const status = getCorrectTimeStatus(s.schedule, s.timeStatus);
+        return s.schedule.hasFormData && !s.schedule.allFormsCompleted && status !== 'EXPIRED' && !isAuditExpired(s.schedule);
+    }).length,
+    expired: enhancedData.filter(s => {
+        const status = getCorrectTimeStatus(s.schedule, s.timeStatus);
+        return status === 'EXPIRED' && !s.schedule.hasFormData;
+    }).length,
+    partiallyCompleted: partiallyCompletedAudits.length,
+    completed: enhancedData.filter(s => s.schedule.allFormsCompleted).length,
+    overdueNoWork: overdueNoWork.length,
+    overduePartialWork: overduePartialWork.length,
+});
         } catch (error) {
             console.error('Error fetching schedules:', error);
             addToast('Failed to load schedules', 'error');
