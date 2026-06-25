@@ -255,38 +255,41 @@ export default function IATFInternalView() {
     return new Date(dateString).toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' });
   };
 
-  const formatDateTime = (dateString) => {
-    if (!dateString) return '—';
+ const formatLocalDateTime = (utcDateStr) => {
+  if (!utcDateStr) return '—';
+  
+  try {
+    let dateString = utcDateStr.trim();
+    let date;
     
-    try {
-        // ✅ Clean and parse the date
-        let dateStr = dateString.trim();
-        
-        // ✅ If it's already in ISO format, append 'Z' if missing
-        if (dateStr.includes('T') && !dateStr.includes('Z') && !dateStr.includes('+')) {
-            dateStr = dateStr + 'Z';
-        }
-        
-        const date = new Date(dateStr);
-        
-        // ✅ Validate
-        if (isNaN(date.getTime())) return '—';
-        
-        // ✅ Format to IST
-        return date.toLocaleString('en-GB', {
-            timeZone: 'Asia/Kolkata',
-            day: '2-digit',
-            month: '2-digit',
-            year: 'numeric',
-            hour: '2-digit',
-            minute: '2-digit',
-            hour12: true
-        });
-    } catch (error) {
-        console.warn('Date formatting error:', error);
-        return '—';
+    if (dateString.includes('T')) {
+      if (!dateString.includes('Z') && !dateString.includes('+')) {
+        dateString = dateString + 'Z';
+      }
+      date = new Date(dateString);
+    } else if (dateString.includes(' ')) {
+      date = new Date(dateString.replace(' ', 'T') + 'Z');
+    } else {
+      date = new Date(dateString);
     }
+    
+    if (isNaN(date.getTime())) return '—';
+    
+    return date.toLocaleString('en-IN', {
+      timeZone: 'Asia/Kolkata',
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: true
+    });
+  } catch (error) {
+    return '—';
+  }
 };
+
+// Then replace all calls to formatDateTime with formatLocalDateTime
 
   const handleDownloadPDF = async () => {
     if (!audit || !audit.id) { addToast('Audit data not available', 'error'); return; }
@@ -615,7 +618,7 @@ export default function IATFInternalView() {
                 )}
               </div>
               <p className="mt-3 text-sm font-semibold text-slate-700">Name: {auditorName}</p>
-              <p className="text-xs text-slate-500 mt-0.5">Date: {auditorSignedAt ? formatDateTime(auditorSignedAt) : (answers.date || formatDate(audit.auditDate) || '-')}</p>
+              <p className="text-xs text-slate-500 mt-0.5">Date: {auditorSignedAt ? formatLocalDateTime(auditorSignedAt) : (answers.date || formatDate(audit.auditDate) || '-')}</p>
               {auditorComment && (
                 <div className="p-3 mt-3 text-xs bg-white border rounded-lg text-slate-600 border-slate-200">
                   <span className="font-bold">Comment:</span> {auditorComment}
@@ -708,7 +711,7 @@ export default function IATFInternalView() {
                     )}
                   </div>
                   <p className="mt-3 text-sm font-semibold text-slate-700">Name: {auditeeName}</p>
-                  <p className="text-xs text-slate-500 mt-0.5">Date: {auditeeSignedAt ? formatDateTime(auditeeSignedAt) : ((isApproved || isRejected) ? formatDateTime(audit.updatedAt) : '-')}</p>
+                  <p className="text-xs text-slate-500 mt-0.5">Date: {auditeeSignedAt ? formatLocalDateTime(auditeeSignedAt) : ((isApproved || isRejected) ? formatLocalDateTime(audit.updatedAt) : '-')}</p>
 
                   {(answers.auditeeComment || auditeeComment) && (isApproved || isRejected) && (
                     <div className="p-3 mt-3 text-xs bg-white border rounded-lg text-slate-600 border-slate-200">
