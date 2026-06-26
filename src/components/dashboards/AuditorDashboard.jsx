@@ -44,21 +44,15 @@ const getCorrectTimeStatus = (audit, backendStatus) => {
     if (audit.rescheduleRequested || audit.extensionRequested) return backendStatus;
     
     const today = new Date();
-    today.setHours(0, 0, 0, 0);
+    const todayStr = today.toISOString().split('T')[0];
     
     // Handle date range audits
     const isDateRange = audit.fromDate && audit.toDate && audit.fromDate !== audit.toDate;
     if (isDateRange) {
-        const fromDate = new Date(audit.fromDate);
-        const toDate = new Date(audit.toDate);
-        fromDate.setHours(0, 0, 0, 0);
-        toDate.setHours(0, 0, 0, 0);
+        const fromDateStr = audit.fromDate;
+        const toDateStr = audit.toDate;
         
-        // Compare dates WITHOUT time
-        const todayStr = today.toISOString().split('T')[0];
-        const fromDateStr = fromDate.toISOString().split('T')[0];
-        const toDateStr = toDate.toISOString().split('T')[0];
-        
+        // ✅ String comparison
         if (todayStr >= fromDateStr && todayStr <= toDateStr) {
             // Check time only if today is within the range
             const now = new Date();
@@ -83,12 +77,10 @@ const getCorrectTimeStatus = (audit, backendStatus) => {
     }
     
     // Single day audit
-    const scheduleDate = audit.scheduledDate ? new Date(audit.scheduledDate) : null;
-    if (!scheduleDate) return backendStatus;
+    const scheduleDateStr = audit.scheduledDate;
+    if (!scheduleDateStr) return backendStatus;
     
-    const scheduleDateStr = scheduleDate.toISOString().split('T')[0];
-    const todayStr = today.toISOString().split('T')[0];
-    
+    // ✅ String comparison
     if (scheduleDateStr === todayStr) {
         const now = new Date();
         const currentMinutes = now.getHours() * 60 + now.getMinutes();
@@ -110,7 +102,6 @@ const getCorrectTimeStatus = (audit, backendStatus) => {
         return 'EXPIRED';
     }
 };
-
 // ============================================================================
 // COLOR PALETTE & ANIMATIONS (Matching Audit Manager Dashboard)
 // ============================================================================
@@ -235,41 +226,24 @@ const getViewRoute = (audit) => {
 
 const isAuditExpired = (audit) => {
     if (!audit || audit.status === 'COMPLETED') return false;
+    
+    const today = new Date();
+    const todayStr = today.toISOString().split('T')[0];  // "2026-06-26"
+    
     const isDateRange = audit.fromDate && audit.toDate && audit.fromDate !== audit.toDate;
     if (isDateRange) {
-        const toDate = new Date(audit.toDate);
-        const today = new Date();
-        today.setHours(0, 0, 0, 0);
-        toDate.setHours(23, 59, 59, 999);
-        if (toDate < today) return true;
-        if (toDate.toDateString() === today.toDateString() && audit.endTime) {
-            const now = new Date();
-            const currentHours = now.getHours();
-            const currentMinutes = now.getMinutes();
-            const parseTime = (timeStr) => {
-                const match = timeStr.match(/(\d+):(\d+)\s*(AM|PM)/i);
-                if (!match) return { hours: 23, minutes: 59 };
-                let hours = parseInt(match[1]);
-                const minutes = parseInt(match[2]);
-                const meridian = match[3].toUpperCase();
-                if (meridian === 'PM' && hours !== 12) hours += 12;
-                if (meridian === 'AM' && hours === 12) hours = 0;
-                return { hours, minutes };
-            };
-            const endTime = parseTime(audit.endTime);
-            const currentTimeMinutes = (currentHours * 60) + currentMinutes;
-            const endTimeMinutes = (endTime.hours * 60) + endTime.minutes;
-            if (currentTimeMinutes > endTimeMinutes) return true;
-        }
+        const toDateStr = audit.toDate;  // Already in "YYYY-MM-DD" format
+        // ✅ Compare strings directly
+        if (todayStr > toDateStr) return true;
         return false;
     }
+    
     if (!audit?.scheduledDate) return false;
-    const scheduleDate = new Date(audit.scheduledDate);
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    scheduleDate.setHours(0, 0, 0, 0);
-    if (scheduleDate < today) return true;
-    if (scheduleDate.getTime() === today.getTime() && audit.endTime) {
+    const scheduleDateStr = audit.scheduledDate;  // Already in "YYYY-MM-DD" format
+    if (todayStr > scheduleDateStr) return true;
+    
+    // ✅ Only check time if it's the same day AND endTime exists
+    if (todayStr === scheduleDateStr && audit.endTime) {
         const now = new Date();
         const currentHours = now.getHours();
         const currentMinutes = now.getMinutes();
