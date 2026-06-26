@@ -13,6 +13,9 @@ import {
   XCircle, Printer, Layers, AlertTriangle, RefreshCw
 } from 'lucide-react';
 
+const API_BASE = 'https://internalaudit.hub.swajyot.co.in:8090/api';
+
+
 // ============================================================================
 // COLOR PALETTE & ANIMATIONS (Matching Audit Manager Dashboard)
 // ============================================================================
@@ -120,8 +123,9 @@ export default function IATFInternalView() {
     try {
       let response;
       if (userId) {
-        response = await axios.get(`https://internalaudit.hub.swajyot.co.in:8090/api/users/${userId}/signature`, { responseType: 'blob',  
- withCredentials: true });
+        response = await axios.get(`https://internalaudit.hub.swajyot.co.in:8090/api/users/${userId}/signature`, { responseType: 'blob', 
+           headers: { 'X-Timezone': userTimezone },  // ✅ ADD THIS
+           withCredentials: true });
       } else if (fullName && fullName !== 'Not specified' && fullName !== 'N/A' && fullName !== 'Unknown') {
         const nameParts = fullName.trim().split(' ', 2);
         response = await axios.get('https://internalaudit.hub.swajyot.co.in:8090/api/users/signature', {
@@ -228,8 +232,7 @@ withCredentials: true
   const fetchQuestionsByDepartment = async (department, process) => {
     if (!department) return;
     try {
-      const checkSheetRes = await axios.get(`https://internalaudit.hub.swajyot.co.in:8090
-/api/templates/iatf/by-department/${encodeURIComponent(department)}`, { withCredentials: true });
+      const checkSheetRes = await axios.get(`https://internalaudit.hub.swajyot.co.in:8090/api/templates/iatf/by-department/${encodeURIComponent(department)}`, { withCredentials: true });
       const sheets = checkSheetRes.data;
       if (sheets && sheets.length > 0) {
         let selectedSheet = sheets[0];
@@ -237,8 +240,7 @@ withCredentials: true
           const matchingSheet = sheets.find(s => s.processName === process);
           if (matchingSheet) selectedSheet = matchingSheet;
         }
-        const sheetDetailsRes = await axios.get(`https://internalaudit.hub.swajyot.co.in:8090
-/api/templates/${selectedSheet.id}`, { withCredentials: true });
+        const sheetDetailsRes = await axios.get(`https://internalaudit.hub.swajyot.co.in:8090/api/templates/${selectedSheet.id}`, { withCredentials: true });
         const sheet = sheetDetailsRes.data;
         if (sheet.questions) {
           let parsedQuestions = safeParseQuestions(sheet.questions);
