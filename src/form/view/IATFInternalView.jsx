@@ -217,8 +217,7 @@ const fetchSignatureAsImageUrl = async (userId, fullName) => {
       const checkSheetId = auditData.checkSheet?.id;
       if (checkSheetId) {
         try {
-          const sheetRes = await axios.get(`https://internalaudit.hub.swajyot.co.in:8090
-/api/templates/${checkSheetId}`, { withCredentials: true });
+          const sheetRes = await axios.get(`https://internalaudit.hub.swajyot.co.in:8090/api/templates/${checkSheetId}`, { withCredentials: true });
           const sheet = sheetRes.data;
           if (sheet.questions) {
             let parsedQuestions = safeParseQuestions(sheet.questions);
@@ -367,7 +366,7 @@ const handleDownloadPDF = async () => {
     setSubmitting(true);
     try {
       const API_URL = import.meta.env.VITE_API_URL || 'https://internalaudit.hub.swajyot.co.in:8090';
-      const response = await axios.put(`${API_URL}/api/templates/responses/${audit.id}/approve`, { signature: signatureToSave, comment: auditeeComment || 'No comments provided' }, {   headers: { 'X-Timezone': userTimezone },
+      const response = await axios.put(`${API_URL}/api/templates/responses/${audit.id}/approve`, { signature: signatureToSave, comment: auditeeComment || 'No comments provided' }, { 
 withCredentials: true });
       if (response.data) { addToast('✓ Audit approved successfully!', 'success'); await fetchAuditDetails(); }
     } catch (error) { addToast(`Failed to approve: ${error.response?.data?.message || error.message}`, 'error'); } 
