@@ -157,7 +157,7 @@ export default function FiveSAuditForm() {
     const fetchScheduleAuditeeInfo = async () => {
       if (scheduleId && !editId) {
         try {
-          const response = await axios.get(`${API_BASE}/audit-schedule/${scheduleId}`, {  headers: { 'X-Timezone': userTimezone },  // ✅ ADD THIS
+          const response = await axios.get(`${API_BASE}/audit-schedule/${scheduleId}`, {  
  withCredentials: true });
           const schedule = response.data;
           setAuditeeInfo({
@@ -189,7 +189,7 @@ export default function FiveSAuditForm() {
 
   const fetchFiveSCheckSheetIds = async () => {
     try {
-      const response = await axios.get(`${API_BASE}/templates/type/FIVE_S`, {   headers: { 'X-Timezone': userTimezone },  // ✅ ADD THIS
+      const response = await axios.get(`${API_BASE}/templates/type/FIVE_S`, {   
 withCredentials: true });
       const fiveSSheets = response.data || [];
       const ids = fiveSSheets.map(sheet => sheet.id);
@@ -207,7 +207,7 @@ withCredentials: true });
       const fiveSIds = await fetchFiveSCheckSheetIds();
       if (fiveSIds.length === 0) throw new Error('No 5S check sheets found in database');
       const checkSheetId = fiveSIds[0];
-      const response = await axios.get(`${API_BASE}/templates/${checkSheetId}`, {   headers: { 'X-Timezone': userTimezone },  // ✅ ADD THIS
+      const response = await axios.get(`${API_BASE}/templates/${checkSheetId}`, {   
 withCredentials: true });
       const checkSheet = response.data;
       setCurrentCheckSheet(checkSheet);
