@@ -63,31 +63,37 @@ const getCorrectTimeStatus = (audit, backendStatus) => {
         const fromDateStr = audit.fromDate;
         const toDateStr = audit.toDate;
         
-        if (todayStr >= fromDateStr && todayStr <= toDateStr) {
-            // Inside the date range - check time
-            const now = today;
-            const currentMinutes = now.getHours() * 60 + now.getMinutes();
-            const startTime = parseTime(audit.startTime);
-            const endTime = parseTime(audit.endTime);
-            const startMinutes = startTime.hours * 60 + startTime.minutes;
-            const endMinutes = endTime.hours * 60 + endTime.minutes;
-            
-            // If today is the last day, check if past end time
-            if (todayStr === toDateStr && currentMinutes > endMinutes) {
-                return 'EXPIRED';
-            }
-            
-            if (currentMinutes >= startMinutes && currentMinutes <= endMinutes) {
-                return 'ACTIVE';
-            } else if (currentMinutes < startMinutes) {
-                return 'UPCOMING';
-            } else {
-                return 'EXPIRED';
-            }
-        } else if (todayStr < fromDateStr) {
+        // ✅ If today is before fromDate
+        if (todayStr < fromDateStr) {
+            return 'UPCOMING';
+        }
+        
+        // ✅ If today is after toDate
+        if (todayStr > toDateStr) {
+            return 'EXPIRED';
+        }
+        
+        // ✅ Today is within the date range (fromDate <= today <= toDate)
+        const now = today;
+        const currentMinutes = now.getHours() * 60 + now.getMinutes();
+        const startTime = parseTime(audit.startTime);
+        const endTime = parseTime(audit.endTime);
+        const startMinutes = startTime.hours * 60 + startTime.minutes;
+        const endMinutes = endTime.hours * 60 + endTime.minutes;
+        
+        // ✅ If today is the last day, check if past end time
+        if (todayStr === toDateStr && currentMinutes > endMinutes) {
+            return 'EXPIRED';
+        }
+        
+        // ✅ Check if within working hours
+        if (currentMinutes >= startMinutes && currentMinutes <= endMinutes) {
+            return 'ACTIVE';
+        } else if (currentMinutes < startMinutes) {
             return 'UPCOMING';
         } else {
-            return 'EXPIRED';
+            // Past end time but still within date range - show as ACTIVE for multi-day audits
+            return 'ACTIVE';
         }
     }
     
@@ -136,6 +142,7 @@ const isAuditExpired = (audit) => {
     const scheduleDateStr = audit.scheduledDate;
     if (todayStr > scheduleDateStr) return true;
     
+    // For single day audits, check if past end time
     if (todayStr === scheduleDateStr && audit.endTime) {
         const now = today;
         const currentHours = now.getHours();
