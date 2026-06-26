@@ -355,16 +355,41 @@ export default function FiveSView() {
     });
   };
 
-  const formatDateTime = (dateString) => {
-    if (!dateString) return '—';
-    return new Date(dateString).toLocaleDateString('en-GB', {
+ // FIXED: 5S formatDateTime - Use IST consistently
+const formatDateTime = (dateString) => {
+  if (!dateString) return '—';
+  
+  try {
+    let date;
+    let dateStr = dateString.trim();
+    
+    if (dateStr.includes('T')) {
+      if (!dateStr.includes('Z') && !dateStr.includes('+')) {
+        dateStr = dateStr + 'Z';
+      }
+      date = new Date(dateStr);
+    } else if (dateStr.includes(' ')) {
+      date = new Date(dateStr.replace(' ', 'T') + 'Z');
+    } else {
+      date = new Date(dateStr);
+    }
+    
+    if (isNaN(date.getTime())) return '—';
+    
+    return date.toLocaleString('en-IN', {
+      timeZone: 'Asia/Kolkata',  // ✅ Always use IST
       day: '2-digit',
       month: '2-digit',
       year: 'numeric',
       hour: '2-digit',
-      minute: '2-digit'
+      minute: '2-digit',
+      hour12: true
     });
-  };
+  } catch (error) {
+    console.error('Date formatting error:', error);
+    return '—';
+  }
+};
 
   const getScoreColor = (score) => {
     if (score >= 80) return 'text-emerald-600';
@@ -373,49 +398,58 @@ export default function FiveSView() {
   };
 
   // PRESERVED EXACTLY
-  const handleDownloadPDF = async () => {
-    if (!audit || !audit.id) {
-      addToast('Audit data not available', 'error');
+ // FIXED: 5S handleDownloadPDF - Remove X-Timezone header, use query param
+const handleDownloadPDF = async () => {
+  if (!audit || !audit.id) {
+    addToast('Audit data not available', 'error');
+    return;
+  }
+
+  setDownloading(true);
+  try {
+    const API_URL = import.meta.env.VITE_API_URL || 'https://internalaudit.hub.swajyot.co.in:8090';
+    const responseId = audit.id;
+    const userTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+    
+    const endpoint = `${API_URL}/api/fives-audits/${responseId}/pdf`;
+    
+    const response = await axios({
+      method: 'get',
+      url: endpoint,
+      params: { timezone: userTimezone },  // ✅ Send as query param
+      responseType: 'blob',
+      headers: { 
+        'Accept': 'application/pdf'
+        // ❌ REMOVE: 'X-Timezone': userTimezone
+      },
+      withCredentials: true
+    });
+    
+    if (!response.data || response.data.size === 0) {
+      addToast('PDF generated but file is empty', 'error');
+      setDownloading(false);
       return;
     }
-
-    setDownloading(true);
-    try {
-      const API_URL = import.meta.env.VITE_API_URL || 'https://internalaudit.hub.swajyot.co.in:8090';
-      const responseId = audit.id;
-      
-      const endpoint = `${API_URL}/api/fives-audits/${responseId}/pdf`;
-      
-      const response = await axios({
-        method: 'get',
-        url: endpoint,
-        responseType: 'blob',
-        headers: { 'Accept': 'application/pdf',
-                'X-Timezone': userTimezone  // ✅ ADD THIS LINE
-
-         },
-        withCredentials: true
-      });
-      
-      const blob = new Blob([response.data], { type: 'application/pdf' });
-      const downloadUrl = window.URL.createObjectURL(blob);
-      const link = document.createElement('a');
-      link.href = downloadUrl;
-      link.setAttribute('download', `5S_Audit_Report_${responseId}.pdf`);
-      document.body.appendChild(link);
-      link.click();
-      link.remove();
-      window.URL.revokeObjectURL(downloadUrl);
-      
-      addToast('PDF downloaded successfully', 'success');
-      
-    } catch (error) {
-      console.error('Error downloading PDF:', error);
-      addToast(`Failed to download PDF: ${error.message}`, 'error');
-    } finally {
-      setDownloading(false);
-    }
-  };
+    
+    const blob = new Blob([response.data], { type: 'application/pdf' });
+    const downloadUrl = window.URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = downloadUrl;
+    link.setAttribute('download', `5S_Audit_Report_${responseId}.pdf`);
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    window.URL.revokeObjectURL(downloadUrl);
+    
+    addToast('PDF downloaded successfully', 'success');
+    
+  } catch (error) {
+    console.error('Error downloading PDF:', error);
+    addToast(`Failed to download PDF: ${error.message}`, 'error');
+  } finally {
+    setDownloading(false);
+  }
+};
 
   // PRESERVED EXACTLY - Blob to base64 conversion logic intact
   const handleApprove = async () => {
@@ -456,7 +490,6 @@ export default function FiveSView() {
           comment: auditeeComment || 'No comments provided'
         },
         { 
-                headers: { 'X-Timezone': userTimezone },  // ✅ ADD THIS
                 withCredentials: true }
       );
       
@@ -492,7 +525,6 @@ export default function FiveSView() {
         `${API_URL}/api/templates/responses/${audit.id}/reject`,
         { comment: auditeeComment },
         { 
-                headers: { 'X-Timezone': userTimezone },  // ✅ ADD THIS
                 withCredentials: true }
       );
       
