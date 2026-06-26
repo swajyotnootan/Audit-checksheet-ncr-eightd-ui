@@ -58,18 +58,24 @@ const getCorrectTimeStatus = (audit, backendStatus) => {
     const today = getTodayInIST();
     const todayStr = today.toISOString().split('T')[0];
     
-    const isDateRange = audit.fromDate && audit.toDate && audit.fromDate !== audit.toDate;
-    if (isDateRange) {
+    // ✅ FIRST: Check date range if available
+    if (audit.fromDate && audit.toDate && audit.fromDate !== audit.toDate) {
         const fromDateStr = audit.fromDate;
         const toDateStr = audit.toDate;
         
         if (todayStr >= fromDateStr && todayStr <= toDateStr) {
-            const now = today; // Already in IST
+            // Inside the date range - check time
+            const now = today;
             const currentMinutes = now.getHours() * 60 + now.getMinutes();
             const startTime = parseTime(audit.startTime);
             const endTime = parseTime(audit.endTime);
             const startMinutes = startTime.hours * 60 + startTime.minutes;
             const endMinutes = endTime.hours * 60 + endTime.minutes;
+            
+            // If today is the last day, check if past end time
+            if (todayStr === toDateStr && currentMinutes > endMinutes) {
+                return 'EXPIRED';
+            }
             
             if (currentMinutes >= startMinutes && currentMinutes <= endMinutes) {
                 return 'ACTIVE';
@@ -85,11 +91,12 @@ const getCorrectTimeStatus = (audit, backendStatus) => {
         }
     }
     
+    // ✅ SECOND: Fallback to single date (scheduledDate)
     const scheduleDateStr = audit.scheduledDate;
     if (!scheduleDateStr) return backendStatus;
     
     if (scheduleDateStr === todayStr) {
-        const now = today; // Already in IST
+        const now = today;
         const currentMinutes = now.getHours() * 60 + now.getMinutes();
         const startTime = parseTime(audit.startTime);
         const endTime = parseTime(audit.endTime);
@@ -116,19 +123,21 @@ const isAuditExpired = (audit) => {
     const today = getTodayInIST();
     const todayStr = today.toISOString().split('T')[0];
     
-    const isDateRange = audit.fromDate && audit.toDate && audit.fromDate !== audit.toDate;
-    if (isDateRange) {
+    // ✅ FIRST: Check date range if available
+    if (audit.fromDate && audit.toDate && audit.fromDate !== audit.toDate) {
         const toDateStr = audit.toDate;
+        // Only expired if today is AFTER the end date
         if (todayStr > toDateStr) return true;
         return false;
     }
     
+    // ✅ SECOND: Fallback to single date (scheduledDate)
     if (!audit?.scheduledDate) return false;
     const scheduleDateStr = audit.scheduledDate;
     if (todayStr > scheduleDateStr) return true;
     
     if (todayStr === scheduleDateStr && audit.endTime) {
-        const now = today; // Already in IST
+        const now = today;
         const currentHours = now.getHours();
         const currentMinutes = now.getMinutes();
         const endTime = parseTime(audit.endTime);
