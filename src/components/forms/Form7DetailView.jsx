@@ -96,12 +96,32 @@ const DetailRow = ({ label, value, multiline = false }) => (
 const formatLocalDateTime = (utcDateStr) => {
   if (!utcDateStr) return null;
   try {
-    const date = new Date(utcDateStr);
-    if (isNaN(date.getTime())) return null;
+    let date;
+    let dateStr = String(utcDateStr).trim();
     
-    // ✅ This automatically converts UTC to user's local timezone
-    // Using 'en-IN' for Indian format, but it will use the browser's timezone
+    // If already formatted (DD-MM-YYYY HH:mm)
+    if (dateStr.match(/^\d{2}-\d{2}-\d{4}\s+\d{2}:\d{2}/)) {
+      return dateStr;
+    }
+    
+    // Try parsing ISO format
+    if (dateStr.includes('T')) {
+      if (!dateStr.includes('Z') && !dateStr.includes('+')) {
+        dateStr = dateStr + 'Z';
+      }
+      date = new Date(dateStr);
+    } else if (dateStr.includes(' ')) {
+      date = new Date(dateStr.replace(' ', 'T') + 'Z');
+    } else {
+      date = new Date(dateStr);
+    }
+    
+    if (isNaN(date.getTime())) {
+      return String(utcDateStr);
+    }
+    
     return date.toLocaleString('en-IN', {
+      timeZone: 'Asia/Kolkata',  // ✅ Hardcoded IST
       day: '2-digit',
       month: 'short',
       year: 'numeric',
@@ -111,16 +131,11 @@ const formatLocalDateTime = (utcDateStr) => {
     });
   } catch (error) {
     console.error('Date formatting error:', error);
-    return null;
+    return String(utcDateStr);
   }
 };
 
-// ─────────────────────────────────────────────────────────────
-// SignatureField component with proper pending state
-// ─────────────────────────────────────────────────────────────
-// ─────────────────────────────────────────────────────────────
-// SignatureField component with timestamp support
-// ─────────────────────────────────────────────────────────────
+
 const SignatureField = ({ label, name, signature, pending = false, timestamp }) => {
   // timestamp is already formatted by formatLocalDateTime - use it directly
   return (
