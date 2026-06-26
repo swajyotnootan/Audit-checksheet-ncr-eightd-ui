@@ -122,10 +122,13 @@ export default function ForumThreadView({
 
   // Add this right after the component function declaration
 const isAuditForum = useMemo(() => {
-  // Check if this is an audit forum group (starts with AUDIT-)
+  // Check if this is an audit forum (starts with AUDIT-)
   const isAudit = groupId?.startsWith('AUDIT-') || groupId?.includes('_AUDIT_');
-  console.log('🔍 [FORUM] Audit forum detection:', { groupId, isAudit });
-  return isAudit;
+  // ✅ Check if this is an 8D forum (starts with 8D- or EVT- or contains 8D)
+  const is8D = groupId?.startsWith('8D-') || groupId?.startsWith('EVT-') || groupId?.includes('8D');
+  const result = isAudit || is8D;
+  console.log('🔍 [FORUM] Forum detection:', { groupId, isAudit, is8D, result });
+  return result;
 }, [groupId]);
 
 // Skip SFU for audit forums - create mock object
