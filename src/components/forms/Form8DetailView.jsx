@@ -663,7 +663,7 @@ export default function Form8DetailView() {
           className="px-5 py-2.5 text-sm font-medium text-white rounded-xl transition shadow-sm flex items-center gap-2"
           style={{ fontFamily, background: 'linear-gradient(135deg, #0ea5e9 50%, #3b82f6 100%)' }}
         >
-          <Eye size={16} /> View Form 7
+          <Eye size={16} /> View NCR1
         </button>
         {is8DRelated && (
           <button

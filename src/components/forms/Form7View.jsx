@@ -342,8 +342,7 @@ export default function Form7View() {
     setPdfDownloading(true);
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch(`https://internalaudit.hub.swajyot.co.in:8090
-/api/ncr/${id}/form7-pdf`, {
+      const response = await fetch(`https://internalaudit.hub.swajyot.co.in:8090/api/ncr/${id}/form7-pdf`, {
         headers: { Authorization: token ? `Bearer ${token}` : '' },
       });
       if (!response.ok) throw new Error('Failed to download Form 7 PDF');
@@ -410,7 +409,7 @@ export default function Form7View() {
             <div className="flex items-start gap-2 p-3 mb-5 border rounded-xl" style={{ backgroundColor: COLORS.bg, borderColor: COLORS.lighter }}>
               <Info size={16} style={{ color: COLORS.primary }} className="mt-0.5 flex-shrink-0" />
               <p className="text-xs" style={{ color: COLORS.dark }}>
-                The auditee will review and sign this NCR in <strong>Form 8 (Corrective Action Report)</strong>.
+                The auditee will review and sign this NCR.
               </p>
             </div>
 
@@ -596,7 +595,7 @@ export default function Form7View() {
                     <InputField 
                       label="Requirement / Clause numbers" 
                       type="textarea" 
-                      rows={2} 
+                      rows={3} 
                       value={formData.clauseNumbers} 
                       onChange={(v) => setValue('clauseNumbers', v)} 
                       placeholder="Clause numbers..." 
@@ -616,7 +615,7 @@ export default function Form7View() {
                     <InputField 
                       label="Objective evidence" 
                       type="textarea" 
-                      rows={2} 
+                      rows={3} 
                       value={formData.objectiveEvidence} 
                       onChange={(v) => setValue('objectiveEvidence', v)} 
                       placeholder="Purchase order number..." 
@@ -628,7 +627,7 @@ export default function Form7View() {
                   <InputField 
                     label="Statement of nonconformity" 
                     type="textarea" 
-                    rows={3} 
+                    rows={4} 
                     value={formData.statement} 
                     onChange={(v) => setValue('statement', v)} 
                     placeholder="Statement of nonconformity..." 

@@ -636,7 +636,7 @@ const Form3View = () => {
                   <span style={{ fontSize: 13, fontWeight: 600, color: '#065F46' }}>Approval Comment</span>
                 </div>
                 <p style={{ margin: '0 0 4px', fontSize: 14, color: T.textValue }}>{planInfo.approvalComments}</p>
-                {planInfo.approvedBy && <p style={{ margin: 0, fontSize: 12, color: T.textMuted }}>Approved by: ${planInfo.approvedBy} | Date: ${formatLocalDateTime(planInfo.approvedAt)}</p>}
+                {planInfo.approvedBy && <p style={{ margin: 0, fontSize: 12, color: T.textMuted }}>Approved by: {planInfo.approvedBy} | Date: {formatLocalDateTime(planInfo.approvedAt)}</p>}
               </div>
             )}
             {(rejectionReason || planInfo.rejectionReason) && planStatus === 'REJECTED' && (

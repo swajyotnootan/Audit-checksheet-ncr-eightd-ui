@@ -92,6 +92,29 @@ const DetailRow = ({ label, value, multiline = false }) => (
   </div>
 );
 
+// Add this helper function
+const formatLocalDateTime = (utcDateStr) => {
+  if (!utcDateStr) return null;
+  try {
+    const date = new Date(utcDateStr);
+    if (isNaN(date.getTime())) return null;
+    
+    // ✅ This automatically converts UTC to user's local timezone
+    // Using 'en-IN' for Indian format, but it will use the browser's timezone
+    return date.toLocaleString('en-IN', {
+      day: '2-digit',
+      month: 'short',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: true,
+    });
+  } catch (error) {
+    console.error('Date formatting error:', error);
+    return null;
+  }
+};
+
 // ─────────────────────────────────────────────────────────────
 // SignatureField component with proper pending state
 // ─────────────────────────────────────────────────────────────
@@ -602,18 +625,18 @@ const handleReject = () => {
 <FormSection title="✍️ Acknowledgement">
   <div className="grid gap-8 md:grid-cols-2">
     <SignatureField
-      label="Auditor Signature"
-      name={ncr.auditorName}
-      signature={finalAuditorSignature}
-      timestamp={ncr.createdAt || ncr.auditorSignedAt || null}
-    />
-    <SignatureField
-      label="Auditee Representative"
-      name={ncr.auditeeName}
-      signature={finalAuditeeSignature}
-      pending={!auditeeHasReviewed}
-      timestamp={auditeeHasReviewed ? (ncr.updatedAt || ncr.auditeeSignedAt || null) : null}
-    />
+  label="Auditor Signature"
+  name={ncr.auditorName}
+  signature={finalAuditorSignature}
+  timestamp={formatLocalDateTime(ncr.createdAt || ncr.auditorSignedAt)}  // ✅ UTC → Local
+/>
+<SignatureField
+  label="Auditee Representative"
+  name={ncr.auditeeName}
+  signature={finalAuditeeSignature}
+  pending={!auditeeHasReviewed}
+  timestamp={auditeeHasReviewed ? formatLocalDateTime(ncr.updatedAt || ncr.auditeeSignedAt) : null}  // ✅ UTC → Local
+/>
   </div>
 </FormSection>
 
@@ -653,7 +676,7 @@ const handleReject = () => {
     className="px-5 py-2.5 text-sm font-medium text-white bg-orange-500 rounded-xl hover:bg-orange-600 transition shadow-sm flex items-center gap-2"
     style={{ fontFamily ,  background: 'linear-gradient(135deg, #0ea5e9 50%, #3b82f6 100%)'}}
   >
-    <Eye size={16} /> View Form 8
+    <Eye size={16} /> View NCR2
   </button>
 )}
 

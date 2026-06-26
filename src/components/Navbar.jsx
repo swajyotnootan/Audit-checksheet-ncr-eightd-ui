@@ -190,7 +190,7 @@ const Navbar = ({ onLogout, children,rightLogo }) => {
                
                 {/* Actions */}
                 <div className="flex gap-2 px-4 py-3 border-t border-gray-100 bg-gray-50">
-                  <button
+                  {/* <button
                     className="flex-1 text-xs py-2 rounded-lg border border-gray-200 hover:bg-gray-100 transition-all duration-200 flex items-center justify-center gap-1.5"
                     onClick={() => {
                       setProfileOpen(false);
@@ -199,9 +199,9 @@ const Navbar = ({ onLogout, children,rightLogo }) => {
                   >
                     <UserCircle className="w-3.5 h-3.5" />
                     View Profile
-                  </button>
+                  </button> */}
                   <button
-                    className="text-xs py-2 px-4 rounded-lg bg-red-600 text-white hover:bg-red-700 transition-all duration-200 flex items-center justify-center gap-1.5"
+                    className="ml-40 text-xs py-2 px-4 rounded-lg bg-red-600 text-white hover:bg-red-700 transition-all duration-200 flex items-center justify-center gap-1.5"
                     onClick={() => { setProfileOpen(false); onLogout(); }}
                   >
                     <LogOut className="w-3.5 h-3.5" />
