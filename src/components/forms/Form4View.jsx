@@ -78,6 +78,7 @@ const formatLocalDateTime = (utcDateStr) => {
     let dateString = utcDateStr.trim();
     let date;
     
+    // Check if it's a valid date string
     if (dateString.includes('T')) {
       if (!dateString.includes('Z') && !dateString.includes('+')) {
         dateString = dateString + 'Z';
@@ -92,6 +93,7 @@ const formatLocalDateTime = (utcDateStr) => {
       date = new Date(dateString);
     }
     
+    // Check if date is valid
     if (isNaN(date.getTime())) {
       console.warn('Invalid date:', utcDateStr);
       return '-';
@@ -99,7 +101,7 @@ const formatLocalDateTime = (utcDateStr) => {
     
     // ✅ USE DYNAMIC TIMEZONE
     return date.toLocaleString('en-IN', {
-      timeZone: userTimezone,  // ✅ Dynamic - uses user's timezone
+      timeZone: userTimezone,
       day: '2-digit',
       month: '2-digit',
       year: 'numeric',
@@ -640,28 +642,61 @@ const Form4View = () => {
     } catch (error) { addToast(error.response?.data?.message || 'Failed to submit change request', 'error'); } finally { setSubmitting(false); }
   };
 
-  const handleDownloadPDF = async () => {
+ const handleDownloadPDF = async () => {
   try {
     setLoading(true);
-    // ✅ Send user timezone to backend
-    const response = await axios.get(`${API_BASE}/department-plan/${selectedYear}/download`, { 
-      headers: {
-        'X-Timezone': userTimezone  // ✅ Send timezone
-      },
-      withCredentials: true, 
-      responseType: 'blob' 
+    
+    // Get user timezone
+    const userTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+    
+    // Option 1: Send timezone as query parameter (more reliable)
+    const response = await axios.get(
+      `${API_BASE}/department-plan/${selectedYear}/download`,
+      {
+        params: { timezone: userTimezone }, // ✅ Send as query param instead of header
+        withCredentials: true,
+        responseType: 'blob'
+      }
+    );
+    
+    // Check if response has data
+    if (!response.data || response.data.size === 0) {
+      throw new Error('Empty response received');
+    }
+    
+    // Create blob with proper MIME type
+    const blob = new Blob([response.data], { 
+      type: response.headers['content-type'] || 'application/pdf' 
     });
-    const url = window.URL.createObjectURL(new Blob([response.data]));
+    
+    // Create download link
+    const url = window.URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.href = url;
     link.setAttribute('download', `Form4_Internal_Quality_Audit_Plan_${selectedYear}.pdf`);
     document.body.appendChild(link);
     link.click();
-    link.remove();
-    window.URL.revokeObjectURL(url);
+    
+    // Cleanup
+    setTimeout(() => {
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+    }, 100);
+    
     addToast('PDF downloaded successfully!', 'success');
   } catch (error) {
-    addToast('Failed to download PDF', 'error');
+    console.error('PDF Download Error:', error);
+    
+    // More specific error messages
+    if (error.response?.status === 404) {
+      addToast('PDF generation endpoint not found. Please check with administrator.', 'error');
+    } else if (error.response?.status === 500) {
+      addToast('Server error while generating PDF. Please try again later.', 'error');
+    } else if (error.code === 'ECONNABORTED') {
+      addToast('Request timed out. Please try again.', 'error');
+    } else {
+      addToast(error.response?.data?.message || 'Failed to download PDF. Please try again.', 'error');
+    }
   } finally {
     setLoading(false);
   }
