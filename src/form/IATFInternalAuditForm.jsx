@@ -201,7 +201,7 @@ const response = await axios.get(`${API_BASE}/audit-schedule/${scheduleId}`, {
   const loadSheetQuestions = async (sheet) => {
     setLoading(true);
     try {
-      const response = await axios.get(`${API_BASE}/templates/${sheet.id}`, {   headers: { 'X-Timezone': userTimezone },  // ✅ ADD THIS
+      const response = await axios.get(`${API_BASE}/templates/${sheet.id}`, {   
 withCredentials: true });
       const fullSheet = response.data;
       setCurrentCheckSheet(fullSheet);
