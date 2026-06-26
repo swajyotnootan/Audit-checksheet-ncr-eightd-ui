@@ -677,18 +677,64 @@ useEffect(() => {
  
   // Helper function to format date
  // Helper function to format date - FIXED for IST
+// Helper function to format date - FIXED for IST
 const formatDate = (timestamp) => {
   if (!timestamp) return 'Just now';
   
   try {
-    const date = new Date(timestamp);
-    // Check if date is valid
+    let dateStr = String(timestamp).trim();
+    let date;
+    
+    // If it's already formatted as DD-MM-YYYY HH:mm:ss
+    if (dateStr.match(/^\d{2}-\d{2}-\d{4}\s+\d{2}:\d{2}/)) {
+      // Return as-is - it's already formatted
+      return dateStr;
+    }
+    
+    // If it's a Unix timestamp (number)
+    if (!isNaN(dateStr) && dateStr.length <= 13) {
+      date = new Date(parseInt(dateStr));
+    } 
+    // Handle ISO format
+    else if (dateStr.includes('T')) {
+      if (!dateStr.includes('Z') && !dateStr.includes('+')) {
+        dateStr = dateStr + 'Z';
+      }
+      date = new Date(dateStr);
+    } 
+    // Handle format with space
+    else if (dateStr.includes(' ')) {
+      // Try parsing as "YYYY-MM-DD HH:mm:ss"
+      const parts = dateStr.split(' ');
+      if (parts[0].includes('-')) {
+        date = new Date(dateStr.replace(' ', 'T') + 'Z');
+      } else {
+        // Try parsing as "DD-MM-YYYY HH:mm:ss"
+        const dateParts = parts[0].split('-');
+        if (dateParts.length === 3) {
+          date = new Date(
+            parseInt(dateParts[2]), // year
+            parseInt(dateParts[1]) - 1, // month
+            parseInt(dateParts[0]), // day
+            parseInt(parts[1]?.split(':')[0] || 0),
+            parseInt(parts[1]?.split(':')[1] || 0)
+          );
+        } else {
+          date = new Date(dateStr);
+        }
+      }
+    } 
+    else {
+      date = new Date(dateStr);
+    }
+    
     if (isNaN(date.getTime())) {
-      return 'Invalid date';
+      console.warn('⚠️ Invalid date:', timestamp);
+      return String(timestamp);
     }
     
     return date.toLocaleString('en-IN', {
-      timeZone: 'Asia/Kolkata',  // ✅ Hardcode IST
+      timeZone: 'Asia/Kolkata',
       month: 'short',
       day: 'numeric',
       hour: 'numeric',
@@ -696,8 +742,8 @@ const formatDate = (timestamp) => {
       hour12: true
     });
   } catch (error) {
-    console.error('Date formatting error:', error);
-    return 'Invalid date';
+    console.error('❌ Date formatting error:', error);
+    return String(timestamp);
   }
 };
  
