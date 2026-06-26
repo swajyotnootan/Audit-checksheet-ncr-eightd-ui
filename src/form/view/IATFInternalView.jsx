@@ -268,25 +268,21 @@ const fetchSignatureAsImageUrl = async (userId, fullName) => {
     return new Date(dateString).toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' });
   };
 
- const formatLocalDateTime = (utcDateStr) => {
-  if (!utcDateStr) return '—';
+ const formatLocalDateTime = (dateString) => {
+  if (!dateString) return '—';
   
   try {
-    let dateString = utcDateStr.trim();
-    let date;
-    
-    if (dateString.includes('T')) {
-      if (!dateString.includes('Z') && !dateString.includes('+')) {
-        dateString = dateString + 'Z';
+    let date = new Date(dateString);
+    if (isNaN(date.getTime())) {
+      const cleaned = String(dateString).replace(' ', 'T');
+      date = new Date(cleaned);
+      if (isNaN(date.getTime())) {
+        if (String(dateString).match(/^\d{2}-\d{2}-\d{4}\s+\d{2}:\d{2}/)) {
+          return String(dateString);
+        }
+        return String(dateString);
       }
-      date = new Date(dateString);
-    } else if (dateString.includes(' ')) {
-      date = new Date(dateString.replace(' ', 'T') + 'Z');
-    } else {
-      date = new Date(dateString);
     }
-    
-    if (isNaN(date.getTime())) return '—';
     
     return date.toLocaleString('en-IN', {
       timeZone: 'Asia/Kolkata',
@@ -298,7 +294,8 @@ const fetchSignatureAsImageUrl = async (userId, fullName) => {
       hour12: true
     });
   } catch (error) {
-    return '—';
+    console.error('Date formatting error:', error);
+    return String(dateString);
   }
 };
 

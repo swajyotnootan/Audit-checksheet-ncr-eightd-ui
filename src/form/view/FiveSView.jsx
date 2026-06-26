@@ -346,73 +346,64 @@ export default function FiveSView() {
     }
   };
 
-  const formatDate = (dateString) => {
-    if (!dateString) return '—';
-    return new Date(dateString).toLocaleDateString('en-GB', {
+  // SIMPLIFIED AND FIXED: formatDate - Proper UTC to IST conversion
+const formatDate = (dateString) => {
+  if (!dateString) return '—';
+  
+  try {
+    let date = new Date(dateString);
+    
+    if (isNaN(date.getTime())) {
+      // Try alternative parsing
+      if (typeof dateString === 'string' && dateString.match(/^\d{2}-\d{2}-\d{4}/)) {
+        return dateString; // Already formatted
+      }
+      const cleaned = dateString.replace(' ', 'T');
+      date = new Date(cleaned);
+      if (isNaN(date.getTime())) {
+        return String(dateString);
+      }
+    }
+    
+    return date.toLocaleDateString('en-IN', {
+      timeZone: 'Asia/Kolkata',
       day: '2-digit',
       month: '2-digit',
       year: 'numeric'
     });
-  };
+  } catch (error) {
+    console.error('Date formatting error:', error);
+    return String(dateString);
+  }
+};
 
  // FIXED: 5S formatDateTime - Use IST consistently
 // FIXED: 5S formatDateTime - Handle all date formats properly
+// SIMPLIFIED AND FIXED: 5S formatDateTime - Proper UTC to IST conversion
 const formatDateTime = (dateString) => {
   if (!dateString) return '—';
   
   try {
-    let date;
-    let dateStr = String(dateString).trim();
+    let date = new Date(dateString);
     
-    // ✅ If it's already a formatted string (like from backend), parse it differently
-    if (dateStr.match(/^\d{2}-\d{2}-\d{4}\s+\d{2}:\d{2}/)) {
-      // Format: "26-06-2026 11:41" - already in IST format
-      return dateStr;
-    }
-    
-    // Handle ISO format with T
-    if (dateStr.includes('T')) {
-      if (!dateStr.includes('Z') && !dateStr.includes('+')) {
-        dateStr = dateStr + 'Z';
-      }
-      date = new Date(dateStr);
-    } 
-    // Handle format with space
-    else if (dateStr.includes(' ')) {
-      // Check if it's already in DD-MM-YYYY format
-      if (dateStr.match(/^\d{2}-\d{2}-\d{4}/)) {
-        const parts = dateStr.split(' ');
-        const dateParts = parts[0].split('-');
-        const timeParts = parts[1] ? parts[1].split(':') : ['00', '00'];
-        // Create date in IST directly
-        date = new Date(
-          parseInt(dateParts[2]), // year
-          parseInt(dateParts[1]) - 1, // month (0-indexed)
-          parseInt(dateParts[0]), // day
-          parseInt(timeParts[0] || 0),
-          parseInt(timeParts[1] || 0)
-        );
-        // Add 5:30 for IST offset if it's UTC
-        date = new Date(date.getTime() + (5.5 * 60 * 60 * 1000));
-      } else {
-        date = new Date(dateStr.replace(' ', 'T') + 'Z');
-      }
-    } 
-    // Handle timestamp or other formats
-    else if (!isNaN(dateStr)) {
-      date = new Date(parseInt(dateStr));
-    } 
-    else {
-      date = new Date(dateStr);
-    }
-    
-    // Check if date is valid
+    // If date is invalid, try alternative parsing
     if (isNaN(date.getTime())) {
-      console.warn('Invalid date:', dateString);
-      return String(dateString);
+      // Try to parse as "DD-MM-YYYY HH:mm" format
+      if (typeof dateString === 'string' && dateString.match(/^\d{2}-\d{2}-\d{4}\s+\d{2}:\d{2}/)) {
+        return dateString; // Already formatted
+      }
+      
+      // Try replacing space with T for ISO parsing
+      const cleaned = dateString.replace(' ', 'T');
+      date = new Date(cleaned);
+      
+      if (isNaN(date.getTime())) {
+        console.warn('Invalid date:', dateString);
+        return String(dateString);
+      }
     }
     
-    // ✅ Format in IST
+    // ✅ Convert to IST (Asia/Kolkata)
     return date.toLocaleString('en-IN', {
       timeZone: 'Asia/Kolkata',
       day: '2-digit',
