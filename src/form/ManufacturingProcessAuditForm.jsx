@@ -139,7 +139,6 @@ export default function ManufacturingProcessAuditForm() {
     setLoadingQuestions(true);
     try {
       const response = await axios.get(`${API_BASE}/templates/${MANUFACTURING_CHECK_SHEET_ID}`, {
-  headers: { 'X-Timezone': userTimezone },  // ✅ ADD THIS
   withCredentials: true
 });
       const checkSheet = response.data;
