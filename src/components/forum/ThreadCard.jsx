@@ -20,17 +20,47 @@ const API_BASE_URL = process.env.NODE_ENV === 'development'
   : 'https://internalaudit.hub.swajyot.co.in:8090';
  
 const formatTime = (dateString) => {
-  let date;
+  if (!dateString) return 'Invalid date';
+  
   try {
-    date = new Date(dateString);
-    if (isNaN(date.getTime())) {
-      throw new Error("Invalid date");
+    let date;
+    let dateStr = String(dateString).trim();
+    
+    // If already formatted
+    if (dateStr.match(/^\d{2}-\d{2}-\d{4}\s+\d{2}:\d{2}/)) {
+      // Extract time from already formatted string
+      const parts = dateStr.split(' ');
+      return parts[1] || dateStr;
     }
-  } catch (e) {
-    console.error("Failed to parse date:", dateString, e);
-    date = new Date();
+    
+    // Parse ISO format
+    if (dateStr.includes('T')) {
+      if (!dateStr.includes('Z') && !dateStr.includes('+')) {
+        dateStr = dateStr + 'Z';
+      }
+      date = new Date(dateStr);
+    } else if (dateStr.includes(' ')) {
+      date = new Date(dateStr.replace(' ', 'T') + 'Z');
+    } else {
+      date = new Date(dateStr);
+    }
+    
+    if (isNaN(date.getTime())) {
+      console.warn('Invalid date:', dateString);
+      return 'Invalid date';
+    }
+    
+    // ✅ Hardcode IST timezone (Asia/Kolkata)
+    return date.toLocaleTimeString('en-IN', {
+      timeZone: 'Asia/Kolkata',
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: true,
+    });
+  } catch (error) {
+    console.error('Date formatting error:', error);
+    return 'Invalid date';
   }
-  return date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
 };
  
 const formatFileSize = (bytes) => {
@@ -289,8 +319,16 @@ export default function ThreadCard({ thread, currentUsername, currentUser, onRet
         }
         const title = eventData?.title || "Event";
         const datetime = eventData?.datetime
-          ? new Date(eventData.datetime).toLocaleString()
-          : "No date";
+  ? new Date(eventData.datetime).toLocaleString('en-IN', {
+      timeZone: 'Asia/Kolkata',
+      day: '2-digit',
+      month: 'short',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: true,
+    })
+  : "No date";
         return (
           <div key={index} className="mt-2 p-2 bg-purple-50 rounded border">
             <Calendar size={14} className="inline mr-1" />
