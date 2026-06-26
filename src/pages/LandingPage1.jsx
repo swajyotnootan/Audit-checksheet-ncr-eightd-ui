@@ -48,6 +48,50 @@ import Drawer from "../components/Drawer";
 import ForumThreadView from "../components/forum/ForumThreadView";
 import { useAuth } from "../components/context/AuthContext";
 
+// Add this helper function at the top of the file
+const formatCreatedDate = (dateStr) => {
+  if (!dateStr) return "N/A";
+  try {
+    let date;
+    const trimmed = String(dateStr).trim();
+    
+    // If it's already formatted as DD-MM-YYYY HH:mm
+    if (trimmed.match(/^\d{2}-\d{2}-\d{4}\s+\d{2}:\d{2}/)) {
+      return trimmed;
+    }
+    
+    // Handle ISO format
+    if (trimmed.includes('T')) {
+      if (!trimmed.includes('Z') && !trimmed.includes('+')) {
+        date = new Date(trimmed + 'Z');
+      } else {
+        date = new Date(trimmed);
+      }
+    } else if (trimmed.includes(' ')) {
+      date = new Date(trimmed.replace(' ', 'T') + 'Z');
+    } else {
+      date = new Date(trimmed);
+    }
+    
+    if (isNaN(date.getTime())) {
+      return trimmed;
+    }
+    
+    return date.toLocaleString('en-IN', {
+      timeZone: 'Asia/Kolkata',
+      day: '2-digit', 
+      month: '2-digit', 
+      year: 'numeric', 
+      hour: '2-digit', 
+      minute: '2-digit',
+      hour12: true
+    });
+  } catch (error) {
+    console.error('Date formatting error:', error);
+    return String(dateStr);
+  }
+};
+
 const steps = ["D0", "D1", "D2", "D3", "D4", "D5", "D6", "D7", "D8"];
 
 // FIXED: Get the current step (last completed step)
@@ -458,15 +502,7 @@ export default function LandingPage1() {
         const currentStep = getCurrentStep(item);
         status = determineFunctionalStatus({ ...item, status, currentStep });
         
-        const created = item.createdAt ? new Date(item.createdAt).toLocaleString('en-IN', {
-  timeZone: 'Asia/Kolkata',  // ✅ Hardcode IST
-  day: '2-digit', 
-  month: '2-digit', 
-  year: 'numeric', 
-  hour: '2-digit', 
-  minute: '2-digit',
-  hour12: true
-}) : "N/A";
+        const created = item.createdAt ? formatCreatedDate(item.createdAt) : "N/A";
         
         const stepSummaryData = getStepSummary(item);
         let rejectionReason = item.rejectionComment || (item.content && item.content.rejectionComment) || null;
