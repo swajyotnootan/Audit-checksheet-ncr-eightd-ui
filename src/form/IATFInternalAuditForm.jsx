@@ -311,8 +311,10 @@ withCredentials: true });
   const loadAuditData = async () => {
     setLoading(true);
     try {
-      const response = await auditScheduleApi.getAuditResponse(parseInt(editId));
-      const audit = response.data;
+const response = await axios.get(`${API_BASE}/templates/responses/${editId}`, {
+  headers: { 'X-Timezone': userTimezone },
+  withCredentials: true
+});      const audit = response.data;
       if (audit) {
         setResponseId(audit.id);
         let answers = {};
