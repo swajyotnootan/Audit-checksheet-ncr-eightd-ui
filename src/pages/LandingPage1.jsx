@@ -458,9 +458,15 @@ export default function LandingPage1() {
         const currentStep = getCurrentStep(item);
         status = determineFunctionalStatus({ ...item, status, currentStep });
         
-        const created = item.createdAt ? new Date(item.createdAt).toLocaleDateString('en-GB', {
-          day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit'
-        }) : "N/A";
+        const created = item.createdAt ? new Date(item.createdAt).toLocaleString('en-IN', {
+  timeZone: 'Asia/Kolkata',  // ✅ Hardcode IST
+  day: '2-digit', 
+  month: '2-digit', 
+  year: 'numeric', 
+  hour: '2-digit', 
+  minute: '2-digit',
+  hour12: true
+}) : "N/A";
         
         const stepSummaryData = getStepSummary(item);
         let rejectionReason = item.rejectionComment || (item.content && item.content.rejectionComment) || null;
