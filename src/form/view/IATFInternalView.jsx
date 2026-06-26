@@ -305,8 +305,11 @@ const fetchSignatureAsImageUrl = async (userId, fullName) => {
 
 // Then replace all calls to formatDateTime with formatLocalDateTime
 
- const handleDownloadPDF = async () => {
-  if (!audit || !audit.id) { addToast('Audit data not available', 'error'); return; }
+const handleDownloadPDF = async () => {
+  if (!audit || !audit.id) { 
+    addToast('Audit data not available', 'error'); 
+    return; 
+  }
   setDownloading(true);
   try {
     const API_URL = import.meta.env.VITE_API_URL || 'https://internalaudit.hub.swajyot.co.in:8090';
@@ -316,18 +319,40 @@ const fetchSignatureAsImageUrl = async (userId, fullName) => {
       responseType: 'blob', 
       headers: { 
         'Accept': 'application/pdf'
-        // ❌ REMOVE: 'X-Timezone': userTimezone
       }, 
       withCredentials: true 
     });
-    // ... rest of code
+    
+    // ✅ Check if blob has content
+    if (!response.data || response.data.size === 0) {
+      addToast('PDF generated but file is empty', 'error');
+      setDownloading(false);
+      return;
+    }
+    
+    const blob = new Blob([response.data], { type: 'application/pdf' });
+    const downloadUrl = window.URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = downloadUrl;
+    link.setAttribute('download', `IATF_Audit_Report_${audit.id}.pdf`);
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    window.URL.revokeObjectURL(downloadUrl);
+    addToast('PDF downloaded successfully', 'success');
   } catch (error) { 
-    addToast(`Failed to download PDF: ${error.message}`, 'error'); 
+    console.error('PDF Download Error:', error);
+    if (error.response?.status === 404) {
+      addToast('Audit report not found', 'error');
+    } else if (error.response?.status === 500) {
+      addToast('Server error generating PDF. Please try again.', 'error');
+    } else {
+      addToast(`Failed to download PDF: ${error.message}`, 'error'); 
+    }
   } finally { 
     setDownloading(false); 
   }
 };
-
   const handleApprove = async () => {
     let signatureToSave = auditeeSignature;
     if (auditeeSignatureUrl && !auditeeSignatureUrl.startsWith('blob:')) signatureToSave = auditeeSignatureUrl;
