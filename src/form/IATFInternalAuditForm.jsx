@@ -178,7 +178,7 @@ const response = await axios.get(`${API_BASE}/audit-schedule/${scheduleId}`, {
     const deptUpper = department.toUpperCase().trim();
     if (deptUpper === 'QA/QC' || deptUpper === 'QC' || deptUpper === 'Q.C') {
       try {
-        const allFormsRes = await axios.get(`${API_BASE}/templates/type/IATF_16949`, {   headers: { 'X-Timezone': userTimezone },  // ✅ ADD THIS
+        const allFormsRes = await axios.get(`${API_BASE}/templates/type/IATF_16949`, {   
 withCredentials: true });
         const allForms = allFormsRes.data || [];
         return allForms.filter(form => form.department === 'QA');
