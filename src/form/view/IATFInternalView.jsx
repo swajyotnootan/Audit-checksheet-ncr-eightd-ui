@@ -119,25 +119,33 @@ export default function IATFInternalView() {
     };
   }, [id]);
 
-  const fetchSignatureAsImageUrl = async (userId, fullName) => {
-    try {
-      let response;
-      if (userId) {
-        response = await axios.get(`https://internalaudit.hub.swajyot.co.in:8090/api/users/${userId}/signature`, { responseType: 'blob', 
-           headers: { 'X-Timezone': userTimezone },  // ✅ ADD THIS
-           withCredentials: true });
-      } else if (fullName && fullName !== 'Not specified' && fullName !== 'N/A' && fullName !== 'Unknown') {
-        const nameParts = fullName.trim().split(' ', 2);
-        response = await axios.get('https://internalaudit.hub.swajyot.co.in:8090/api/users/signature', {
-          params: { firstName: nameParts[0], lastName: nameParts.length > 1 ? nameParts[1] : '' },
-          responseType: 'blob',   
-withCredentials: true
-        });
-      } else return null;
-      if (response.data && response.data.size > 0) return URL.createObjectURL(response.data);
-      return null;
-    } catch (error) { return null; }
-  };
+const fetchSignatureAsImageUrl = async (userId, fullName) => {
+  try {
+    let response;
+    if (userId) {
+      response = await axios.get(`https://internalaudit.hub.swajyot.co.in:8090/api/users/${userId}/signature`, { 
+        responseType: 'blob',
+        // ❌ REMOVE THIS LINE:
+        // headers: { 'X-Timezone': userTimezone },
+        withCredentials: true 
+      });
+    } else if (fullName && fullName !== 'Not specified' && fullName !== 'N/A' && fullName !== 'Unknown') {
+      const nameParts = fullName.trim().split(' ', 2);
+      response = await axios.get('https://internalaudit.hub.swajyot.co.in:8090/api/users/signature', {
+        params: { firstName: nameParts[0], lastName: nameParts.length > 1 ? nameParts[1] : '' },
+        responseType: 'blob',
+        // ❌ REMOVE THIS LINE:
+        // headers: { 'X-Timezone': userTimezone },
+        withCredentials: true
+      });
+    } else return null;
+    if (response.data && response.data.size > 0) return URL.createObjectURL(response.data);
+    return null;
+  } catch (error) { 
+    console.error('Error fetching signature:', error);
+    return null; 
+  }
+};
 
   const getSignatureFromBase64 = (base64String) => {
     if (base64String && (base64String.startsWith('data:image') || base64String.includes('base64'))) return base64String;
