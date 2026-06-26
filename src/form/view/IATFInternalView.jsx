@@ -304,6 +304,32 @@ const fetchSignatureAsImageUrl = async (userId, fullName) => {
 
 // Then replace all calls to formatDateTime with formatLocalDateTime
 
+// FIXED: Removed X-Timezone header
+const handleReject = async () => {
+  if (!auditeeComment.trim()) { 
+    addToast('Please provide a reason for rejection', 'error'); 
+    return; 
+  }
+  setSubmitting(true);
+  try {
+    const API_URL = import.meta.env.VITE_API_URL || 'https://internalaudit.hub.swajyot.co.in:8090';
+    const response = await axios.put(
+      `${API_URL}/api/templates/responses/${audit.id}/reject`, 
+      { comment: auditeeComment }, 
+      { withCredentials: true }  // ✅ No custom headers
+    );
+    if (response.data) { 
+      addToast('✗ Audit rejected.', 'warning'); 
+      await fetchAuditDetails(); 
+    }
+  } catch (error) { 
+    addToast(`Failed to reject: ${error.response?.data?.message || error.message}`, 'error'); 
+  } finally { 
+    setSubmitting(false); 
+  }
+};
+
+// FIXED: Added timezone as query parameter
 const handleDownloadPDF = async () => {
   if (!audit || !audit.id) { 
     addToast('Audit data not available', 'error'); 
@@ -312,9 +338,12 @@ const handleDownloadPDF = async () => {
   setDownloading(true);
   try {
     const API_URL = import.meta.env.VITE_API_URL || 'https://internalaudit.hub.swajyot.co.in:8090';
+    const userTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+    
     const response = await axios({ 
       method: 'get', 
-      url: `${API_URL}/api/iatf-audits/${audit.id}/pdf`, 
+      url: `${API_URL}/api/iatf-audits/${audit.id}/pdf`,
+      params: { timezone: userTimezone },  // ✅ Send as query param
       responseType: 'blob', 
       headers: { 
         'Accept': 'application/pdf'
@@ -322,7 +351,6 @@ const handleDownloadPDF = async () => {
       withCredentials: true 
     });
     
-    // ✅ Check if blob has content
     if (!response.data || response.data.size === 0) {
       addToast('PDF generated but file is empty', 'error');
       setDownloading(false);
@@ -373,17 +401,7 @@ withCredentials: true });
     finally { setSubmitting(false); }
   };
   
-  const handleReject = async () => {
-    if (!auditeeComment.trim()) { addToast('Please provide a reason for rejection', 'error'); return; }
-    setSubmitting(true);
-    try {
-      const API_URL = import.meta.env.VITE_API_URL || 'https://internalaudit.hub.swajyot.co.in:8090';
-      const response = await axios.put(`${API_URL}/api/templates/responses/${audit.id}/reject`, { comment: auditeeComment }, {   headers: { 'X-Timezone': userTimezone },
-withCredentials: true });
-      if (response.data) { addToast('✗ Audit rejected.', 'warning'); await fetchAuditDetails(); }
-    } catch (error) { addToast(`Failed to reject: ${error.response?.data?.message || error.message}`, 'error'); } 
-    finally { setSubmitting(false); }
-  };
+ 
 
   const responses = answers.responses || {};
   const observations = answers.observations || {};
