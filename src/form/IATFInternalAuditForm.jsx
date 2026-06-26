@@ -177,19 +177,26 @@ const response = await axios.get(`${API_BASE}/audit-schedule/${scheduleId}`, {
     if (!department) return [];
     const deptUpper = department.toUpperCase().trim();
     if (deptUpper === 'QA/QC' || deptUpper === 'QC' || deptUpper === 'Q.C') {
-      try {
-        const allFormsRes = await axios.get(`${API_BASE}/templates/type/IATF_16949`, {   
-withCredentials: true });
-        const allForms = allFormsRes.data || [];
-        return allForms.filter(form => form.department === 'QA');
-      } catch (error) { return []; }
+        try {
+            const allFormsRes = await axios.get(`${API_BASE}/templates/type/IATF_16949`, { 
+                // ✅ Remove X-Timezone from here
+                withCredentials: true 
+            });
+            const allForms = allFormsRes.data || [];
+            return allForms.filter(form => form.department === 'QA');
+        } catch (error) { return []; }
     }
     try {
-      const response = await axios.get(`${API_BASE}/templates/iatf/by-department/${encodeURIComponent(department)}`, {   headers: { 'X-Timezone': userTimezone },  // ✅ ADD THIS
-withCredentials: true });
-      return response.data || [];
+        const response = await axios.get(
+            `${API_BASE}/templates/iatf/by-department/${encodeURIComponent(department)}`, 
+            { 
+                // ✅ Remove X-Timezone header (GET request doesn't need it)
+                withCredentials: true 
+            }
+        );
+        return response.data || [];
     } catch (error) { return []; }
-  };
+};
 
   const loadSheetQuestions = async (sheet) => {
     setLoading(true);
