@@ -77,7 +77,6 @@ export default function ManufacturingProcessView() {
     if (userId) {
       response = await axios.get(`https://internalaudit.hub.swajyot.co.in:8090/api/users/${userId}/signature`, { 
         responseType: 'blob', 
-        headers: { 'X-Timezone': userTimezone },  // ✅ ADD THIS
         withCredentials: true 
       });
     } else if (fullName && fullName !== 'Not specified' && fullName !== 'N/A' && fullName !== 'Unknown') {
@@ -85,7 +84,6 @@ export default function ManufacturingProcessView() {
       response = await axios.get('https://internalaudit.hub.swajyot.co.in:8090/api/users/signature', {
         params: { firstName: nameParts[0], lastName: nameParts.length > 1 ? nameParts[1] : '' },
         responseType: 'blob', 
-        headers: { 'X-Timezone': userTimezone },  // ✅ ADD THIS
         withCredentials: true
       });
     } else return null;
@@ -270,7 +268,7 @@ const formatLocalDateTime = (utcDateStr) => {
     setSubmitting(true);
     try {
       const API_URL = import.meta.env.VITE_API_URL || 'https://internalaudit.hub.swajyot.co.in:8090';
-      const response = await axios.put(`${API_URL}/api/templates/responses/${audit.id}/approve`, { signature: signatureToSave, comment: auditeeComment || 'No comments provided' }, {       headers: { 'X-Timezone': userTimezone },  // ✅ ADD THIS
+      const response = await axios.put(`${API_URL}/api/templates/responses/${audit.id}/approve`, { signature: signatureToSave, comment: auditeeComment || 'No comments provided' }, {  
 withCredentials: true });
       if (response.data) { addToast('✓ Audit approved successfully!', 'success'); await fetchAuditDetails(); }
     } catch (error) { addToast(`Failed to approve: ${error.response?.data?.message || error.message}`, 'error'); } 
@@ -282,7 +280,7 @@ withCredentials: true });
     setSubmitting(true);
     try {
       const API_URL = import.meta.env.VITE_API_URL || 'https://internalaudit.hub.swajyot.co.in:8090';
-      const response = await axios.put(`${API_URL}/api/templates/responses/${audit.id}/reject`, { comment: auditeeComment }, {      headers: { 'X-Timezone': userTimezone },  // ✅ ADD THIS
+      const response = await axios.put(`${API_URL}/api/templates/responses/${audit.id}/reject`, { comment: auditeeComment }, { 
  withCredentials: true });
       if (response.data) { addToast('✗ Audit rejected.', 'warning'); await fetchAuditDetails(); }
     } catch (error) { addToast(`Failed to reject: ${error.response?.data?.message || error.message}`, 'error'); } 
