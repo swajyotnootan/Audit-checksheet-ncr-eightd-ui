@@ -260,46 +260,46 @@ const getViewRoute = (audit) => {
     return `/fives-view`;
 };
 
-const isAuditExpired = (audit) => {
-    if (!audit || audit.status === 'COMPLETED') return false;
+// const isAuditExpired = (audit) => {
+//     if (!audit || audit.status === 'COMPLETED') return false;
     
-    const today = new Date();
-    const todayStr = today.toISOString().split('T')[0];  // "2026-06-26"
+//     const today = new Date();
+//     const todayStr = today.toISOString().split('T')[0];  // "2026-06-26"
     
-    const isDateRange = audit.fromDate && audit.toDate && audit.fromDate !== audit.toDate;
-    if (isDateRange) {
-        const toDateStr = audit.toDate;  // Already in "YYYY-MM-DD" format
-        // ✅ Compare strings directly
-        if (todayStr > toDateStr) return true;
-        return false;
-    }
+//     const isDateRange = audit.fromDate && audit.toDate && audit.fromDate !== audit.toDate;
+//     if (isDateRange) {
+//         const toDateStr = audit.toDate;  // Already in "YYYY-MM-DD" format
+//         // ✅ Compare strings directly
+//         if (todayStr > toDateStr) return true;
+//         return false;
+//     }
     
-    if (!audit?.scheduledDate) return false;
-    const scheduleDateStr = audit.scheduledDate;  // Already in "YYYY-MM-DD" format
-    if (todayStr > scheduleDateStr) return true;
+//     if (!audit?.scheduledDate) return false;
+//     const scheduleDateStr = audit.scheduledDate;  // Already in "YYYY-MM-DD" format
+//     if (todayStr > scheduleDateStr) return true;
     
-    // ✅ Only check time if it's the same day AND endTime exists
-    if (todayStr === scheduleDateStr && audit.endTime) {
-        const now = new Date();
-        const currentHours = now.getHours();
-        const currentMinutes = now.getMinutes();
-        const parseTime = (timeStr) => {
-            const match = timeStr.match(/(\d+):(\d+)\s*(AM|PM)/i);
-            if (!match) return { hours: 23, minutes: 59 };
-            let hours = parseInt(match[1]);
-            const minutes = parseInt(match[2]);
-            const meridian = match[3].toUpperCase();
-            if (meridian === 'PM' && hours !== 12) hours += 12;
-            if (meridian === 'AM' && hours === 12) hours = 0;
-            return { hours, minutes };
-        };
-        const endTime = parseTime(audit.endTime);
-        const currentTimeMinutes = (currentHours * 60) + currentMinutes;
-        const endTimeMinutes = (endTime.hours * 60) + endTime.minutes;
-        if (currentTimeMinutes > endTimeMinutes) return true;
-    }
-    return false;
-};
+//     // ✅ Only check time if it's the same day AND endTime exists
+//     if (todayStr === scheduleDateStr && audit.endTime) {
+//         const now = new Date();
+//         const currentHours = now.getHours();
+//         const currentMinutes = now.getMinutes();
+//         const parseTime = (timeStr) => {
+//             const match = timeStr.match(/(\d+):(\d+)\s*(AM|PM)/i);
+//             if (!match) return { hours: 23, minutes: 59 };
+//             let hours = parseInt(match[1]);
+//             const minutes = parseInt(match[2]);
+//             const meridian = match[3].toUpperCase();
+//             if (meridian === 'PM' && hours !== 12) hours += 12;
+//             if (meridian === 'AM' && hours === 12) hours = 0;
+//             return { hours, minutes };
+//         };
+//         const endTime = parseTime(audit.endTime);
+//         const currentTimeMinutes = (currentHours * 60) + currentMinutes;
+//         const endTimeMinutes = (endTime.hours * 60) + endTime.minutes;
+//         if (currentTimeMinutes > endTimeMinutes) return true;
+//     }
+//     return false;
+// };
 
 const parseResponseAnswers = (r) => {
     try { return typeof r.answers === 'string' ? JSON.parse(r.answers || '{}') : (r.answers || {}); }
