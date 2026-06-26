@@ -24,6 +24,18 @@ const TIME_OPTIONS = [
 // TIME STATUS HELPER (Fixes UTC vs IST issue)
 // ============================================================================
 
+// Add this helper at the top
+const getTodayInIST = () => {
+    const now = new Date();
+    // Convert to IST
+    return new Date(now.toLocaleString('en-US', { timeZone: 'Asia/Kolkata' }));
+};
+
+const getTodayStrIST = () => {
+    return getTodayInIST().toISOString().split('T')[0];
+};
+
+// Updated parseTime - already correct
 const parseTime = (timeStr) => {
     if (!timeStr) return { hours: 9, minutes: 0 };
     const match = timeStr.match(/(\d+):(\d+)\s*(AM|PM)/i);
@@ -39,23 +51,20 @@ const parseTime = (timeStr) => {
 const getCorrectTimeStatus = (audit, backendStatus) => {
     if (!audit) return backendStatus;
     
-    // Don't override if already completed or has pending requests
     if (audit.allFormsCompleted) return 'COMPLETED';
     if (audit.rescheduleRequested || audit.extensionRequested) return backendStatus;
     
-    const today = new Date();
+    // ✅ Use IST date
+    const today = getTodayInIST();
     const todayStr = today.toISOString().split('T')[0];
     
-    // Handle date range audits
     const isDateRange = audit.fromDate && audit.toDate && audit.fromDate !== audit.toDate;
     if (isDateRange) {
         const fromDateStr = audit.fromDate;
         const toDateStr = audit.toDate;
         
-        // ✅ String comparison
         if (todayStr >= fromDateStr && todayStr <= toDateStr) {
-            // Check time only if today is within the range
-            const now = new Date();
+            const now = today; // Already in IST
             const currentMinutes = now.getHours() * 60 + now.getMinutes();
             const startTime = parseTime(audit.startTime);
             const endTime = parseTime(audit.endTime);
@@ -76,13 +85,11 @@ const getCorrectTimeStatus = (audit, backendStatus) => {
         }
     }
     
-    // Single day audit
     const scheduleDateStr = audit.scheduledDate;
     if (!scheduleDateStr) return backendStatus;
     
-    // ✅ String comparison
     if (scheduleDateStr === todayStr) {
-        const now = new Date();
+        const now = today; // Already in IST
         const currentMinutes = now.getHours() * 60 + now.getMinutes();
         const startTime = parseTime(audit.startTime);
         const endTime = parseTime(audit.endTime);
@@ -101,6 +108,35 @@ const getCorrectTimeStatus = (audit, backendStatus) => {
     } else {
         return 'EXPIRED';
     }
+};
+
+const isAuditExpired = (audit) => {
+    if (!audit || audit.status === 'COMPLETED') return false;
+    
+    const today = getTodayInIST();
+    const todayStr = today.toISOString().split('T')[0];
+    
+    const isDateRange = audit.fromDate && audit.toDate && audit.fromDate !== audit.toDate;
+    if (isDateRange) {
+        const toDateStr = audit.toDate;
+        if (todayStr > toDateStr) return true;
+        return false;
+    }
+    
+    if (!audit?.scheduledDate) return false;
+    const scheduleDateStr = audit.scheduledDate;
+    if (todayStr > scheduleDateStr) return true;
+    
+    if (todayStr === scheduleDateStr && audit.endTime) {
+        const now = today; // Already in IST
+        const currentHours = now.getHours();
+        const currentMinutes = now.getMinutes();
+        const endTime = parseTime(audit.endTime);
+        const currentTimeMinutes = (currentHours * 60) + currentMinutes;
+        const endTimeMinutes = (endTime.hours * 60) + endTime.minutes;
+        if (currentTimeMinutes > endTimeMinutes) return true;
+    }
+    return false;
 };
 // ============================================================================
 // COLOR PALETTE & ANIMATIONS (Matching Audit Manager Dashboard)
