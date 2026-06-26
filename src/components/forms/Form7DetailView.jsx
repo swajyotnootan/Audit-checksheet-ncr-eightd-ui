@@ -122,17 +122,7 @@ const formatLocalDateTime = (utcDateStr) => {
 // SignatureField component with timestamp support
 // ─────────────────────────────────────────────────────────────
 const SignatureField = ({ label, name, signature, pending = false, timestamp }) => {
-  const formattedTimestamp = timestamp
-    ? new Date(timestamp).toLocaleString('en-IN', {
-        day: '2-digit',
-        month: 'short',
-        year: 'numeric',
-        hour: '2-digit',
-        minute: '2-digit',
-        hour12: true,
-      })
-    : null;
-
+  // timestamp is already formatted by formatLocalDateTime - use it directly
   return (
     <div className="text-center">
       <p className="mb-2 text-xs font-semibold tracking-wider text-gray-600 uppercase" style={{ fontFamily }}>
@@ -154,10 +144,10 @@ const SignatureField = ({ label, name, signature, pending = false, timestamp }) 
 
       <p className="mt-2 text-xs font-medium text-gray-500" style={{ fontFamily }}>{name || '—'}</p>
 
-      {formattedTimestamp && (
+      {timestamp && (
         <p className="flex items-center justify-center gap-1 mt-1 text-xs text-gray-400" style={{ fontFamily }}>
           <Clock size={11} />
-          {formattedTimestamp}
+          {timestamp}
         </p>
       )}
     </div>
