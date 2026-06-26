@@ -676,17 +676,30 @@ useEffect(() => {
   };
  
   // Helper function to format date
-  const formatDate = (timestamp) => {
-    if (!timestamp) return 'Just now';
+ // Helper function to format date - FIXED for IST
+const formatDate = (timestamp) => {
+  if (!timestamp) return 'Just now';
+  
+  try {
     const date = new Date(timestamp);
-    return date.toLocaleString('en-US', {
+    // Check if date is valid
+    if (isNaN(date.getTime())) {
+      return 'Invalid date';
+    }
+    
+    return date.toLocaleString('en-IN', {
+      timeZone: 'Asia/Kolkata',  // ✅ Hardcode IST
       month: 'short',
       day: 'numeric',
       hour: 'numeric',
       minute: '2-digit',
       hour12: true
     });
-  };
+  } catch (error) {
+    console.error('Date formatting error:', error);
+    return 'Invalid date';
+  }
+};
  
   // Determine action text based on notification title
   const getActionText = (title) => {
