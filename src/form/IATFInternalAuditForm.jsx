@@ -319,7 +319,6 @@ withCredentials: true });
     setLoading(true);
     try {
 const response = await axios.get(`${API_BASE}/templates/responses/${editId}`, {
-  headers: { 'X-Timezone': userTimezone },
   withCredentials: true
 });      const audit = response.data;
       if (audit) {

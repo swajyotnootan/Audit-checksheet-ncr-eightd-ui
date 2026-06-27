@@ -1043,7 +1043,7 @@ const formatDate = (timestamp) => {
  
   // Toast Container
   const ToastContainer = () => (
-    <div className="fixed z-[99999] max-w-sm space-y-2 bottom-4 right-4">
+    <div className="fixed z-50 max-w-sm space-y-2 bottom-4 right-4">
       <AnimatePresence>
         {toasts.map((toast) => (
           <motion.div
