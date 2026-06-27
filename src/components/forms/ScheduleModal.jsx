@@ -461,7 +461,7 @@ const ScheduleModal = ({
         position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
         background: 'rgba(15, 23, 42, 0.3)', backdropFilter: 'blur(4px)',
         display: 'flex', alignItems: 'center', justifyContent: 'center',
-        zIndex: 999, padding: 20, fontFamily: FONT_FAMILY
+        zIndex: 100, padding: 20, fontFamily: FONT_FAMILY
       }}
     >
       <div 
