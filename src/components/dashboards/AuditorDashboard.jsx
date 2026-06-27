@@ -81,12 +81,8 @@ const getCorrectTimeStatus = (audit, backendStatus) => {
         const startMinutes = startTime.hours * 60 + startTime.minutes;
         const endMinutes = endTime.hours * 60 + endTime.minutes;
         
-        // ✅ CRITICAL FIX: Check if today is the last day and past end time
+        // ✅ If today is the last day, check if past end time
         if (todayStr === toDateStr && currentMinutes > endMinutes) {
-            // If there are pending forms, return EXPIRED to show extension option
-            if (audit.pendingForms > 0) {
-                return 'EXPIRED';
-            }
             return 'EXPIRED';
         }
         
@@ -96,7 +92,7 @@ const getCorrectTimeStatus = (audit, backendStatus) => {
         } else if (currentMinutes < startMinutes) {
             return 'UPCOMING';
         } else {
-            // Past end time but still within date range (before last day)
+            // Past end time but still within date range - show as ACTIVE for multi-day audits
             return 'ACTIVE';
         }
     }
