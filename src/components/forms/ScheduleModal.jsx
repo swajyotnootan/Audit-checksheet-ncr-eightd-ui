@@ -182,7 +182,7 @@ const MultiSelectDropdown = ({
           position: 'absolute', top: 'calc(100% + 4px)', left: 0, right: 0,
           background: T.card, border: `1px solid ${T.border}`, borderRadius: 8,
           boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.05), 0 4px 6px -2px rgba(0, 0, 0, 0.025)',
-          zIndex: 99999, overflow: 'hidden', fontFamily: FONT_FAMILY
+          zIndex: 50, overflow: 'hidden', fontFamily: FONT_FAMILY
         }}>
           <div style={{ padding: 10, borderBottom: `1px solid ${T.border}`, display: 'flex', gap: 8, alignItems: 'center', background: '#FAFAFA' }}>
             <div style={{ flex: 1, position: 'relative' }}>
@@ -461,7 +461,7 @@ const ScheduleModal = ({
         position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
         background: 'rgba(15, 23, 42, 0.3)', backdropFilter: 'blur(4px)',
         display: 'flex', alignItems: 'center', justifyContent: 'center',
-        zIndex: 100, padding: 20, fontFamily: FONT_FAMILY
+        zIndex: 1000, padding: 20, fontFamily: FONT_FAMILY
       }}
     >
       <div 
