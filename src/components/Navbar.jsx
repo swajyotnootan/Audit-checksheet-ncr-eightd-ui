@@ -86,7 +86,7 @@ const Navbar = ({ onLogout, children,rightLogo }) => {
 )}
                           
             <Link to="/" className="flex justify-center">
-              <img alt="qsutra logo" className="h-8 mr-6 w-23" src={logo} />
+              <img alt="qsutra logo" className="h-6 mr-6 w-23" src={logo} />
             </Link>
             {showBackButton && (
               <button
