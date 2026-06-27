@@ -182,7 +182,7 @@ const MultiSelectDropdown = ({
           position: 'absolute', top: 'calc(100% + 4px)', left: 0, right: 0,
           background: T.card, border: `1px solid ${T.border}`, borderRadius: 8,
           boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.05), 0 4px 6px -2px rgba(0, 0, 0, 0.025)',
-          zIndex: 50, overflow: 'hidden', fontFamily: FONT_FAMILY
+          zIndex: 99999, overflow: 'hidden', fontFamily: FONT_FAMILY
         }}>
           <div style={{ padding: 10, borderBottom: `1px solid ${T.border}`, display: 'flex', gap: 8, alignItems: 'center', background: '#FAFAFA' }}>
             <div style={{ flex: 1, position: 'relative' }}>
