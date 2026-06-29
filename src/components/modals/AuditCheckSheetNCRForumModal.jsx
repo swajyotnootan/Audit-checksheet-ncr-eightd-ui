@@ -606,7 +606,7 @@ useEffect(() => {
       
       {/* Drawer - Right Side */}
       <motion.div
-        className="fixed top-0 right-0 h-full z-[99] bg-white shadow-2xl w-[90vw] md:w-[60vw] lg:w-[50vw] flex flex-col"
+        className="fixed top-0 right-0 h-full z-[99] bg-white shadow-2xl w-[90vw] md:w-[40vw] lg:w-[30vw] flex flex-col"
         initial={{ x: '100%' }}
         animate={{ x: 0 }}
         exit={{ x: '100%' }}
