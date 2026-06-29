@@ -633,14 +633,26 @@ export default function LandingPage1() {
   }, [events]);
 
   const scopedEvents = useMemo(() => {
-    if (dashboardType === "fresh") {
-      return events.filter((event) => !event.isNcrBased);
-    }
-    if (dashboardType === "ncr") {
-      return events.filter((event) => event.isNcrBased);
-    }
-    return events;
-  }, [dashboardType, events]);
+  if (dashboardType === "fresh") {
+    return events.filter((event) => !event.isNcrBased);
+  }
+  
+  if (dashboardType === "ncr") {
+    return events.filter((event) => {
+      if (!event.isNcrBased) return false;
+      
+      // ✅ If HOD, only show if status is NOT draft/open/initiated
+      if (isHOD) {
+        const draftStatuses = ['Draft', 'Open', 'Initiated', 'draft', 'open', 'initiated'];
+        return !draftStatuses.includes(event.status);
+      }
+      
+      return true;
+    });
+  }
+  
+  return events;
+}, [dashboardType, events, isHOD]);
 
   const scopedApprovalPendingEvents = useMemo(() => {
     return scopedEvents.filter((event) => event.status === "Approval Pending");
