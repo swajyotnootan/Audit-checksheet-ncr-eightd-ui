@@ -632,31 +632,15 @@ export default function LandingPage1() {
     return events.filter(event => event.status === "Approval Pending");
   }, [events]);
 
- // Modify the scopedEvents useMemo to check status for NCR-based events
-const scopedEvents = useMemo(() => {
-  let filteredEvents = events;
-  
-  if (dashboardType === "fresh") {
-    filteredEvents = events.filter((event) => !event.isNcrBased);
-  } else if (dashboardType === "ncr") {
-    // ✅ FIX: Only show NCR-based events that are NOT in draft/initiated/open status
-    filteredEvents = events.filter((event) => {
-      if (!event.isNcrBased) return false;
-      
-      // ✅ Hide events that are still in draft/initiated/open state
-      const draftStatuses = ['Draft', 'Open', 'Initiated', 'draft', 'open', 'initiated'];
-      const status = event.status || '';
-      const isDraft = draftStatuses.some(s => status.toLowerCase() === s.toLowerCase());
-      
-      // Only show if NOT a draft (i.e., submitted)
-      return !isDraft;
-    });
-  } else {
-    filteredEvents = events;
-  }
-  
-  return filteredEvents;
-}, [dashboardType, events]);
+  const scopedEvents = useMemo(() => {
+    if (dashboardType === "fresh") {
+      return events.filter((event) => !event.isNcrBased);
+    }
+    if (dashboardType === "ncr") {
+      return events.filter((event) => event.isNcrBased);
+    }
+    return events;
+  }, [dashboardType, events]);
 
   const scopedApprovalPendingEvents = useMemo(() => {
     return scopedEvents.filter((event) => event.status === "Approval Pending");
