@@ -1439,7 +1439,7 @@ export default function LandingPage1() {
   isOpen={forumDrawerOpen}
   onClose={() => setForumDrawerOpen(false)}
   title="Discussion Forum"
-  className="w-[90vw] md:w-[50vw] lg:w-[40vw]"
+  className="w-[90vw] md:w-[40vw] lg:w-[30vw]"
   showHeader={false}
 >
   {selectedGroupId && (

@@ -281,7 +281,7 @@ export default function ChatDrawer({ isOpen, onClose, user, username }) {
       
       {/* Chat Drawer - positioned below navbar */}
       <div 
-className="fixed top-0 right-0 h-full z-[99] bg-gray-50 shadow-lg w-[85vw] md:w-[40vw] lg:w-[30vw]"
+className="fixed top-0 right-0 h-full z-[99] bg-gray-50 shadow-lg w-[90vw] md:w-[40vw] lg:w-[30vw]"
         style={{ marginTop: '-0px', height: 'calc(100vh - 0px)' }}
         onClick={(e) => e.stopPropagation()}
       >
